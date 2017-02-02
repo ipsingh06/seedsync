@@ -1,0 +1,16 @@
+[SSHConfig]
+address=aether.feralhosting.com
+username=canucksdesi
+downloadfrompath=/media/sdn1/home/canucksdesi/private/rtorrent/data
+downloadtopath=/media/someone/WD/Videos/temp
+localusername=someone
+
+[LFTPConfig]
+parallel=4
+use_pget_n=4
+
+[TimeParameters]
+mindownloadinginterval=1000
+minlocalinterval=10000
+minfullinterval=60000
+watchdoginterval=10000

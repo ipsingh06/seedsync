@@ -1,0 +1,1 @@
+Config path is ~/.pyLFTPdaemon
