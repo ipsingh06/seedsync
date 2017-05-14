@@ -18,6 +18,10 @@ from pwd import getpwnam
 import web
 from daemon import runner
 
+_CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+_HTML_DIR = os.path.join(_CURRENT_DIR, "../html")
+
+
 debugMode = True  # Set's various print out options
 homeDir = "/home/someone"  # for reading config file
 webServerPort = '88'  # Port for web server
@@ -33,7 +37,7 @@ urls = (
 class static:
     def GET(self, file):
         try:
-            f = open(os.path.dirname(os.path.realpath(__file__)) + '/files/' + file, 'r')
+            f = open(_HTML_DIR + '/files/' + file, 'r')
             return f.read()
         except:
             return web.notfound()
@@ -114,7 +118,7 @@ class json:
 
 class index:
     def GET(self):
-        index = web.template.frender(os.path.dirname(os.path.realpath(__file__)) + '/index.html')
+        index = web.template.frender(_HTML_DIR + '/index.html')
         return index()
 
 
