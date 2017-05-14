@@ -18,7 +18,7 @@ from pwd import getpwnam
 import web
 from daemon import runner
 
-debugMode = False  # Set's various print out options
+debugMode = True  # Set's various print out options
 homeDir = "/home/someone"  # for reading config file
 webServerPort = '88'  # Port for web server
 
