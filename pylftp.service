@@ -1,0 +1,17 @@
+# pylftp service
+
+[Unit]
+Description=Job that runs the pylftp daemon
+
+[Service]
+Type=simple
+Environment="LOG_DIR=/var/log/pylftp"
+Environment="RUN_DIR=/var/run/pylftp"
+WorkingDirectory=/var/lib/pylftp
+ExecStartPre=/bin/mkdir -p ${LOG_DIR}
+ExecStartPre=/bin/mkdir -p ${RUN_DIR}
+ExecStart=/usr/bin/python3 /var/lib/pylftp/pylftpd.py --logdir=${LOG_DIR}
+ExecStopPost=/bin/rm -rf ${RUN_DIR}
+
+[Install]
+WantedBy=multi-user.target
