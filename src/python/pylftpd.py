@@ -6,6 +6,11 @@ import logging
 import sys
 import argparse
 
+# my libs
+from common import PylftpContext
+from pylftp import Pylftp
+from web_app import WebApp
+
 
 class ServiceExit(Exception):
     """
@@ -31,38 +36,59 @@ class Pylftpd:
         args = parser.parse_args()
 
         # Logger setup
-        self.logger = logging.getLogger(Pylftpd._SERVICE_NAME)
+        logger = logging.getLogger(Pylftpd._SERVICE_NAME)
         if args.debug:
-            self.logger.setLevel(logging.DEBUG)
+            logger.setLevel(logging.DEBUG)
         else:
-            self.logger.setLevel(logging.INFO)
+            logger.setLevel(logging.INFO)
         if args.logdir:
             # Output logs to a file in the given directory
             handler = logging.FileHandler("{}/{}.log".format(args.logdir, Pylftpd._SERVICE_NAME))
         else:
             handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(filename)s:%(funcName)s - %(message)s")
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
         handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        logger.addHandler(handler)
+
+        self.context = PylftpContext(
+            args=args,
+            logger=logger
+        )
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, self.signal)
         signal.signal(signal.SIGINT, self.signal)
 
     def run(self):
-        self.logger.info("Starting pylftpd")
+        self.context.logger.info("Starting pylftpd")
+
+        # Define child threads
+        pylftp_job = Pylftp(
+            context=self.context.create_child_context(Pylftp.__name__)
+        )
+        webapp_job = WebApp(
+            context=self.context.create_child_context(WebApp.__name__)
+        )
 
         try:
             # Start child threads here
+            pylftp_job.start()
+            webapp_job.start()
             while True:
                 time.sleep(Pylftpd._MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
         except ServiceExit:
             # Join all the threads here
-            pass
-        self.logger.info("Finished pylftpd")
+            pylftp_job.terminate()
+            webapp_job.terminate()
+
+            # Wait for the threads to close
+            pylftp_job.join()
+            webapp_job.join()
+
+        self.context.logger.info("Finished pylftpd")
 
     def signal(self, signum: int, _):
-        self.logger.info("Caught signal {}".format(signal.Signals(signum).name))
+        self.context.logger.info("Caught signal {}".format(signal.Signals(signum).name))
         raise ServiceExit()
 
 
