@@ -21,17 +21,21 @@ class Pylftpd:
     It is run in the main thread (no daemonization)
     """
     _SERVICE_NAME = 'pylftp'
+    _MAIN_THREAD_SLEEP_INTERVAL_IN_SECS = 0.5
 
     def __init__(self):
         # Parse arguments
         parser = argparse.ArgumentParser(description="PyLFTP daemon")
         parser.add_argument("--logdir", help="Directory for log files")
+        parser.add_argument("--debug", action="store_true", help="Enable debug logs")
         args = parser.parse_args()
 
         # Logger setup
         self.logger = logging.getLogger(Pylftpd._SERVICE_NAME)
-        # TODO: debug level via command line
-        self.logger.setLevel(logging.DEBUG)
+        if args.debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
         if args.logdir:
             # Output logs to a file in the given directory
             handler = logging.FileHandler("{}/{}.log".format(args.logdir, Pylftpd._SERVICE_NAME))
@@ -51,13 +55,13 @@ class Pylftpd:
         try:
             # Start child threads here
             while True:
-                time.sleep(0.5)
+                time.sleep(Pylftpd._MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
         except ServiceExit:
             # Join all the threads here
             pass
         self.logger.info("Finished pylftpd")
 
-    def signal(self, signum, frame):
+    def signal(self, signum: int, _):
         self.logger.info("Caught signal {}".format(signal.Signals(signum).name))
         raise ServiceExit()
 
