@@ -3,6 +3,7 @@
 import signal
 import time
 import logging
+from logging.handlers import RotatingFileHandler
 import sys
 import argparse
 
@@ -27,6 +28,8 @@ class Pylftpd:
     """
     _SERVICE_NAME = 'pylftp'
     _MAIN_THREAD_SLEEP_INTERVAL_IN_SECS = 0.5
+    _MAX_LOG_SIZE_IN_BYTES = 10*1024*1024  # 10 MB
+    _LOG_BACKUP_COUNT = 10
 
     def __init__(self):
         # Parse arguments
@@ -43,7 +46,11 @@ class Pylftpd:
             logger.setLevel(logging.INFO)
         if args.logdir:
             # Output logs to a file in the given directory
-            handler = logging.FileHandler("{}/{}.log".format(args.logdir, Pylftpd._SERVICE_NAME))
+            handler = RotatingFileHandler(
+                        "{}/{}.log".format(args.logdir, Pylftpd._SERVICE_NAME),
+                        maxBytes=Pylftpd._MAX_LOG_SIZE_IN_BYTES,
+                        backupCount=Pylftpd._LOG_BACKUP_COUNT
+                      )
         else:
             handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
