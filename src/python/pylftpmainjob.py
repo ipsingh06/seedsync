@@ -3,10 +3,19 @@
 from common import PylftpJob, PylftpContext
 
 
-class Pylftp(PylftpJob):
+class PylftpMainJob(PylftpJob):
     """
     The Pylftp service
     Handles querying and downloading of files
     """
     def __init__(self, context: PylftpContext):
         super().__init__(name=self.__class__.__name__, context=context)
+
+    def setup(self):
+        pass
+
+    def execute(self):
+        pass
+
+    def cleanup(self):
+        pass

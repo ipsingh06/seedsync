@@ -9,8 +9,8 @@ import argparse
 
 # my libs
 from common import PylftpContext
-from pylftp import Pylftp
-from web_app import WebApp
+from pylftpmainjob import PylftpMainJob
+from web_app import WebAppJob
 
 
 class ServiceExit(Exception):
@@ -30,6 +30,7 @@ class Pylftpd:
     _MAIN_THREAD_SLEEP_INTERVAL_IN_SECS = 0.5
     _MAX_LOG_SIZE_IN_BYTES = 10*1024*1024  # 10 MB
     _LOG_BACKUP_COUNT = 10
+    _WEB_ACCESS_LOG_NAME = 'web_access'
 
     def __init__(self):
         # Parse arguments
@@ -39,11 +40,15 @@ class Pylftpd:
         args = parser.parse_args()
 
         # Logger setup
+        # We separate the main log from the web-access log
         logger = logging.getLogger(Pylftpd._SERVICE_NAME)
+        web_access_logger = logging.getLogger(Pylftpd._WEB_ACCESS_LOG_NAME)
         if args.debug:
             logger.setLevel(logging.DEBUG)
+            web_access_logger.setLevel(logging.DEBUG)
         else:
             logger.setLevel(logging.INFO)
+            web_access_logger.setLevel(logging.INFO)
         if args.logdir:
             # Output logs to a file in the given directory
             handler = RotatingFileHandler(
@@ -51,15 +56,24 @@ class Pylftpd:
                         maxBytes=Pylftpd._MAX_LOG_SIZE_IN_BYTES,
                         backupCount=Pylftpd._LOG_BACKUP_COUNT
                       )
+            web_access_handler = RotatingFileHandler(
+                                    "{}/{}.log".format(args.logdir, Pylftpd._WEB_ACCESS_LOG_NAME),
+                                    maxBytes=Pylftpd._MAX_LOG_SIZE_IN_BYTES,
+                                    backupCount=Pylftpd._LOG_BACKUP_COUNT
+                                 )
         else:
             handler = logging.StreamHandler(sys.stdout)
+            web_access_handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
         handler.setFormatter(formatter)
+        web_access_handler.setFormatter(formatter)
         logger.addHandler(handler)
+        web_access_logger.addHandler(web_access_handler)
 
         self.context = PylftpContext(
             args=args,
-            logger=logger
+            logger=logger,
+            web_access_logger=web_access_logger
         )
 
         # Register the signal handlers
@@ -70,11 +84,11 @@ class Pylftpd:
         self.context.logger.info("Starting pylftpd")
 
         # Define child threads
-        pylftp_job = Pylftp(
-            context=self.context.create_child_context(Pylftp.__name__)
+        pylftp_job = PylftpMainJob(
+            context=self.context.create_child_context(PylftpMainJob.__name__)
         )
-        webapp_job = WebApp(
-            context=self.context.create_child_context(WebApp.__name__)
+        webapp_job = WebAppJob(
+            context=self.context.create_child_context(WebAppJob.__name__)
         )
 
         try:
