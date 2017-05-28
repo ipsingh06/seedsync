@@ -5,11 +5,9 @@ import logging
 from threading import Thread
 
 # 3rd party libs
-# Note sure if monkey patch is required now. It breaks ctrl-c signal
-# from gevent import monkey; monkey.patch_all()
 import bottle
-from gevent import sleep
-from requestlogger import ApacheFormatter
+from paste import httpserver
+from paste.translogger import TransLogger
 
 # my libs
 from common import PylftpJob, PylftpContext
@@ -135,51 +133,36 @@ class WebApp(bottle.Bottle):
         n = 1
 
         # Keep connection alive no more then... (s)
-        end = time.time() + 5
+        end = time.time() + 60
         while not self.__stop and time.time() < end:
-            print("stop=", self.__stop)
             msg = {
                 'id': n,
                 'data': '%i' % n,
             }
             yield self._sse_pack(msg)
             n += 1
-            sleep(1)
+            time.sleep(1)
         if self.__stop:
             self.logger.debug("App connection stopped by server")
 
 
-class MyWSGIRefServer(bottle.GeventServer):
+class MyWSGIRefServer(bottle.ServerAdapter):
     """
     Extend bottle's default server to support programatic stopping of server
     Copied from: https://stackoverflow.com/a/16056443
     """
-    server = None
     quiet = True  # disable logging to stdout
-    formatter = ApacheFormatter(with_response_time=False)
-    logger = None  # set this after initialization
 
     def __init__(self, logger: logging.Logger, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        MyWSGIRefServer.logger = logger
+        self.logger = logger
+        self.server = None
 
     def run(self, handler):
-        from wsgiref.simple_server import make_server, WSGIRequestHandler
-        if self.quiet:
-            class QuietHandler(WSGIRequestHandler):
-                def __init__(self, *args, **kwargs):
-                    super().__init__(*args, **kwargs)
-
-                def log_request(self, *args, **kw):
-                    status_code, content_length = args
-                    MyWSGIRefServer.logger.info(
-                        MyWSGIRefServer.formatter(status_code, self.get_environ(), content_length)
-                    )
-
-            self.options['handler_class'] = QuietHandler
-        self.server = make_server(self.host, self.port, handler, **self.options)
+        handler = TransLogger(handler, logger=self.logger, setup_console_handler=(not self.quiet))
+        self.server = httpserver.serve(handler, host=self.host, port=str(self.port), start_loop=False,
+                                       **self.options)
         self.server.serve_forever()
 
     def stop(self):
-        # self.server.server_close() <--- alternative but causes bad fd exception
-        self.server.shutdown()
+        self.server.server_close()
