@@ -67,8 +67,6 @@ class SystemScanner:
         The files and its children are inserted in alphabetical order
         :return:
         """
-        system_files = []
-
         def create_children(path: str):
             children = []
             for entry in os.scandir(path):
@@ -125,4 +123,5 @@ if __name__ == "__main__":
         for root_file in root_files:
             print_file(root_file, 0)
     else:
-        print(pickle.dumps(root_files))
+        bytes_out = pickle.dumps(root_files)
+        sys.stdout.buffer.write(bytes_out)
