@@ -52,6 +52,7 @@ class SystemScanner:
             raise ValueError("Path to scan is not a directory: {}".format(path_to_scan))
         self.path_to_scan = path_to_scan
         self.exclude_prefixes = []
+        self.exclude_suffixes = []
 
     def add_exclude_prefix(self, prefix: str):
         """
@@ -60,6 +61,14 @@ class SystemScanner:
         :return:
         """
         self.exclude_prefixes.append(prefix)
+
+    def add_exclude_suffix(self, suffix: str):
+        """
+        Exclude files that end with the given suffix
+        :param suffix:
+        :return:
+        """
+        self.exclude_suffixes.append(suffix)
 
     def scan(self) -> List[SystemFile]:
         """
@@ -74,6 +83,10 @@ class SystemScanner:
                 skip = False
                 for prefix in self.exclude_prefixes:
                     if entry.name.startswith(prefix):
+                        skip = True
+                        break
+                for suffix in self.exclude_suffixes:
+                    if entry.name.endswith(suffix):
                         skip = True
                         break
                 if skip:

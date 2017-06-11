@@ -184,7 +184,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(1, bbcaa.size)
         self.assertEqual(1234, c.size)
 
-    def test_scan_tree_excluded(self):
+    def test_scan_tree_excluded_prefix(self):
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         scanner.add_exclude_prefix(".")
         files = scanner.scan()
@@ -209,7 +209,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual("aa", aa.name)
         self.assertEqual(0, len(bbca.children))
 
-    def test_scan_size_excluded(self):
+    def test_scan_size_excluded_prefix(self):
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         scanner.add_exclude_prefix(".")
         files = scanner.scan()
@@ -234,3 +234,38 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual("aa", aa.name)
         self.assertEqual(0, a.size)
         self.assertEqual(0, aa.size)
+
+    def test_scan_tree_excluded_suffix(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+
+        scanner.add_exclude_suffix("ab")
+        scanner.add_exclude_suffix("bb")
+        files = scanner.scan()
+        self.assertEqual(3, len(files))
+        a, b, c = tuple(files)
+        self.assertEqual(1, len(a.children))
+        aa = a.children[0]
+        self.assertEqual("aa", aa.name)
+        self.assertEqual(1, len(aa.children))
+        aaa = aa.children[0]
+        self.assertEqual(".aaa", aaa.name)
+        self.assertEqual(1, len(b.children))
+        ba = b.children[0]
+        self.assertEqual("ba", ba.name)
+
+    def test_scan_size_excluded_suffix(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+
+        scanner.add_exclude_suffix("ab")
+        scanner.add_exclude_suffix("bb")
+        files = scanner.scan()
+        a, b, c = tuple(files)
+        aa = a.children[0]
+        aaa = aa.children[0]
+        ba = b.children[0]
+        self.assertEqual(0, a.size)
+        self.assertEqual(0, aa.size)
+        self.assertEqual(0, aaa.size)
+        self.assertEqual(512+7, b.size)
+        self.assertEqual(512+7, ba.size)
+        self.assertEqual(1234, c.size)
