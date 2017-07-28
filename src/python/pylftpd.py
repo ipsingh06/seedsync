@@ -10,8 +10,7 @@ from logging.handlers import RotatingFileHandler
 from configparser import ConfigParser
 
 # my libs
-from common import Config, Patterns
-from common import PylftpError, PylftpContext
+from common import Config, Patterns, PylftpError, PylftpContext
 from pylftpmainjob import PylftpMainJob
 from web_app import WebAppJob
 
