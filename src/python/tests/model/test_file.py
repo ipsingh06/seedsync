@@ -2,12 +2,12 @@
 
 import unittest
 
-from model import LftpFile
+from model import ModelFile
 
 
-class TestLftpFile(unittest.TestCase):
+class TestModelFile(unittest.TestCase):
     def test_name(self):
-        file = LftpFile("test")
+        file = ModelFile("test")
         self.assertEqual("test", file.name)
 
         with self.assertRaises(AttributeError):
@@ -15,16 +15,16 @@ class TestLftpFile(unittest.TestCase):
             file.name = "new name"
 
     def test_state(self):
-        file = LftpFile("test")
+        file = ModelFile("test")
 
-        file.state = LftpFile.State.DELETED_LOCALLY
-        self.assertEqual(LftpFile.State.DELETED_LOCALLY, file.state)
+        file.state = ModelFile.State.DELETED_LOCALLY
+        self.assertEqual(ModelFile.State.DELETED_LOCALLY, file.state)
 
         with self.assertRaises(TypeError):
             file.state = "BadState"
 
     def test_local_size(self):
-        file = LftpFile("test")
+        file = ModelFile("test")
 
         file.local_size = 100
         self.assertEqual(100, file.local_size)
@@ -35,7 +35,7 @@ class TestLftpFile(unittest.TestCase):
             file.local_size = -100
 
     def test_remote_size(self):
-        file = LftpFile("test")
+        file = ModelFile("test")
 
         file.remote_size = 100
         self.assertEqual(100, file.remote_size)
@@ -46,7 +46,7 @@ class TestLftpFile(unittest.TestCase):
             file.remote_size = -100
 
     def test_downloading_speed(self):
-        file = LftpFile("test")
+        file = ModelFile("test")
 
         file.downloading_speed = 100
         self.assertEqual(100, file.downloading_speed)
@@ -57,7 +57,7 @@ class TestLftpFile(unittest.TestCase):
             file.downloading_speed = -100
 
     def test_update_timestamp(self):
-        file = LftpFile("test")
+        file = ModelFile("test")
 
         from datetime import  datetime
         now = datetime.now()

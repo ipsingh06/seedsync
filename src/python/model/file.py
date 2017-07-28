@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 
 
-class LftpFile:
+class ModelFile:
     """
     Represents a file or directory
     """
@@ -18,7 +18,7 @@ class LftpFile:
 
     def __init__(self, name: str):
         self.__name = name  # file or folder name
-        self.__state = LftpFile.State.DEFAULT  # status
+        self.__state = ModelFile.State.DEFAULT  # status
         self.__remote_size = None  # remote size in bytes
         self.__local_size = None  # local size in bytes
         self.__downloading_speed = None  # in bytes / sec
@@ -38,7 +38,7 @@ class LftpFile:
 
     @state.setter
     def state(self, state: State):
-        if type(state) != LftpFile.State:
+        if type(state) != ModelFile.State:
             raise TypeError
         self.__state = state
 
