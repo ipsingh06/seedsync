@@ -1,18 +1,18 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-import signal
-import time
-import logging
-import sys
 import argparse
+import logging
 import os
-from logging.handlers import RotatingFileHandler
+import signal
+import sys
+import time
 from configparser import ConfigParser
+from logging.handlers import RotatingFileHandler
 
 # my libs
 from common import Config, Patterns, PylftpError, PylftpContext
-from pylftpmainjob import PylftpMainJob
-from web_app import WebAppJob
+from controller import PylftpMainJob
+from web import WebAppJob
 
 
 class ServiceExit(Exception):
