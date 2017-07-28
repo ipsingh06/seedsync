@@ -4,8 +4,11 @@ import subprocess
 import logging
 import time
 
+# my libs
+from common import PylftpError
 
-class SshError(Exception):
+
+class SshError(PylftpError):
     """
     Custom exception that describes the failure of the ssh command
     """

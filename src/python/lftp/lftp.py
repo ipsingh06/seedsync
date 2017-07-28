@@ -8,8 +8,11 @@ from typing import Callable, Union
 # 3rd party libs
 import pexpect
 
+# my libs
+from common import PylftpError
 
-class LftpError(Exception):
+
+class LftpError(PylftpError):
     """
     Custom exception that describes the failure of the lftp command
     """
