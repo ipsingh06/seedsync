@@ -3,7 +3,7 @@
 from common import PylftpJob, PylftpContext
 
 
-class PylftpMainJob(PylftpJob):
+class ControllerJob(PylftpJob):
     """
     The Pylftp service
     Handles querying and downloading of files

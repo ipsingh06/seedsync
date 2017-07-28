@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 
 # my libs
 from common import Config, Patterns, PylftpError, PylftpContext
-from controller import PylftpMainJob
+from controller import ControllerJob
 from web import WebAppJob
 
 
@@ -116,8 +116,8 @@ class Pylftpd:
         self.context.logger.info("Starting pylftpd")
 
         # Define child threads
-        pylftp_job = PylftpMainJob(
-            context=self.context.create_child_context(PylftpMainJob.__name__)
+        controller_job = ControllerJob(
+            context=self.context.create_child_context(ControllerJob.__name__)
         )
         webapp_job = WebAppJob(
             context=self.context.create_child_context(WebAppJob.__name__)
@@ -125,17 +125,17 @@ class Pylftpd:
 
         try:
             # Start child threads here
-            pylftp_job.start()
+            controller_job.start()
             webapp_job.start()
             while True:
                 time.sleep(Pylftpd._MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
         except ServiceExit:
             # Join all the threads here
-            pylftp_job.terminate()
+            controller_job.terminate()
             webapp_job.terminate()
 
             # Wait for the threads to close
-            pylftp_job.join()
+            controller_job.join()
             webapp_job.join()
 
         self.context.logger.info("Finished pylftpd")
