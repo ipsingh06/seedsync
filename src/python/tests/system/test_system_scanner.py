@@ -1,11 +1,11 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-import unittest
 import os
 import shutil
 import tempfile
+import unittest
 
-from system_scanner import SystemFile, SystemScanner
+from system import SystemFile, SystemScanner
 
 
 class TestSystemFile(unittest.TestCase):
