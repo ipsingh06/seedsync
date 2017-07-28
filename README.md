@@ -6,6 +6,9 @@ Place ssh private key in /root/.ssh
 
 # pylftpd
 
+## Dependencies
+sudo apt-get install lftp
+
 ## Install
 Place artifacts in /var/lib/pylftp/
 
