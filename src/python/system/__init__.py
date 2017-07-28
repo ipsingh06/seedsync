@@ -1,3 +1,4 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-from .system_scanner import SystemFile, SystemScanner
+from .scanner import SystemScanner
+from .file import SystemFile
