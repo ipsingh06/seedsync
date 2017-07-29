@@ -8,7 +8,7 @@ import sys
 import tempfile
 import unittest
 
-from lftp import Lftp
+from lftp import Lftp, LftpJobStatus
 
 
 class TestLftp(unittest.TestCase):
@@ -71,6 +71,7 @@ class TestLftp(unittest.TestCase):
         # Create default lftp instance
         # Note: password-less ssh needs to be setup
         #       i.e. user's public key needs to be in authorized_keys
+        #       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
         self.lftp = Lftp(address="localhost", user=getpass.getuser(), password="")
         self.lftp.set_base_remote_dir_path(os.path.join(TestLftp.temp_dir, "remote"))
         self.lftp.set_base_local_dir_path(os.path.join(TestLftp.temp_dir, "local"))
@@ -82,6 +83,7 @@ class TestLftp(unittest.TestCase):
         logger.addHandler(handler)
 
     def test_set_num_connections(self):
+        #TODO: change setters to properties
         self.lftp.set_num_connections(5)
         self.assertEqual(5, self.lftp.get_num_connections())
         with self.assertRaises(ValueError):
@@ -114,3 +116,27 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(5, self.lftp.get_num_parallel_jobs())
         with self.assertRaises(ValueError):
             self.lftp.set_num_parallel_jobs(-1)
+
+    def test_set_move_background_on_exit(self):
+        self.lftp.set_move_background_on_exit(True)
+        self.assertEqual(True, self.lftp.get_move_background_on_exit())
+        self.lftp.set_move_background_on_exit(False)
+        self.assertEqual(False, self.lftp.get_move_background_on_exit())
+
+    def test_queue_file(self):
+        self.lftp.queue("c", False)
+        statuses = self.lftp.status()
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("c", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.PGET, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+    def test_queue_dir(self):
+        self.lftp.set_move_background_on_exit(False)
+        self.lftp.set_rate_limit(100)
+        self.lftp.queue("a", True)
+        statuses = self.lftp.status()
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("a", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)

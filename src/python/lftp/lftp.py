@@ -10,6 +10,7 @@ import pexpect
 
 # my libs
 from common import PylftpError
+from .job_status_parser import LftpJobStatus, LftpJobStatusParser
 
 
 class LftpError(PylftpError):
@@ -29,6 +30,8 @@ class Lftp:
     __SET_RATE_LIMIT = "net:limit-rate"
     __SET_MIN_CHUNK_SIZE = "pget:min-chunk-size"
     __SET_NUM_PARALLEL_JOBS = "cmd:queue-parallel"
+    __SET_MOVE_BACKGROUND_ON_EXIT = "cmd:move-background"
+    __SET_COMMAND_AT_EXIT = "cmd:at-exit"
 
     def __init__(self, address: str, user: str, password: str):
         self.__user = user
@@ -38,6 +41,7 @@ class Lftp:
         self.__base_local_dir_path = ""
         self.logger = logging.getLogger("Lftp")
         self.__expect_pattern = "lftp {}@{}:.*>".format(self.__user, self.__address)
+        self.__job_status_parser = LftpJobStatusParser()
 
         args = [
             "-u", "{},{}".format(self.__user, self.__password),
@@ -45,6 +49,15 @@ class Lftp:
         ]
         self.__process = pexpect.spawn("/usr/bin/lftp", args)
         self.__process.expect(self.__expect_pattern)
+        self.__setup()
+
+    def __setup(self):
+        """
+        Setup the lftp instance with default settings
+        :return:
+        """
+        # Set to kill on exit to prevent a zombie process
+        self.__set(Lftp.__SET_COMMAND_AT_EXIT, "\"kill all\"")
 
     def with_check_process(method: Callable):
         """
@@ -95,6 +108,16 @@ class Lftp:
             raise LftpError("Failed to get setting '{}'. Output: '{}'".format(setting, out))
         return m.group(1).strip()
 
+    @staticmethod
+    def __to_bool(value: str) -> bool:
+        # sets are taken from LFTP manual
+        if value.lower() in {"true", "on", "yes", "1", "+"}:
+            return True
+        elif value.lower() in {"false",  "off", "no", "0", "-"}:
+            return False
+        else:
+            raise LftpError("Cannot convert value '{}' to boolean".format(value))
+
     def set_num_connections(self, num_connections: int):
         if num_connections < 1:
             raise ValueError("Number of connections must be positive")
@@ -131,6 +154,39 @@ class Lftp:
 
     def get_num_parallel_jobs(self) -> int:
         return int(self.__get(Lftp.__SET_NUM_PARALLEL_JOBS))
+
+    def set_move_background_on_exit(self, move_background_on_exit: bool):
+        self.__set(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT, str(int(move_background_on_exit)))
+
+    def get_move_background_on_exit(self) -> bool:
+        return Lftp.__to_bool(self.__get(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT))
+
+    def status(self):
+        self.__process.sendline("jobs -v")
+        self.__process.expect(self.__expect_pattern)
+        out = self.__process.before.decode()
+        m = re.search("^\s*jobs -v(.*)$", out, re.DOTALL)
+        if not m or not m.group or not m.group(1):
+            raise LftpError("Failed to get extract status output: '{}'".format(out))
+        statuses_str = m.group(1).strip()
+        statuses = self.__job_status_parser.parse(statuses_str)
+        return statuses
+
+    def queue(self, name: str, is_dir: bool):
+        command = " ".join([
+            "queue",
+            "'",
+            "pget" if not is_dir else "mirror",
+            "-c",
+            "\"{remote_dir}/{filename}\"".format(remote_dir=self.__base_remote_dir_path,
+                                                 filename=name),
+            "-o" if not is_dir else "",
+            "\"{local_dir}/\"".format(local_dir=self.__base_local_dir_path),
+            "'"
+        ])
+        self.logger.debug("lftp command: {}".format(command))
+        self.__process.sendline(command)
+        self.__process.expect(self.__expect_pattern)
 
     # Mark decorators as static (must be at end of class)
     # Source: https://stackoverflow.com/a/3422823
