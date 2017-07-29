@@ -59,7 +59,7 @@ class TestModelFile(unittest.TestCase):
     def test_update_timestamp(self):
         file = ModelFile("test")
 
-        from datetime import  datetime
+        from datetime import datetime
         now = datetime.now()
         file.update_timestamp = now
         self.assertEqual(now, file.update_timestamp)

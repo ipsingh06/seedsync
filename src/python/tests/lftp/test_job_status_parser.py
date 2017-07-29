@@ -48,7 +48,7 @@ class TestLftpJobStatusParser(unittest.TestCase):
         statuses = parser.parse(output)
         self.assertEqual(0, len(statuses))
 
-    def test_empty_output_2(self):
+    def test_empty_output_3(self):
         output = """
         [1] Done (queue (sftp://someone:@localhost))
         """

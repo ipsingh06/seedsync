@@ -68,9 +68,6 @@ class TestLftpJobStatus(unittest.TestCase):
                                flags="")
         status.add_active_file_transfer_state("a", LftpJobStatus.TransferState(10, 20, 50, 0, 0))
         status.add_active_file_transfer_state("b", LftpJobStatus.TransferState(25, 100, 25, 0, 0))
-        golden = set([
-
-        ])
         self.assertEqual({("a", LftpJobStatus.TransferState(10, 20, 50, 0, 0)),
                           ("b", LftpJobStatus.TransferState(25, 100, 25, 0, 0))},
                          set(status.get_active_file_transfer_states()))

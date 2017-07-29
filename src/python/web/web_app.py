@@ -98,7 +98,6 @@ class WebApp(bottle.Bottle):
         """
         self.__stop = True
 
-
     @staticmethod
     def _sse_pack(d):
         """Pack data in SSE format"""

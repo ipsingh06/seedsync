@@ -32,7 +32,7 @@ class Ssh:
 
     def run_command(self, command: str) -> bytes:
         """
-        Returns the output of the remote command as a bytearray
+        Returns the output of the remote command as a bytes
         :param command:
         :return:
         """

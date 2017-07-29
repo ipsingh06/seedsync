@@ -151,10 +151,12 @@ class LftpJobStatusParser:
             line = lines.pop(0)
 
             # First line must be a valid job header
-            if not prev_job and \
-                not pget_header_m.match(line) and \
-                not mirror_header_m.match(line) and \
-                not mirror_fl_header_m.match(line):
+            if not (
+                prev_job or
+                pget_header_m.match(line) or
+                mirror_header_m.match(line) or
+                mirror_fl_header_m.match(line)
+            ):
                 raise ValueError("First line is not a matching header '{}'".format(line))
 
             # Search for pget header

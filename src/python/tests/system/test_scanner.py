@@ -8,6 +8,7 @@ import unittest
 from system import SystemScanner
 
 
+# noinspection SpellCheckingInspection
 class TestSystemScanner(unittest.TestCase):
     temp_dir = None
 
@@ -53,7 +54,6 @@ class TestSystemScanner(unittest.TestCase):
         my_mkdir("b", "bb", "bba")
         my_touch(24*1024*1024+24, "b", "bb", "bbb")
         my_mkdir("b", "bb", "bbc")
-        # noinspection SpellCheckingInspection
         my_mkdir("b", "bb", "bbc", "bbca")
         my_touch(1, "b", "bb", "bbc", "bbca", ".bbcaa")
         my_touch(1234, "c")
@@ -109,7 +109,6 @@ class TestSystemScanner(unittest.TestCase):
         self.assertTrue(bbc.is_dir)
         self.assertEqual(1, len(bbc.children))
         bbca = bbc.children[0]
-        # noinspection SpellCheckingInspection
         self.assertEqual("bbca", bbca.name)
         self.assertTrue(bbca.is_dir)
         self.assertEqual(1, len(bbca.children))

@@ -141,6 +141,8 @@ class Pylftpd:
         self.context.logger.info("Finished pylftpd")
 
     def signal(self, signum: int, _):
+        # noinspection PyUnresolvedReferences
+        # Signals is a generated enum
         self.context.logger.info("Caught signal {}".format(signal.Signals(signum).name))
         raise ServiceExit()
 
