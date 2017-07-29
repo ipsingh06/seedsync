@@ -132,8 +132,6 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
     def test_queue_dir(self):
-        self.lftp.set_move_background_on_exit(False)
-        self.lftp.set_rate_limit(100)
         self.lftp.queue("a", True)
         statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
