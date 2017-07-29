@@ -6,7 +6,12 @@ from lftp import LftpJobStatusParser, LftpJobStatus
 
 
 class TestLftpJobStatusParser(unittest.TestCase):
+    def setUp(self):
+        # Show full diff
+        self.maxDiff = None
+
     def test_size_to_bytes(self):
+        self.assertEqual(345, LftpJobStatusParser._size_to_bytes("345"))
         self.assertEqual(1000, LftpJobStatusParser._size_to_bytes("1000b"))
         self.assertEqual(1000, LftpJobStatusParser._size_to_bytes("1000 b"))
         self.assertEqual(1000, LftpJobStatusParser._size_to_bytes("1000B"))
@@ -373,6 +378,31 @@ class TestLftpJobStatusParser(unittest.TestCase):
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
 
+    def test_jobs_2(self):
+        """1 job, 1 dir, no units in local size"""
+        output="""
+        [0] queue (sftp://someone:@localhost)  -- 90 B/s
+        sftp://someone:@localhost/home/someone
+        Now executing: [1] mirror -c /tmp/test_lftp_rm_s6oau/remote/a /tmp/test_lftp_rm_s6oau/local/ -- 345/26M (0%) 90 B/s
+        [1] mirror -c /tmp/test_lftp_rm_s6oau/remote/a /tmp/test_lftp_rm_s6oau/local/  -- 345/26M (0%) 90 B/s
+        \\transfer `aa' 
+        `aa' at 315 (1%) 90b/s eta:4m [Receiving data]
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="a",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(345, 26*1024*1024, 0, 90, None)
+        golden_job1.add_active_file_transfer_state(
+            "aa", LftpJobStatus.TransferState(315, None, 1, 90, 4*60)
+        )
+        golden_jobs = [golden_job1]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
     def test_jobs_quotes(self):
         output = """
         [0] queue (sftp://someone:@localhost)
@@ -429,6 +459,33 @@ class TestLftpJobStatusParser(unittest.TestCase):
                                     name="d d",
                                     flags="-c")
         golden_job2.total_transfer_state = LftpJobStatus.TransferState(23, None, 0, None, None)
+        golden_jobs = [golden_job1, golden_job2]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
+    def test_jobs_connecting(self):
+        output = """
+        [0] queue (sftp://someone:@localhost) 
+        sftp://someone:@localhost
+        Now executing: [1] pget -c /tmp/test_lftp_jsecvi6m/remote/c -o /tmp/test_lftp_jsecvi6m/local/
+        [1] pget -c /tmp/test_lftp_jsecvi6m/remote/c -o /tmp/test_lftp_jsecvi6m/local/ 
+        sftp://someone:@localhost
+        `/tmp/test_lftp_jsecvi6m/remote/c' at 0 [Connecting...]
+        [2] mirror -c /tmp/test_lftp_yb58ogg6/remote/a /tmp/test_lftp_yb58ogg6/local/ 
+        cd `/tmp/test_lftp_yb58ogg6/remote/a' [Connecting...]
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="c",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(0, None, None, None, None)
+        golden_job2 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="a",
+                                    flags="-c")
         golden_jobs = [golden_job1, golden_job2]
         self.assertEqual(len(golden_jobs), len(statuses))
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]

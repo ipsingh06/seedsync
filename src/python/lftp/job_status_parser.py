@@ -31,12 +31,12 @@ class LftpJobStatusParser:
         """
         if size == "0":
             return 0
-        m = re.compile("(?P<number>\d+\.?\d*)\s*(?P<units>{})".format(LftpJobStatusParser.__SIZE_UNITS_REGEX))
+        m = re.compile("(?P<number>\d+\.?\d*)\s*(?P<units>{})?".format(LftpJobStatusParser.__SIZE_UNITS_REGEX))
         result = m.search(size)
         if not result:
             raise ValueError("String '{}' does not match the size pattern".format(size))
         number = float(result.group("number"))
-        unit = result.group("units")[0].lower()
+        unit = (result.group("units") or "b")[0].lower()
         multipliers = {'b': 1, 'k': 1024, 'm': 1024*1024, 'g': 1024*1024*1024}
         if unit not in multipliers.keys():
             raise ValueError("Unrecognized unit {} in size string '{}'".format(unit, size))
@@ -109,10 +109,10 @@ class LftpJobStatusParser:
         chunk_at_pattern = ("^`(?P<name>[^']*?)'\s+"
                             "at\s+"
                             "(?P<szlocal>\d+)\s+"
-                            "\((?P<pctlocal>\d+)%\)\s+"
+                            "(\((?P<pctlocal>\d+)%\)\s+)?"
                             "((?P<speed>\d+\.?\d*\s?({sz}))\/s\s+)?"
                             "(eta:(?P<eta>{eta})\s+)?"
-                            "\[(?P<desc>.*)\]$")\
+                            "\s*\[(?P<desc>.*)\]$")\
             .format(sz=LftpJobStatusParser.__SIZE_UNITS_REGEX,
                     eta=LftpJobStatusParser.__TIME_UNITS_REGEX)
         chunk_at_m = re.compile(chunk_at_pattern)
@@ -181,7 +181,9 @@ class LftpJobStatusParser:
                                        name=name,
                                        flags=flags)
                 size_local = int(result_at.group("szlocal"))
-                percent_local = int(result_at.group("pctlocal"))
+                percent_local = None
+                if result_at.group("pctlocal"):
+                    percent_local = int(result_at.group("pctlocal"))
                 speed = None
                 if result_at.group("speed"):
                     speed = LftpJobStatusParser._size_to_bytes(result_at.group("speed"))
@@ -229,13 +231,17 @@ class LftpJobStatusParser:
                 # Continue the outer loop
                 continue
 
-            # Search for mirror receiving file list header
+            # Search for mirror connecting header
             # Note: this must be after the more restrictive mirror header above
             result = mirror_fl_header_m.search(line)
             if result:
-                if not lines or not lines[0].startswith("Getting file list"):
-                    raise ValueError("Missing expected 'Getting file list' line after mirror header")
-                lines.pop(0)  # pop the 'getting file list' line
+                if not lines or not (
+                        lines[0].startswith("Getting file list") or
+                        lines[0].startswith("cd ")
+                ):
+                    raise ValueError("Missing expected 'Getting file list' line after mirror header: {}".format(
+                        lines[0]))
+                lines.pop(0)  # pop the connecting line
                 name = os.path.basename(os.path.normpath(result.group("remote")))
                 flags = result.group("flags")
                 type_ = LftpJobStatus.Type.MIRROR
@@ -263,7 +269,9 @@ class LftpJobStatusParser:
                         raise ValueError("Mismatch: filename '{}' but chunk data for '{}'"
                                          .format(name, result_at.group("name")))
                     size_local = int(result_at.group("szlocal"))
-                    percent_local = int(result_at.group("pctlocal"))
+                    percent_local = None
+                    if result_at.group("pctlocal"):
+                        percent_local = int(result_at.group("pctlocal"))
                     speed = None
                     if result_at.group("speed"):
                         speed = LftpJobStatusParser._size_to_bytes(result_at.group("speed"))
