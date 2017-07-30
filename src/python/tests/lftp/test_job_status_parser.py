@@ -77,23 +77,28 @@ class TestLftpJobStatusParser(unittest.TestCase):
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
         golden = [
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=1,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="a",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+            LftpJobStatus(job_id=2,
+                          job_type=LftpJobStatus.Type.PGET,
                           state=LftpJobStatus.State.QUEUED,
                           name="c",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=3,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=4,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=5,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c")
@@ -120,35 +125,43 @@ class TestLftpJobStatusParser(unittest.TestCase):
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
         golden = [
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=1,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b s s",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+            LftpJobStatus(job_id=2,
+                          job_type=LftpJobStatus.Type.PGET,
                           state=LftpJobStatus.State.QUEUED,
                           name="a s s",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=3,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b s s",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+            LftpJobStatus(job_id=4,
+                          job_type=LftpJobStatus.Type.PGET,
                           state=LftpJobStatus.State.QUEUED,
                           name="a s s",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=5,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+            LftpJobStatus(job_id=6,
+                          job_type=LftpJobStatus.Type.PGET,
                           state=LftpJobStatus.State.QUEUED,
                           name="a",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=7,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+            LftpJobStatus(job_id=8,
+                          job_type=LftpJobStatus.Type.PGET,
                           state=LftpJobStatus.State.QUEUED,
                           name="a",
                           flags="-c"),
@@ -216,20 +229,24 @@ class TestLftpJobStatusParser(unittest.TestCase):
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
         golden_queue = [
-            LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+            LftpJobStatus(job_id=1,
+                          job_type=LftpJobStatus.Type.PGET,
                           state=LftpJobStatus.State.QUEUED,
                           name="c",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=2,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=3,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
         ]
-        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job1 = LftpJobStatus(job_id=2,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="a",
                                     flags="-c")
@@ -240,7 +257,8 @@ class TestLftpJobStatusParser(unittest.TestCase):
         golden_job1.add_active_file_transfer_state(
             "ab", LftpJobStatus.TransferState(13733, 25165824, 0, 4*1024, 1*3600+45*60)
         )
-        golden_job2 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job2 = LftpJobStatus(job_id=3,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="b",
                                     flags="-c")
@@ -318,16 +336,19 @@ class TestLftpJobStatusParser(unittest.TestCase):
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
         golden_queue = [
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=1,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
-            LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+            LftpJobStatus(job_id=2,
+                          job_type=LftpJobStatus.Type.MIRROR,
                           state=LftpJobStatus.State.QUEUED,
                           name="b",
                           flags="-c"),
         ]
-        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="a",
                                     flags="-c")
@@ -335,7 +356,8 @@ class TestLftpJobStatusParser(unittest.TestCase):
         golden_job1.add_active_file_transfer_state(
             "ab", LftpJobStatus.TransferState(126558, 25165824, 0, 3993, 1*3600+45*60)
         )
-        golden_job2 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job2 = LftpJobStatus(job_id=2,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="b",
                                     flags="-c")
@@ -368,7 +390,8 @@ class TestLftpJobStatusParser(unittest.TestCase):
         """
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
-        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.PGET,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="c",
                                     flags="-c")
@@ -390,7 +413,8 @@ class TestLftpJobStatusParser(unittest.TestCase):
         """
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
-        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="a",
                                     flags="-c")
@@ -418,7 +442,8 @@ class TestLftpJobStatusParser(unittest.TestCase):
         """
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
-        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="e e",
                                     flags="-c")
@@ -426,7 +451,8 @@ class TestLftpJobStatusParser(unittest.TestCase):
         golden_job1.add_active_file_transfer_state(
             "e e a", LftpJobStatus.TransferState(11804, None, 9, 1003, 2*60)
         )
-        golden_job2 = LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+        golden_job2 = LftpJobStatus(job_id=2,
+                                    job_type=LftpJobStatus.Type.PGET,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="d d",
                                     flags="-c")
@@ -450,11 +476,13 @@ class TestLftpJobStatusParser(unittest.TestCase):
         """
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
-        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="e e",
                                     flags="-c")
-        golden_job2 = LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+        golden_job2 = LftpJobStatus(job_id=2,
+                                    job_type=LftpJobStatus.Type.PGET,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="d d",
                                     flags="-c")
@@ -477,12 +505,14 @@ class TestLftpJobStatusParser(unittest.TestCase):
         """
         parser = LftpJobStatusParser()
         statuses = parser.parse(output)
-        golden_job1 = LftpJobStatus(job_type=LftpJobStatus.Type.PGET,
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.PGET,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="c",
                                     flags="-c")
         golden_job1.total_transfer_state = LftpJobStatus.TransferState(0, None, None, None, None)
-        golden_job2 = LftpJobStatus(job_type=LftpJobStatus.Type.MIRROR,
+        golden_job2 = LftpJobStatus(job_id=2,
+                                    job_type=LftpJobStatus.Type.MIRROR,
                                     state=LftpJobStatus.State.RUNNING,
                                     name="a",
                                     flags="-c")

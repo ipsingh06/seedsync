@@ -2,6 +2,7 @@
 
 from collections import namedtuple
 from enum import Enum
+from typing import List, Tuple
 
 
 class LftpJobStatus:
@@ -32,7 +33,8 @@ class LftpJobStatus:
         """
         pass
 
-    def __init__(self, job_type: Type, state: State, name: str, flags: str):
+    def __init__(self, job_id: int, job_type: Type, state: State, name: str, flags: str):
+        self.__id = job_id
         self.__type = job_type
         self.__state = state
         self.__name = name
@@ -41,6 +43,9 @@ class LftpJobStatus:
         # dict of active file transfer states, maps filename to their transfer state
         # there's no hierarchical info for now
         self.__active_files_state = {}
+
+    @property
+    def id(self) -> int: return self.__id
 
     @property
     def type(self) -> Type: return self.__type
@@ -66,7 +71,7 @@ class LftpJobStatus:
             raise TypeError("Cannot set transfer state on job of type queue")
         self.__active_files_state[filename] = transfer_state
 
-    def get_active_file_transfer_states(self):
+    def get_active_file_transfer_states(self) -> List[Tuple[str, TransferState]]:
         """
         Returns list of pairs (filename, transfer state)
         :return:
