@@ -3,7 +3,7 @@
 import logging
 import re
 from functools import wraps
-from typing import Callable, Union
+from typing import Callable, Union, List
 
 # 3rd party libs
 import pexpect
@@ -186,7 +186,11 @@ class Lftp:
     def get_move_background_on_exit(self) -> bool:
         return Lftp.__to_bool(self.__get(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT))
 
-    def status(self):
+    def status(self) -> List[LftpJobStatus]:
+        """
+        Return a status list of queued and running jobs
+        :return:
+        """
         out = self.__run_command("jobs -v")
         # remove the command from output, if it exists
         statuses_str = re.sub("^\s*jobs -v\s*$", "", out, flags=re.MULTILINE)
@@ -212,6 +216,34 @@ class Lftp:
             "'"
         ])
         self.__run_command(command)
+
+    def kill(self, name: str) -> bool:
+        """
+        Kill a queued or running job
+        :param name:
+        :return: True if job of given name was found, False otherwise
+        """
+        # look for this name in the status list
+        job_to_kill = None
+        for status in self.status():
+            if status.name == name:
+                job_to_kill = status
+                break
+        if job_to_kill is None:
+            self.logger.debug("Kill failed to find job '{}'".format(name))
+            return False
+        # Note: there's a chance that job ids change between when we called status
+        #       and when we execute the kill command
+        #       in this case the wrong job may be killed, there's nothing we can do about it
+        if job_to_kill.state == LftpJobStatus.State.RUNNING:
+            self.logger.debug("Killing running job '{}'...".format(name))
+            self.__run_command("kill {}".format(job_to_kill.id))
+        elif job_to_kill.state == LftpJobStatus.State.QUEUED:
+            self.logger.debug("Killing queued job '{}'...".format(name))
+            self.__run_command("queue --delete {}".format(job_to_kill.id))
+        else:
+            raise NotImplementedError("Unsupported state {}".format(str(job_to_kill.state)))
+        return True
 
     def kill_all(self):
         """

@@ -378,6 +378,61 @@ class TestLftpJobStatusParser(unittest.TestCase):
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
 
+    def test_queue_and_jobs_3(self):
+        """Queued items, parallel jobs running, 'cd' line in queued pget"""
+        output = """
+        [0] queue (sftp://someone:@localhost) 
+        sftp://someone:@localhost/home/someone
+        Now executing: [1] mirror -c /tmp/test_lftp_n_l73hx8/remote/a /tmp/test_lftp_n_l73hx8/local/
+        -[2] pget -c /tmp/test_lftp_n_l73hx8/remote/d d -o /tmp/test_lftp_n_l73hx8/local/
+        Commands queued:
+        1.  mirror -c "/tmp/test_lftp_n_l73hx8/remote/b"  "/tmp/test_lftp_n_l73hx8/local/" 
+        2.  pget -c "/tmp/test_lftp_n_l73hx8/remote/c" -o "/tmp/test_lftp_n_l73hx8/local/" 
+        cd /home/someone
+        3.  mirror -c "/tmp/test_lftp_n_l73hx8/remote/e e"  "/tmp/test_lftp_n_l73hx8/local/" 
+        [1] mirror -c /tmp/test_lftp_n_l73hx8/remote/a /tmp/test_lftp_n_l73hx8/local/ 
+        Getting file list (10) [Receiving data]
+        [2] pget -c /tmp/test_lftp_n_l73hx8/remote/d d -o /tmp/test_lftp_n_l73hx8/local/ 
+        sftp://someone:@localhost/home/someone
+        `/tmp/test_lftp_n_l73hx8/remote/d d' at 10 (0%) [Receiving data]
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_queue = [
+            LftpJobStatus(job_id=1,
+                          job_type=LftpJobStatus.Type.MIRROR,
+                          state=LftpJobStatus.State.QUEUED,
+                          name="b",
+                          flags="-c"),
+            LftpJobStatus(job_id=2,
+                          job_type=LftpJobStatus.Type.PGET,
+                          state=LftpJobStatus.State.QUEUED,
+                          name="c",
+                          flags="-c"),
+            LftpJobStatus(job_id=3,
+                          job_type=LftpJobStatus.Type.MIRROR,
+                          state=LftpJobStatus.State.QUEUED,
+                          name="e e",
+                          flags="-c"),
+        ]
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="a",
+                                    flags="-c")
+        golden_job2 = LftpJobStatus(job_id=2,
+                                    job_type=LftpJobStatus.Type.PGET,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="d d",
+                                    flags="-c")
+        golden_job2.total_transfer_state = LftpJobStatus.TransferState(10, None, 0, None, None)
+        golden_jobs = [golden_job1, golden_job2]
+        self.assertEqual(len(golden_queue)+len(golden_jobs), len(statuses))
+        statuses_queue = [j for j in statuses if j.state == LftpJobStatus.State.QUEUED]
+        self.assertEqual(golden_queue, statuses_queue)
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
     def test_jobs_1(self):
         """1 job, 1 file, no chunks"""
         output = """

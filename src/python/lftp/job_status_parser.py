@@ -383,19 +383,28 @@ class LftpJobStatusParser:
                                  "(?:-o\s+)?"
                                  "(?P<rq>['\"])?(?P<local>[^\"']*)(?P=rq)?$")
                 m = re.compile(queue_pattern)
-                while lines and re.match("^\d+\.", lines[0]):
-                    line = lines.pop(0)
-                    result = m.search(line)
-                    if not result:
-                        raise ValueError("Failed to parse queue line: {}".format(line))
-                    id = int(result.group("id"))
-                    name = os.path.basename(os.path.normpath(result.group("remote")))
-                    flags = result.group("flags")
-                    type_ = LftpJobStatus.Type(result.group("type"))
-                    status = LftpJobStatus(job_id=id,
-                                           job_type=type_,
-                                           state=LftpJobStatus.State.QUEUED,
-                                           name=name,
-                                           flags=flags)
-                    queue.append(status)
+                while lines:
+                    line = lines[0]
+                    if re.match("^\d+\.", line):
+                        # header line
+                        lines.pop(0)
+                        result = m.search(line)
+                        if not result:
+                            raise ValueError("Failed to parse queue line: {}".format(line))
+                        id = int(result.group("id"))
+                        name = os.path.basename(os.path.normpath(result.group("remote")))
+                        flags = result.group("flags")
+                        type_ = LftpJobStatus.Type(result.group("type"))
+                        status = LftpJobStatus(job_id=id,
+                                               job_type=type_,
+                                               state=LftpJobStatus.State.QUEUED,
+                                               name=name,
+                                               flags=flags)
+                        queue.append(status)
+                    elif re.match("^cd\s.*$", line):
+                        # 'cd' line after pget, ignore
+                        lines.pop(0)
+                    else:
+                        # no match, exit loop
+                        break
         return queue
