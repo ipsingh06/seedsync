@@ -347,10 +347,12 @@ class LftpJobStatusParser:
             header1_pattern = "^\[\d+\] queue \(sftp://.*@.*\)(?:\s+--\s+(?:\d+\.\d+|\d+)\s(?:{})\/s)?$"\
                               .format(LftpJobStatusParser.__SIZE_UNITS_REGEX)
             header2_pattern = "^sftp://.*@.*$"
-            if not re.match(header1_pattern, lines.pop(0)):
-                raise ValueError("Missing queue header line 1")
-            if not re.match(header2_pattern, lines.pop(0)):
-                raise ValueError("Missing queue header line 2")
+            line = lines.pop(0)
+            if not re.match(header1_pattern, line):
+                raise ValueError("Missing queue header line 1: {}".format(line))
+            line = lines.pop(0)
+            if not re.match(header2_pattern, line):
+                raise ValueError("Missing queue header line 2: {}".format(line))
             if not lines:
                 raise ValueError("Missing queue status")
             line = lines.pop(0)

@@ -7,8 +7,9 @@ import shutil
 import sys
 import tempfile
 import unittest
+import time
 
-from lftp import Lftp, LftpJobStatus
+from lftp import Lftp, LftpJobStatus, LftpError
 
 
 class TestLftp(unittest.TestCase):
@@ -123,6 +124,10 @@ class TestLftp(unittest.TestCase):
         self.lftp.set_move_background_on_exit(False)
         self.assertEqual(False, self.lftp.get_move_background_on_exit())
 
+    def test_status_empty(self):
+        statuses = self.lftp.status()
+        self.assertEqual(0, len(statuses))
+
     def test_queue_file(self):
         self.lftp.queue("c", False)
         statuses = self.lftp.status()
@@ -138,3 +143,78 @@ class TestLftp(unittest.TestCase):
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+    def test_queue_num_parallel_jobs(self):
+        self.lftp.set_num_parallel_jobs(2)
+        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.queue("a", True)
+        self.lftp.queue("c", False)
+        self.lftp.queue("b", True)
+        statuses = self.lftp.status()
+        self.assertEqual(3, len(statuses))
+        # queued jobs
+        self.assertEqual("b", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.QUEUED, statuses[0].state)
+        # running jobs
+        self.assertEqual("a", statuses[1].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[1].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[1].state)
+        self.assertEqual("c", statuses[2].name)
+        self.assertEqual(LftpJobStatus.Type.PGET, statuses[2].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[2].state)
+
+    def test_kill_all(self):
+        self.lftp.set_num_parallel_jobs(2)
+        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.queue("a", True)
+        self.lftp.queue("c", False)
+        self.lftp.queue("b", True)
+        statuses = self.lftp.status()
+        self.assertEqual(3, len(statuses))
+        self.lftp.kill_all()
+        statuses = self.lftp.status()
+        self.assertEqual(0, len(statuses))
+
+    def test_kill_all_and_queue_again(self):
+        self.lftp.set_num_parallel_jobs(2)
+        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.queue("a", True)
+        self.lftp.queue("c", False)
+        self.lftp.queue("b", True)
+        statuses = self.lftp.status()
+        self.assertEqual(3, len(statuses))
+        self.lftp.kill_all()
+        statuses = self.lftp.status()
+        self.assertEqual(0, len(statuses))
+        self.lftp.queue("b", True)
+        statuses = self.lftp.status()
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("b", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+    def test_queue_wrong_file_type(self):
+        # check that queueing a file with MIRROR and a dir with PGET fails with an error
+
+        # passing dir as a file
+        self.lftp.queue("a", False)
+        time.sleep(0.5)  # wait for jobs to connect
+        # first status should raise an error
+        with self.assertRaises(LftpError) as context:
+            statuses = self.lftp.status()
+        self.assertTrue(str(context.exception).startswith("Detected error:"))
+        # second status should be empty
+        statuses = self.lftp.status()
+        self.assertEqual(0, len(statuses))
+
+        # passing file as a dir
+        self.lftp.queue("c", True)
+        time.sleep(0.5)  # wait for jobs to connect
+        # first status should raise an error
+        with self.assertRaises(LftpError) as context:
+            statuses = self.lftp.status()
+        self.assertTrue(str(context.exception).startswith("Detected error:"))
+        # second status should be empty
+        statuses = self.lftp.status()
+        self.assertEqual(0, len(statuses))

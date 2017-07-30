@@ -83,6 +83,35 @@ class Lftp:
         self.__base_local_dir_path = base_local_dir_path
 
     @with_check_process
+    def __run_command(self, command: str):
+        self.logger.info("command: {}".format(command))
+        self.__process.sendline(command)
+        self.__process.expect(self.__expect_pattern)
+        out = self.__process.before.decode()
+        out = out.strip()  # remove any CRs
+        self.logger.debug("out:\n{}".format(out))
+        # let's try and detect some errors
+        if self.__detect_errors_from_output(out):
+            # we need to consume the actual output so that
+            # it doesn't get passed onto next command
+            error_out = out
+            self.__process.expect(self.__expect_pattern)
+            out = self.__process.before.decode()
+            out = out.strip()  # remove any CRs
+            self.logger.debug("retry out:\n{}".format(out))
+            raise LftpError("Detected error: {}".format(error_out))
+        return out
+
+    @staticmethod
+    def __detect_errors_from_output(out: str) -> bool:
+        errors_m = [
+            re.compile("^(?:pget|mirror): Access failed: .*$")
+        ]
+        for m in errors_m:
+            if m.match(out):
+                return True
+        return False
+
     def __set(self, setting: str, value: str):
         """
         Set a setting in the lftp runtime
@@ -90,19 +119,15 @@ class Lftp:
         :param value:
         :return:
         """
-        self.__process.sendline("set {} {}".format(setting, value))
-        self.__process.expect(self.__expect_pattern)
+        self.__run_command("set {} {}".format(setting, value))
 
-    @with_check_process
     def __get(self, setting: str) -> str:
         """
         Get a setting from the lftp runtime
         :param setting:
         :return:
         """
-        self.__process.sendline("set -a | grep {}".format(setting))
-        self.__process.expect(self.__expect_pattern)
-        out = self.__process.before.decode()
+        out = self.__run_command("set -a | grep {}".format(setting))
         m = re.search("set {} (.*)".format(setting), out)
         if not m or not m.group or not m.group(1):
             raise LftpError("Failed to get setting '{}'. Output: '{}'".format(setting, out))
@@ -162,17 +187,19 @@ class Lftp:
         return Lftp.__to_bool(self.__get(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT))
 
     def status(self):
-        self.__process.sendline("jobs -v")
-        self.__process.expect(self.__expect_pattern)
-        out = self.__process.before.decode()
-        m = re.search("^\s*jobs -v(.*)$", out, re.DOTALL)
-        if not m or not m.group or not m.group(1):
-            raise LftpError("Failed to get extract status output: '{}'".format(out))
-        statuses_str = m.group(1).strip()
+        out = self.__run_command("jobs -v")
+        # remove the command from output, if it exists
+        statuses_str = re.sub("^\s*jobs -v\s*$", "", out, flags=re.MULTILINE)
         statuses = self.__job_status_parser.parse(statuses_str)
         return statuses
 
     def queue(self, name: str, is_dir: bool):
+        """
+        Queues a job for download
+        :param name:
+        :param is_dir:
+        :return:
+        """
         command = " ".join([
             "queue",
             "'",
@@ -184,39 +211,17 @@ class Lftp:
             "\"{local_dir}/\"".format(local_dir=self.__base_local_dir_path),
             "'"
         ])
-        self.logger.debug("lftp command: {}".format(command))
-        self.__process.sendline(command)
-        self.__process.expect(self.__expect_pattern)
+        self.__run_command(command)
+
+    def kill_all(self):
+        """
+        Kills are jobs, queued or downloading
+        :return:
+        """
+        # empty the queue and kill running jobs
+        self.__run_command("queue -d *")
+        self.__run_command("kill all")
 
     # Mark decorators as static (must be at end of class)
     # Source: https://stackoverflow.com/a/3422823
     with_check_process = staticmethod(with_check_process)
-
-    # def start_download(self, filename, is_file: bool):
-    #     if self.__process is not None:
-    #         raise LftpError("An lftp process is already running")
-    #
-    #     if is_file:
-    #         command_template = (
-    #             "/usr/bin/lftp -u {user},pass "
-    #             "sftp://{address} -e "
-    #             "\"pget -c -n {num_conn} "
-    #             "\\\"{remote_dir}/{filename}\\\" -o {local_dir}/; exit\""
-    #         )
-    #     else:
-    #         command_template = (
-    #             "/usr/bin/lftp -u {user},pass "
-    #             "sftp://{address} -e "
-    #             "\"mirror -c --parallel={num_paral} --use-pget-n={num_conn} "
-    #             "\\\"{remote_dir}/{filename}\\\" {local_dir}/; exit\""
-    #         )
-    #     command = command_template.format(
-    #         user=self.__user,
-    #         address= self.__address,
-    #         num_paral=self.__num_parallel_files,
-    #         num_conn=self.__num_connections,
-    #         remote_dir=self.__base_remote_dir_path,
-    #         filename=filename,
-    #         local_dir=self.__base_local_dir_path
-    #     )
-    #     self.logger.debug("Command: {}".format(command))
