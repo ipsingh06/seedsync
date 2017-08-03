@@ -1,6 +1,7 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 import unittest
+from datetime import datetime
 
 from model import ModelFile
 
@@ -73,24 +74,17 @@ class TestModelFile(unittest.TestCase):
         with self.assertRaises(TypeError):
             file.update_timestamp = 100
 
-    def test_remote_update_timestamp(self):
-        file = ModelFile("test")
-
-        from datetime import datetime
+    def test_equality_operator(self):
+        # check that timestamp does not affect equality
         now = datetime.now()
-        file.remote_update_timestamp = now
-        self.assertEqual(now, file.remote_update_timestamp)
+        file1 = ModelFile("test")
+        file1.local_size = 100
+        file1.update_timestamp = now
+        file2 = ModelFile("test")
+        file2.local_size = 200
+        file2.update_timestamp = now
+        self.assertFalse(file1 == file2)
 
-        with self.assertRaises(TypeError):
-            file.remote_update_timestamp = 100
-
-    def test_local_update_timestamp(self):
-        file = ModelFile("test")
-
-        from datetime import datetime
-        now = datetime.now()
-        file.local_update_timestamp = now
-        self.assertEqual(now, file.local_update_timestamp)
-
-        with self.assertRaises(TypeError):
-            file.local_update_timestamp = 100
+        file2.local_size = 100
+        file2.update_timestamp = datetime.now()
+        self.assertTrue(file1 == file2)

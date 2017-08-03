@@ -20,13 +20,15 @@ class ModelFile:
         self.__remote_size = None  # remote size in bytes, None if file does not exist
         self.__local_size = None  # local size in bytes, None if file does not exist
         self.__downloading_speed = None  # in bytes / sec, None if not downloading
-        now = datetime.now()
-        self.__update_timestamp = now  # timestamp of the latest update
-        self.__remote_update_timestamp = now  # timestamp of the remote size update
-        self.__local_update_timestamp = now  # timestamp of the local size update
+        # timestamp of the latest update
+        # Note: timestamp is not part of equality operator
+        self.__update_timestamp = datetime.now()
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        # disregard timestamp in comparison
+        ka = set(self.__dict__).difference({"_ModelFile__update_timestamp"})
+        kb = set(other.__dict__).difference({"_ModelFile__update_timestamp"})
+        return ka == kb and all(self.__dict__[k] == other.__dict__[k] for k in ka)
 
     def __repr__(self):
         return str(self.__dict__)
@@ -93,21 +95,3 @@ class ModelFile:
         if type(update_timestamp) != datetime:
             raise TypeError
         self.__update_timestamp = update_timestamp
-
-    @property
-    def remote_update_timestamp(self) -> datetime: return self.__remote_update_timestamp
-
-    @remote_update_timestamp.setter
-    def remote_update_timestamp(self, update_timestamp: datetime):
-        if type(update_timestamp) != datetime:
-            raise TypeError
-        self.__remote_update_timestamp = update_timestamp
-
-    @property
-    def local_update_timestamp(self) -> datetime: return self.__local_update_timestamp
-
-    @local_update_timestamp.setter
-    def local_update_timestamp(self, update_timestamp: datetime):
-        if type(update_timestamp) != datetime:
-            raise TypeError
-        self.__local_update_timestamp = update_timestamp

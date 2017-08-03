@@ -2,3 +2,4 @@
 
 from .model import Model, IModelListener, ModelError
 from .file import ModelFile
+from .diff import ModelDiff, ModelDiffUtil
