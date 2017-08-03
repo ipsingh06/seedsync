@@ -376,3 +376,21 @@ class TestLftp(unittest.TestCase):
         # second status should be empty
         statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
+
+    def test_queue_missing_file(self):
+        # check that queueing non-existing file fails gracefully
+        self.lftp.queue("non-existing-file", False)
+        time.sleep(0.5)  # wait for jobs to connect
+        with self.assertRaises(LftpError) as context:
+            statuses = self.lftp.status()
+        self.assertTrue(str(context.exception).startswith("Detected error:"))
+        statuses = self.lftp.status()
+        self.assertEqual(0, len(statuses))
+
+        self.lftp.queue("non-existing-folder", True)
+        time.sleep(0.5)  # wait for jobs to connect
+        with self.assertRaises(LftpError) as context:
+            statuses = self.lftp.status()
+        self.assertTrue(str(context.exception).startswith("Detected error:"))
+        statuses = self.lftp.status()
+        self.assertEqual(0, len(statuses))

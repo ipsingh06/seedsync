@@ -200,8 +200,11 @@ class Lftp:
     def queue(self, name: str, is_dir: bool):
         """
         Queues a job for download
-        :param name:
-        :param is_dir:
+        This method may cause an exception to be generated in a later method call:
+          * Wrong type (is_dir) is specified
+          * File/folder does not exist
+        :param name: name of file or folder to download
+        :param is_dir: true if folder, false if file
         :return:
         """
         command = " ".join([
