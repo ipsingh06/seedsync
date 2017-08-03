@@ -3,6 +3,7 @@
 import copy
 import logging
 from abc import ABC, abstractmethod
+from typing import Set
 
 # my libs
 from common import PylftpError
@@ -52,10 +53,13 @@ class Model:
     """
     Represents the entire state of lftp
     """
-    def __init__(self, logger: logging.Logger):
-        self.logger = logger
+    def __init__(self):
+        self.logger = logging.getLogger("Model")
         self.__files = {}  # name->LftpFile
         self.__listeners = []
+
+    def set_base_logger(self, base_logger: logging.Logger):
+        self.logger = base_logger.getChild("Model")
 
     def add_listener(self, listener: IModelListener):
         """
@@ -80,18 +84,19 @@ class Model:
         for listener in self.__listeners:
             listener.file_added(copy.copy(self.__files[file.name]))
 
-    def remove_file(self, file: ModelFile):
+    def remove_file(self, filename: str):
         """
         Remove the file from the model
-        :param file:
+        :param filename:
         :return:
         """
-        self.logger.debug("LftpModel: Removing file '{}'".format(file.name))
-        if file.name not in self.__files:
+        self.logger.debug("LftpModel: Removing file '{}'".format(filename))
+        if filename not in self.__files:
             raise ModelError("File does not exist in the model")
-        del self.__files[file.name]
+        file = copy.copy(self.__files[filename])
+        del self.__files[filename]
         for listener in self.__listeners:
-            listener.file_removed(copy.copy(file))
+            listener.file_removed(file)
 
     def update_file(self, file: ModelFile):
         """
@@ -115,3 +120,6 @@ class Model:
         if name not in self.__files:
             raise ModelError("File does not exist in the model")
         return copy.copy(self.__files[name])
+
+    def get_file_names(self) -> Set[str]:
+        return set(self.__files.keys())
