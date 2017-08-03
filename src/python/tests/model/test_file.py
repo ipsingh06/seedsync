@@ -17,8 +17,8 @@ class TestModelFile(unittest.TestCase):
     def test_state(self):
         file = ModelFile("test")
 
-        file.state = ModelFile.State.DELETED_LOCALLY
-        self.assertEqual(ModelFile.State.DELETED_LOCALLY, file.state)
+        file.state = ModelFile.State.DOWNLOADING
+        self.assertEqual(ModelFile.State.DOWNLOADING, file.state)
 
         with self.assertRaises(TypeError):
             file.state = "BadState"
@@ -28,6 +28,8 @@ class TestModelFile(unittest.TestCase):
 
         file.local_size = 100
         self.assertEqual(100, file.local_size)
+        file.local_size = None
+        self.assertEqual(None, file.local_size)
 
         with self.assertRaises(TypeError):
             file.local_size = "BadValue"
@@ -39,6 +41,8 @@ class TestModelFile(unittest.TestCase):
 
         file.remote_size = 100
         self.assertEqual(100, file.remote_size)
+        file.remote_size = None
+        self.assertEqual(None, file.remote_size)
 
         with self.assertRaises(TypeError):
             file.remote_size = "BadValue"
@@ -50,6 +54,8 @@ class TestModelFile(unittest.TestCase):
 
         file.downloading_speed = 100
         self.assertEqual(100, file.downloading_speed)
+        file.downloading_speed = None
+        self.assertEqual(None, file.downloading_speed)
 
         with self.assertRaises(TypeError):
             file.downloading_speed = "BadValue"
@@ -66,3 +72,25 @@ class TestModelFile(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             file.update_timestamp = 100
+
+    def test_remote_update_timestamp(self):
+        file = ModelFile("test")
+
+        from datetime import datetime
+        now = datetime.now()
+        file.remote_update_timestamp = now
+        self.assertEqual(now, file.remote_update_timestamp)
+
+        with self.assertRaises(TypeError):
+            file.remote_update_timestamp = 100
+
+    def test_local_update_timestamp(self):
+        file = ModelFile("test")
+
+        from datetime import datetime
+        now = datetime.now()
+        file.local_update_timestamp = now
+        self.assertEqual(now, file.local_update_timestamp)
+
+        with self.assertRaises(TypeError):
+            file.local_update_timestamp = 100
