@@ -76,53 +76,53 @@ class TestLftp(unittest.TestCase):
         self.lftp = Lftp(address="localhost", user=getpass.getuser(), password="")
         self.lftp.set_base_remote_dir_path(os.path.join(TestLftp.temp_dir, "remote"))
         self.lftp.set_base_local_dir_path(os.path.join(TestLftp.temp_dir, "local"))
-        logger = logging.getLogger()
+        logger = logging.getLogger("TestLftp")
         logger.setLevel(logging.DEBUG)
         handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+        self.lftp.set_base_logger(logger)
 
-    def test_set_num_connections(self):
-        #TODO: change setters to properties
-        self.lftp.set_num_connections(5)
-        self.assertEqual(5, self.lftp.get_num_connections())
+    def test_num_connections(self):
+        self.lftp.num_connections = 5
+        self.assertEqual(5, self.lftp.num_connections)
         with self.assertRaises(ValueError):
-            self.lftp.set_num_connections(-1)
+            self.lftp.num_connections = -1
 
-    def test_set_num_parallel_files(self):
-        self.lftp.set_num_parallel_files(5)
-        self.assertEqual(5, self.lftp.get_num_parallel_files())
+    def test_num_parallel_files(self):
+        self.lftp.num_parallel_files = 5
+        self.assertEqual(5, self.lftp.num_parallel_files)
         with self.assertRaises(ValueError):
-            self.lftp.set_num_parallel_files(-1)
+            self.lftp.num_parallel_files = -1
 
-    def test_set_rate_limit(self):
-        self.lftp.set_rate_limit(500)
-        self.assertEqual("500", self.lftp.get_rate_limit())
-        self.lftp.set_rate_limit("2k")
-        self.assertEqual("2k", self.lftp.get_rate_limit())
-        self.lftp.set_rate_limit("1M")
-        self.assertEqual("1M", self.lftp.get_rate_limit())
+    def test_rate_limit(self):
+        self.lftp.rate_limit = 500
+        self.assertEqual("500", self.lftp.rate_limit)
+        self.lftp.rate_limit = "2k"
+        self.assertEqual("2k", self.lftp.rate_limit)
+        self.lftp.rate_limit = "1M"
+        self.assertEqual("1M", self.lftp.rate_limit)
 
-    def test_set_min_chunk_size(self):
-        self.lftp.set_min_chunk_size(500)
-        self.assertEqual("500", self.lftp.get_min_chunk_size())
-        self.lftp.set_min_chunk_size("2k")
-        self.assertEqual("2k", self.lftp.get_min_chunk_size())
-        self.lftp.set_min_chunk_size("1M")
-        self.assertEqual("1M", self.lftp.get_min_chunk_size())
+    def test_min_chunk_size(self):
+        self.lftp.min_chunk_size = 500
+        self.assertEqual("500", self.lftp.min_chunk_size)
+        self.lftp.min_chunk_size = "2k"
+        self.assertEqual("2k", self.lftp.min_chunk_size)
+        self.lftp.min_chunk_size = "1M"
+        self.assertEqual("1M", self.lftp.min_chunk_size)
 
-    def test_set_num_parallel_jobs(self):
-        self.lftp.set_num_parallel_jobs(5)
-        self.assertEqual(5, self.lftp.get_num_parallel_jobs())
+    def test_num_parallel_jobs(self):
+        self.lftp.num_parallel_jobs = 5
+        self.assertEqual(5, self.lftp.num_parallel_jobs)
         with self.assertRaises(ValueError):
-            self.lftp.set_num_parallel_jobs(-1)
+            self.lftp.num_parallel_jobs = -1
 
-    def test_set_move_background_on_exit(self):
-        self.lftp.set_move_background_on_exit(True)
-        self.assertEqual(True, self.lftp.get_move_background_on_exit())
-        self.lftp.set_move_background_on_exit(False)
-        self.assertEqual(False, self.lftp.get_move_background_on_exit())
+    def test_move_background_on_exit(self):
+        self.lftp.move_background_on_exit = True
+        self.assertEqual(True, self.lftp.move_background_on_exit)
+        self.lftp.move_background_on_exit = False
+        self.assertEqual(False, self.lftp.move_background_on_exit)
 
     def test_status_empty(self):
         statuses = self.lftp.status()
@@ -161,8 +161,8 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
     def test_queue_num_parallel_jobs(self):
-        self.lftp.set_num_parallel_jobs(2)
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.num_parallel_jobs = 2
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         self.lftp.queue("c", False)
         self.lftp.queue("b", True)
@@ -181,8 +181,8 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[2].state)
 
     def test_kill_all(self):
-        self.lftp.set_num_parallel_jobs(2)
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.num_parallel_jobs = 2
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         self.lftp.queue("c", False)
         self.lftp.queue("b", True)
@@ -193,8 +193,8 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(0, len(statuses))
 
     def test_kill_all_and_queue_again(self):
-        self.lftp.set_num_parallel_jobs(2)
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.num_parallel_jobs = 2
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         self.lftp.queue("c", False)
         self.lftp.queue("b", True)
@@ -211,8 +211,8 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
     def test_kill_queued_job(self):
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
-        self.lftp.set_num_parallel_jobs(1)
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
+        self.lftp.num_parallel_jobs = 1
         self.lftp.queue("a", True)  # this job will run
         self.lftp.queue("b", True)  # this job will queue
         statuses = self.lftp.status()
@@ -228,7 +228,7 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
     def test_kill_running_job(self):
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
@@ -239,7 +239,7 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(0, len(statuses))
 
     def test_kill_missing_job(self):
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
@@ -252,8 +252,8 @@ class TestLftp(unittest.TestCase):
 
     def test_kill_job_1(self):
         """Queued and running jobs killed one at a time"""
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
-        self.lftp.set_num_parallel_jobs(2)
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
+        self.lftp.num_parallel_jobs = 2
         # 2 jobs running, 3 jobs queued
         self.lftp.queue("a", True)  # running
         self.lftp.queue("d d", False)  # running
@@ -297,8 +297,8 @@ class TestLftp(unittest.TestCase):
 
     def test_queued_and_kill_jobs_1(self):
         """Queued and running jobs killed one at a time"""
-        self.lftp.set_rate_limit(10)  # so jobs don't finish right away
-        self.lftp.set_num_parallel_jobs(2)
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
+        self.lftp.num_parallel_jobs = 2
 
         Q = LftpJobStatus.State.QUEUED
         R = LftpJobStatus.State.RUNNING

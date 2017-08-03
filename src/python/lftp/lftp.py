@@ -143,48 +143,60 @@ class Lftp:
         else:
             raise LftpError("Cannot convert value '{}' to boolean".format(value))
 
-    def set_num_connections(self, num_connections: int):
+    @property
+    def num_connections(self) -> int:
+        return int(self.__get(Lftp.__SET_NUM_CONNECTIONS_MIRROR))
+
+    @num_connections.setter
+    def num_connections(self, num_connections: int):
         if num_connections < 1:
             raise ValueError("Number of connections must be positive")
         self.__set(Lftp.__SET_NUM_CONNECTIONS_PGET, str(num_connections))
         self.__set(Lftp.__SET_NUM_CONNECTIONS_MIRROR, str(num_connections))
 
-    def get_num_connections(self) -> int:
-        return int(self.__get(Lftp.__SET_NUM_CONNECTIONS_MIRROR))
+    @property
+    def num_parallel_files(self) -> int:
+        return int(self.__get(Lftp.__SET_NUM_PARALLEL_FILES))
 
-    def set_num_parallel_files(self, num_parallel_files: int):
+    @num_parallel_files.setter
+    def num_parallel_files(self, num_parallel_files: int):
         if num_parallel_files < 1:
             raise ValueError("Number of parallel files must be positive")
         self.__set(Lftp.__SET_NUM_PARALLEL_FILES, str(num_parallel_files))
 
-    def get_num_parallel_files(self) -> int:
-        return int(self.__get(Lftp.__SET_NUM_PARALLEL_FILES))
-
-    def set_rate_limit(self, rate_limit: Union[int, str]):
-        self.__set(Lftp.__SET_RATE_LIMIT, str(rate_limit))
-
-    def get_rate_limit(self) -> str:
+    @property
+    def rate_limit(self) -> str:
         return self.__get(Lftp.__SET_RATE_LIMIT)
 
-    def set_min_chunk_size(self, min_chunk_size: Union[int, str]):
-        self.__set(Lftp.__SET_MIN_CHUNK_SIZE, str(min_chunk_size))
+    @rate_limit.setter
+    def rate_limit(self, rate_limit: Union[int, str]):
+        self.__set(Lftp.__SET_RATE_LIMIT, str(rate_limit))
 
-    def get_min_chunk_size(self) -> str:
+    @property
+    def min_chunk_size(self) -> str:
         return self.__get(Lftp.__SET_MIN_CHUNK_SIZE)
 
-    def set_num_parallel_jobs(self, num_parallel_jobs: int):
+    @min_chunk_size.setter
+    def min_chunk_size(self, min_chunk_size: Union[int, str]):
+        self.__set(Lftp.__SET_MIN_CHUNK_SIZE, str(min_chunk_size))
+
+    @property
+    def num_parallel_jobs(self) -> int:
+        return int(self.__get(Lftp.__SET_NUM_PARALLEL_JOBS))
+
+    @num_parallel_jobs.setter
+    def num_parallel_jobs(self, num_parallel_jobs: int):
         if num_parallel_jobs < 1:
             raise ValueError("Number of parallel jobs must be positive")
         self.__set(Lftp.__SET_NUM_PARALLEL_JOBS, str(num_parallel_jobs))
 
-    def get_num_parallel_jobs(self) -> int:
-        return int(self.__get(Lftp.__SET_NUM_PARALLEL_JOBS))
-
-    def set_move_background_on_exit(self, move_background_on_exit: bool):
-        self.__set(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT, str(int(move_background_on_exit)))
-
-    def get_move_background_on_exit(self) -> bool:
+    @property
+    def move_background_on_exit(self) -> bool:
         return Lftp.__to_bool(self.__get(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT))
+
+    @move_background_on_exit.setter
+    def move_background_on_exit(self, move_background_on_exit: bool):
+        self.__set(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT, str(int(move_background_on_exit)))
 
     def status(self) -> List[LftpJobStatus]:
         """
