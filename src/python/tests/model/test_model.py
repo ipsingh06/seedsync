@@ -31,7 +31,7 @@ class TestLftpModel(unittest.TestCase):
         self.model.set_base_logger(logger)
 
     def test_add_file(self):
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         self.model.add_file(file)
         recv_file = self.model.get_file("test")
         self.assertEqual("test", recv_file.name)
@@ -41,7 +41,7 @@ class TestLftpModel(unittest.TestCase):
             self.model.get_file("test")
 
     def test_remove_file(self):
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         self.model.add_file(file)
         self.model.remove_file("test")
         with self.assertRaises(ModelError):
@@ -52,7 +52,7 @@ class TestLftpModel(unittest.TestCase):
             self.model.remove_file("test")
 
     def test_update_file(self):
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         file.local_size = 100
         self.model.add_file(file)
         recv_file = self.model.get_file("test")
@@ -63,12 +63,12 @@ class TestLftpModel(unittest.TestCase):
         self.assertEqual(200, recv_file.local_size)
 
     def test_update_unknown_file(self):
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         with self.assertRaises(ModelError):
             self.model.update_file(file)
 
     def test_update_local_copy(self):
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         file.local_size = 100
         self.model.add_file(file)
         file.local_size = 200
@@ -78,15 +78,15 @@ class TestLftpModel(unittest.TestCase):
 
     def test_get_file_names(self):
         self.assertEqual(set(), self.model.get_file_names())
-        self.model.add_file(ModelFile("a"))
+        self.model.add_file(ModelFile("a", False))
         self.assertEqual({"a"}, self.model.get_file_names())
-        self.model.add_file(ModelFile("b"))
+        self.model.add_file(ModelFile("b", False))
         self.assertEqual({"a", "b"}, self.model.get_file_names())
-        self.model.add_file(ModelFile("c"))
+        self.model.add_file(ModelFile("c", False))
         self.assertEqual({"a", "b", "c"}, self.model.get_file_names())
         self.model.remove_file("b")
         self.assertEqual({"a", "c"}, self.model.get_file_names())
-        self.model.add_file(ModelFile("d"))
+        self.model.add_file(ModelFile("d", False))
         self.assertEqual({"a", "c", "d"}, self.model.get_file_names())
 
     def test_add_listener(self):
@@ -99,7 +99,7 @@ class TestLftpModel(unittest.TestCase):
 
         listener.file_added = MagicMock()
 
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         self.model.add_file(file)
         # noinspection PyUnresolvedReferences
         listener.file_added.assert_called_once_with(file)
@@ -110,7 +110,7 @@ class TestLftpModel(unittest.TestCase):
 
         listener.file_removed = MagicMock()
 
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         self.model.add_file(file)
         self.model.remove_file("test")
         # noinspection PyUnresolvedReferences
@@ -122,7 +122,7 @@ class TestLftpModel(unittest.TestCase):
 
         listener.file_updated = MagicMock()
 
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         file.local_size = 100
         self.model.add_file(file)
         file.local_size = 200
@@ -142,7 +142,7 @@ class TestLftpModel(unittest.TestCase):
         listener.file_updated = MagicMock()
         listener.file_updated.side_effect = side_effect
 
-        file = ModelFile("test")
+        file = ModelFile("test", False)
         file.local_size = 100
 
         # below we check that the side effect is not reflected in the

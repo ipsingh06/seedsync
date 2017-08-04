@@ -2,7 +2,8 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
+import copy
 
 
 class ModelFile:
@@ -14,15 +15,18 @@ class ModelFile:
         DOWNLOADING = 1
         QUEUED = 2
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, is_dir: bool):
         self.__name = name  # file or folder name
+        self.__is_dir = is_dir  # True if this is a dir, False if file
         self.__state = ModelFile.State.DEFAULT  # status
         self.__remote_size = None  # remote size in bytes, None if file does not exist
         self.__local_size = None  # local size in bytes, None if file does not exist
         self.__downloading_speed = None  # in bytes / sec, None if not downloading
+        self.__eta = None  # est. time remaining in seconds, None if not available
         # timestamp of the latest update
         # Note: timestamp is not part of equality operator
         self.__update_timestamp = datetime.now()
+        self.__children = []  # children files
 
     def __eq__(self, other):
         # disregard timestamp in comparison
@@ -35,6 +39,9 @@ class ModelFile:
 
     @property
     def name(self) -> str: return self.__name
+
+    @property
+    def is_dir(self) -> bool: return self.__is_dir
 
     @property
     def state(self) -> State: return self.__state
@@ -95,3 +102,25 @@ class ModelFile:
         if type(update_timestamp) != datetime:
             raise TypeError
         self.__update_timestamp = update_timestamp
+
+    @property
+    def eta(self) -> Optional[int]: return self.__eta
+
+    @eta.setter
+    def eta(self, eta: Optional[int]):
+        if type(eta) == int:
+            if eta < 0:
+                raise ValueError
+            self.__eta = eta
+        elif eta is None:
+            self.__eta = eta
+        else:
+            raise TypeError
+
+    def add_child(self, child_file: "ModelFile"):
+        if child_file is self:
+            raise ValueError("Cannot add parent as a child")
+        self.__children.append(child_file)
+
+    def get_children(self) -> List["ModelFile"]:
+        return copy.deepcopy(self.__children)

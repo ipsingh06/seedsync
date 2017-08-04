@@ -16,7 +16,7 @@ class TestModelDiff(unittest.TestCase):
         self.assertEqual(ModelDiff.Change.UPDATED, diff.change)
 
     def test_old_file(self):
-        old_file = ModelFile("a")
+        old_file = ModelFile("a", False)
         old_file.local_size = 100
         diff = ModelDiff(ModelDiff.Change.ADDED, old_file, None)
         self.assertEqual(old_file, diff.old_file)
@@ -24,7 +24,7 @@ class TestModelDiff(unittest.TestCase):
         self.assertEqual(None, diff.old_file)
 
     def test_new_file(self):
-        new_file = ModelFile("a")
+        new_file = ModelFile("a", False)
         new_file.local_size = 100
         diff = ModelDiff(ModelDiff.Change.ADDED, None, new_file)
         self.assertEqual(new_file, diff.new_file)
@@ -36,7 +36,7 @@ class TestModelDiffUtil(unittest.TestCase):
     def test_added(self):
         model_before = Model()
         model_after = Model()
-        a = ModelFile("a")
+        a = ModelFile("a", False)
         a.local_size = 100
         model_after.add_file(a)
         diff = ModelDiffUtil.diff_models(model_before, model_after)
@@ -45,7 +45,7 @@ class TestModelDiffUtil(unittest.TestCase):
     def test_removed(self):
         model_before = Model()
         model_after = Model()
-        a = ModelFile("a")
+        a = ModelFile("a", False)
         a.local_size = 100
         model_before.add_file(a)
         diff = ModelDiffUtil.diff_models(model_before, model_after)
@@ -54,9 +54,9 @@ class TestModelDiffUtil(unittest.TestCase):
     def test_updated(self):
         model_before = Model()
         model_after = Model()
-        a1 = ModelFile("a")
+        a1 = ModelFile("a", False)
         a1.local_size = 100
-        a2 = ModelFile("a")
+        a2 = ModelFile("a", False)
         a2.local_size = 200
         model_before.add_file(a1)
         model_after.add_file(a2)
@@ -66,17 +66,17 @@ class TestModelDiffUtil(unittest.TestCase):
     def test_diff_1(self):
         model_before = Model()
         model_after = Model()
-        a = ModelFile("a")
+        a = ModelFile("a", False)
         a.local_size = 100
-        b = ModelFile("b")
+        b = ModelFile("b", False)
         b.remote_size = 200
-        c1 = ModelFile("c")
+        c1 = ModelFile("c", False)
         c1.downloading_speed = 40
-        c2 = ModelFile("c")
+        c2 = ModelFile("c", False)
         c2.downloading_speed = 50
-        d1 = ModelFile("d")
+        d1 = ModelFile("d", False)
         d1.local_size = 500
-        d2 = ModelFile("d")
+        d2 = ModelFile("d", False)
         d2.local_size = 500
         d2.update_timestamp = datetime.now()
 
