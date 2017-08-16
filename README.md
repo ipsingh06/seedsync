@@ -14,6 +14,9 @@ Place artifacts in /var/lib/pylftp/
 
 Place config/systemd/pylftp.service in /lib/systemd/system
 
+Enable service start at boot:
+sudo systemctl enable pylftp.service
+
 Place ssh private key in /root/.ssh
 
 ## Run
