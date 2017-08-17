@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 import copy
+import os
 
 
 class ModelFile:
@@ -27,11 +28,19 @@ class ModelFile:
         # Note: timestamp is not part of equality operator
         self.__update_timestamp = datetime.now()
         self.__children = []  # children files
+        self.__parent = None  # direct predecessor
 
     def __eq__(self, other):
         # disregard timestamp in comparison
-        ka = set(self.__dict__).difference({"_ModelFile__update_timestamp"})
-        kb = set(other.__dict__).difference({"_ModelFile__update_timestamp"})
+        # disregard parent reference in comparison
+        ka = set(self.__dict__).difference({
+            "_ModelFile__update_timestamp",
+            "_ModelFile__parent"
+        })
+        kb = set(other.__dict__).difference({
+            "_ModelFile__update_timestamp",
+            "_ModelFile__parent"
+        })
         return ka == kb and all(self.__dict__[k] == other.__dict__[k] for k in ka)
 
     def __repr__(self):
@@ -117,10 +126,22 @@ class ModelFile:
         else:
             raise TypeError
 
+    @property
+    def full_path(self) -> str:
+        """Full path including all predecessors"""
+        if self.__parent:
+            return os.path.join(self.__parent.full_path, self.name)
+        return self.name
+
     def add_child(self, child_file: "ModelFile"):
+        if not self.is_dir:
+            raise TypeError("Cannot add child to a non-directory")
         if child_file is self:
             raise ValueError("Cannot add parent as a child")
+        if child_file.name in (f.name for f in self.__children):
+            raise ValueError("Cannot add child more than once")
         self.__children.append(child_file)
+        child_file.__parent = self
 
     def get_children(self) -> List["ModelFile"]:
         return copy.deepcopy(self.__children)

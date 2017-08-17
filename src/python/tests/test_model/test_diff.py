@@ -63,6 +63,22 @@ class TestModelDiffUtil(unittest.TestCase):
         diff = ModelDiffUtil.diff_models(model_before, model_after)
         self.assertEqual([ModelDiff(ModelDiff.Change.UPDATED, a1, a2)], diff)
 
+    def test_updated_children(self):
+        model_before = Model()
+        model_after = Model()
+        a1 = ModelFile("a", True)
+        aa1 = ModelFile("aa", False)
+        aa1.local_size = 100
+        a1.add_child(aa1)
+        a2 = ModelFile("a", True)
+        aa2 = ModelFile("aa", False)
+        aa2.local_size = 200
+        a2.add_child(aa2)
+        model_before.add_file(a1)
+        model_after.add_file(a2)
+        diff = ModelDiffUtil.diff_models(model_before, model_after)
+        self.assertEqual([ModelDiff(ModelDiff.Change.UPDATED, a1, a2)], diff)
+
     def test_diff_1(self):
         model_before = Model()
         model_after = Model()

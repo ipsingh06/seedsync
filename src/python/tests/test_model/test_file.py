@@ -105,7 +105,7 @@ class TestModelFile(unittest.TestCase):
         self.assertTrue(file1 == file2)
 
     def test_child(self):
-        file_parent = ModelFile("parent", False)
+        file_parent = ModelFile("parent", True)
         file_child1 = ModelFile("child1", True)
         file_child2 = ModelFile("child2", False)
         self.assertEqual(0, len(file_parent.get_children()))
@@ -113,3 +113,34 @@ class TestModelFile(unittest.TestCase):
         self.assertEqual([file_child1], file_parent.get_children())
         file_parent.add_child(file_child2)
         self.assertEqual([file_child1, file_child2], file_parent.get_children())
+
+    def test_fail_add_child_to_nondir(self):
+        file_parent = ModelFile("parent", False)
+        file_child1 = ModelFile("child1", True)
+        with self.assertRaises(TypeError) as context:
+            file_parent.add_child(file_child1)
+        self.assertTrue(str(context.exception).startswith("Cannot add child to a non-directory"))
+
+    def test_fail_add_child_twice(self):
+        file_parent = ModelFile("parent", True)
+        file_parent.add_child(ModelFile("child1", True))
+        file_parent.add_child(ModelFile("child2", True))
+        with self.assertRaises(ValueError) as context:
+            file_parent.add_child(ModelFile("child1", True))
+        self.assertTrue(str(context.exception).startswith("Cannot add child more than once"))
+        with self.assertRaises(ValueError) as context:
+            file_parent.add_child(ModelFile("child2", True))
+        self.assertTrue(str(context.exception).startswith("Cannot add child more than once"))
+
+    def test_full_path(self):
+        file_a = ModelFile("a", True)
+        file_aa = ModelFile("aa", True)
+        file_a.add_child(file_aa)
+        file_aaa = ModelFile("aaa", True)
+        file_aa.add_child(file_aaa)
+        file_ab = ModelFile("ab", True)
+        file_a.add_child(file_ab)
+        self.assertEqual("a", file_a.full_path)
+        self.assertEqual("a/aa", file_aa.full_path)
+        self.assertEqual("a/aa/aaa", file_aaa.full_path)
+        self.assertEqual("a/ab", file_ab.full_path)
