@@ -1,11 +1,6 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-from typing import Dict, List
 import inspect
-
-
-Config = Dict[str, Dict[str, str]]
-Patterns = List[str]
 
 
 def overrides(interface_class):
