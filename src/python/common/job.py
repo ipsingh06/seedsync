@@ -4,7 +4,9 @@ import threading
 import time
 from abc import ABC, abstractmethod
 
+# my libs
 from .context import PylftpContext
+from .types import overrides
 
 
 class PylftpJob(threading.Thread, ABC):
@@ -22,6 +24,7 @@ class PylftpJob(threading.Thread, ABC):
         # indicates whether the thread should be terminated.
         self.shutdown_flag = threading.Event()
 
+    @overrides(threading.Thread)
     def run(self):
         self.logger.debug("Thread {} started".format(self.name))
 

@@ -10,7 +10,7 @@ from paste import httpserver
 from paste.translogger import TransLogger
 
 # my libs
-from common import PylftpJob, PylftpContext
+from common import overrides, PylftpJob, PylftpContext
 
 
 class WebAppJob(PylftpJob):
@@ -25,6 +25,7 @@ class WebAppJob(PylftpJob):
         self.server = None
         self.server_thread = None
 
+    @overrides(PylftpJob)
     def setup(self):
         self.app = WebApp(self.logger)
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
@@ -38,9 +39,11 @@ class WebAppJob(PylftpJob):
                                     })
         self.server_thread.start()
 
+    @overrides(PylftpJob)
     def execute(self):
         pass
 
+    @overrides(PylftpJob)
     def cleanup(self):
         self.app.stop()
         self.server.stop()
@@ -157,6 +160,7 @@ class MyWSGIRefServer(bottle.ServerAdapter):
         self.logger = logger
         self.server = None
 
+    @overrides(bottle.ServerAdapter)
     def run(self, handler):
         handler = TransLogger(handler, logger=self.logger, setup_console_handler=(not self.quiet))
         self.server = httpserver.serve(handler, host=self.host, port=str(self.port), start_loop=False,
