@@ -2,3 +2,4 @@
 
 from .controller import ControllerJob
 from .model_builder import ModelBuilder
+from .scanner_process import IScanner, ScannerResult, ScannerProcess
