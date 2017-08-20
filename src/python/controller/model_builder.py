@@ -43,7 +43,7 @@ class ModelBuilder:
 
     def build_model(self) -> Model:
         model = Model()
-        model.set_base_logger(self.logger)
+        model.set_base_logger(logging.getLogger("dummy"))  # ignore the logs for this temp model
         all_file_names = set().union(self.__local_files.keys(),
                                      self.__remote_files.keys(),
                                      self.__lftp_statuses.keys())
