@@ -2,9 +2,6 @@
 
 import unittest
 import sys
-import os
-import tempfile
-import shutil
 import copy
 
 from common import overrides
@@ -12,35 +9,13 @@ from common import PylftpContext
 
 
 class TestPylftpContext(unittest.TestCase):
-    temp_dir = None
-
-    @classmethod
-    def setUpClass(cls):
-        # Create a temp directory for test
-        TestPylftpContext.temp_dir = tempfile.mkdtemp(prefix="test_context")
-
-    @classmethod
-    def tearDownClass(cls):
-        # Cleanup
-        shutil.rmtree(TestPylftpContext.temp_dir)
-
     @overrides(unittest.TestCase)
     def setUp(self):
-        # Create empty config files
-        self.config_file = open(os.path.join(TestPylftpContext.temp_dir, "config"), "w")
-        os.utime(self.config_file.name, None)
-        self.patterns_file = open(os.path.join(TestPylftpContext.temp_dir, "patterns"), "w")
-        os.utime(self.patterns_file.name, None)
-
         # Make a copy of the sys argv
         self.sys_argv_orig = copy.deepcopy(sys.argv)
 
     @overrides(unittest.TestCase)
     def tearDown(self):
-        # Remove config files
-        self.config_file.close()
-        self.patterns_file.close()
-
         # Restore the original sys argv
         sys.argv = self.sys_argv_orig
 

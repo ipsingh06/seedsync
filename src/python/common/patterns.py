@@ -11,8 +11,7 @@ class Patterns:
     Patterns are used to trigger automatic downloads
     """
     def __init__(self):
-        # TODO: refactor
-        self.content = []
+        self.lines = []
 
     @staticmethod
     def from_file(patterns_file_path: str) -> "Patterns":
@@ -20,5 +19,6 @@ class Patterns:
         if not os.path.isfile(patterns_file_path):
             raise PylftpError("Patterns file not found: {}".format(patterns_file_path))
         with open(patterns_file_path) as f:
-            patterns.content = [x.strip() for x in f.readlines()]
+            patterns.lines = [x.strip() for x in f.readlines()]
+            patterns.lines = [x for x in patterns.lines if x]  # remove empty lines
         return patterns

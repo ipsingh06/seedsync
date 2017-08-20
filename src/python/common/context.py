@@ -73,12 +73,13 @@ class PylftpContext:
     def print_to_log(self):
         # Print the config
         self.logger.debug("Config:")
-        for section in self.config.dict.keys():
-            for option in self.config.dict[section].keys():
-                value = self.config.dict[section][option]
+        config_dict = self.config.as_dict()
+        for section in config_dict.keys():
+            for option in config_dict[section].keys():
+                value = config_dict[section][option]
                 self.logger.debug("  {}.{}: {}".format(section, option, value))
 
         # Print the patterns
         self.logger.debug("Patterns:")
-        for pattern in self.patterns.content:
+        for pattern in self.patterns.lines:
             self.logger.debug("  {}".format(pattern))

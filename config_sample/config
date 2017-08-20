@@ -1,16 +1,13 @@
-[SSHConfig]
-address=aether.feralhosting.com
-username=canucksdesi
-download_from_path=/media/sdn1/home/canucksdesi/private/rtorrent/data
-download_to_path=/media/someone/WD/Videos/temp
-local_username=someone
+[Lftp]
+remote_address=<replace me>
+remote_username=<replace me>
+remote_password=
+remote_path=<replace me>
+local_path=<replace me>
+num_max_parallel_downloads=2
+num_max_parallel_files_per_download=3
+num_max_connections_per_file=4
 
-[LFTPConfig]
-parallel=4
-use_pget_n=4
-
-[TimeParameters]
-min_downloading_interval=1000
-min_local_interval=10000
-min_full_interval=60000
-watchdog_interval=10000
+[Controller]
+interval_ms_remote_scan=30000
+interval_ms_local_scan=10000
