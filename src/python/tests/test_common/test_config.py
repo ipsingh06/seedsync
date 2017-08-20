@@ -71,6 +71,7 @@ class TestPylftpConfig(unittest.TestCase):
             "remote_password": "remote-user-pass",
             "remote_path": "/path/on/remote/server",
             "local_path": "/path/on/local/server",
+            "remote_path_to_scan_script": "/path/on/remote/server/to/scan/script",
             "num_max_parallel_downloads": "2",
             "num_max_parallel_files_per_download": "3",
             "num_max_connections_per_file": "4",
@@ -81,6 +82,7 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual("remote-user-pass", lftp.remote_password)
         self.assertEqual("/path/on/remote/server", lftp.remote_path)
         self.assertEqual("/path/on/local/server", lftp.local_path)
+        self.assertEqual("/path/on/remote/server/to/scan/script", lftp.remote_path_to_scan_script)
         self.assertEqual(2, lftp.num_max_parallel_downloads)
         self.assertEqual(3, lftp.num_max_parallel_files_per_download)
         self.assertEqual(4, lftp.num_max_connections_per_file)
@@ -94,6 +96,7 @@ class TestPylftpConfig(unittest.TestCase):
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_password")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_path")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "local_path")
+        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_path_to_scan_script")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_file")
@@ -131,6 +134,7 @@ class TestPylftpConfig(unittest.TestCase):
         remote_password=remote-user-pass
         remote_path=/path/on/remote/server
         local_path=/path/on/local/server
+        remote_path_to_scan_script=/path/on/remote/server/to/scan/script
         num_max_parallel_downloads=2
         num_max_parallel_files_per_download=3
         num_max_connections_per_file=4
@@ -146,6 +150,7 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual("remote-user-pass", config.lftp.remote_password)
         self.assertEqual("/path/on/remote/server", config.lftp.remote_path)
         self.assertEqual("/path/on/local/server", config.lftp.local_path)
+        self.assertEqual("/path/on/remote/server/to/scan/script", config.lftp.remote_path_to_scan_script)
         self.assertEqual(2, config.lftp.num_max_parallel_downloads)
         self.assertEqual(3, config.lftp.num_max_parallel_files_per_download)
         self.assertEqual(4, config.lftp.num_max_connections_per_file)

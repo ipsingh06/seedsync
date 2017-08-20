@@ -60,6 +60,7 @@ class PylftpConfig:
             self.remote_password = None
             self.remote_path = None
             self.local_path = None
+            self.remote_path_to_scan_script = None
             self.num_max_parallel_downloads = None
             self.num_max_parallel_files_per_download = None
             self.num_max_connections_per_file = None
@@ -74,6 +75,8 @@ class PylftpConfig:
             config.remote_password = check_string(PylftpConfig.Lftp, config_dict, "remote_password")
             config.remote_path = check_string(PylftpConfig.Lftp, config_dict, "remote_path")
             config.local_path = check_string(PylftpConfig.Lftp, config_dict, "local_path")
+            config.remote_path_to_scan_script = check_string(
+                PylftpConfig.Lftp, config_dict, "remote_path_to_scan_script")
 
             config.num_max_parallel_downloads = check_int_positive(
                 PylftpConfig.Lftp, config_dict, "num_max_parallel_downloads")
