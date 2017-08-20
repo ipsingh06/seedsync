@@ -5,17 +5,9 @@ import sys
 import time
 
 # my libs
-from common import PylftpContext, Constants
+from common import ServiceExit, PylftpContext, Constants
 from controller import ControllerJob
 from web import WebAppJob
-
-
-class ServiceExit(Exception):
-    """
-    Custom exception which is used to trigger the clean exit
-    of all running threads and the main program.
-    """
-    pass
 
 
 class Pylftpd:

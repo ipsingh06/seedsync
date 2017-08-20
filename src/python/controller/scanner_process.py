@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List
 
 # my libs
-from common import overrides
+from common import overrides, ServiceExit
 from system import SystemFile
 
 
@@ -54,13 +54,16 @@ class ScannerProcess(Process):
 
     @overrides(Process)
     def run(self):
-        while True:
-            timestamp_start = datetime.now()
-            self.logger.debug("Running a scan")
-            files = self.__scanner.scan()
-            result = ScannerResult(timestamp=timestamp_start,
-                                   files=files)
-            self.__queue.put(result)
-            delta_in_ms = int((datetime.now() - timestamp_start).total_seconds()*1000)
-            if delta_in_ms < self.__interval_in_ms:
-                time.sleep(float(self.__interval_in_ms-delta_in_ms)/1000.0)
+        try:
+            while True:
+                timestamp_start = datetime.now()
+                self.logger.debug("Running a scan")
+                files = self.__scanner.scan()
+                result = ScannerResult(timestamp=timestamp_start,
+                                       files=files)
+                self.__queue.put(result)
+                delta_in_ms = int((datetime.now() - timestamp_start).total_seconds()*1000)
+                if delta_in_ms < self.__interval_in_ms:
+                    time.sleep(float(self.__interval_in_ms-delta_in_ms)/1000.0)
+        except ServiceExit:
+            self.logger.info("Exiting scanner process")
