@@ -57,7 +57,6 @@ class PylftpConfig:
         def __init__(self):
             self.remote_address = None
             self.remote_username = None
-            self.remote_password = None
             self.remote_path = None
             self.local_path = None
             self.remote_path_to_scan_script = None
@@ -72,7 +71,6 @@ class PylftpConfig:
 
             config.remote_address = check_string(PylftpConfig.Lftp, config_dict, "remote_address")
             config.remote_username = check_string(PylftpConfig.Lftp, config_dict, "remote_username")
-            config.remote_password = check_string(PylftpConfig.Lftp, config_dict, "remote_password")
             config.remote_path = check_string(PylftpConfig.Lftp, config_dict, "remote_path")
             config.local_path = check_string(PylftpConfig.Lftp, config_dict, "local_path")
             config.remote_path_to_scan_script = check_string(

@@ -1,7 +1,6 @@
 [Lftp]
 remote_address=<replace me>
 remote_username=<replace me>
-remote_password=
 remote_path=<replace me>
 local_path=<replace me>
 remote_path_to_scan_script=<replace me>
