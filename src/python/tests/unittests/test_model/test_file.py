@@ -114,6 +114,42 @@ class TestModelFile(unittest.TestCase):
         file_parent.add_child(file_child2)
         self.assertEqual([file_child1, file_child2], file_parent.get_children())
 
+    def test_child_equality(self):
+        l_a = ModelFile("a", True)
+        l_a.remote_size = 3+1+2
+        l_aa = ModelFile("aa", True)
+        l_aa.remote_size = 3+1
+        l_a.add_child(l_aa)
+        l_aaa = ModelFile("aaa", False)
+        l_aaa.remote_size = 1
+        l_aa.add_child(l_aaa)
+        l_aab = ModelFile("aab", False)
+        l_aab.remote_size = 3
+        l_aa.add_child(l_aab)
+        l_ab = ModelFile("ab", False)
+        l_ab.remote_size = 2
+        l_a.add_child(l_ab)
+
+        r_a = ModelFile("a", True)
+        r_a.remote_size = 3+1+2
+        r_aa = ModelFile("aa", True)
+        r_aa.remote_size = 3+1
+        r_a.add_child(r_aa)
+        r_aaa = ModelFile("aaa", False)
+        r_aaa.remote_size = 1
+        r_aa.add_child(r_aaa)
+        r_aab = ModelFile("aab", False)
+        r_aab.remote_size = 3
+        r_aa.add_child(r_aab)
+        r_ab = ModelFile("ab", False)
+        r_ab.remote_size = 2
+        r_a.add_child(r_ab)
+
+        self.assertEqual(l_a, r_a)
+
+        r_aaa.remote_size = 2
+        self.assertNotEqual(l_a, r_a)
+
     def test_fail_add_child_to_nondir(self):
         file_parent = ModelFile("parent", False)
         file_child1 = ModelFile("child1", True)

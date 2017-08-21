@@ -10,6 +10,11 @@ import os
 class ModelFile:
     """
     Represents a file or directory
+    The information in this object may be inconsistent. E.g. the size of a directory
+    may not match the sum of its children. This is allowed as a source may have
+    updated only certain levels in the hierarchy. Specifically for this example,
+    an Lftp status provides local sizes for a downloading directory but not its
+    children.
     """
     class State(Enum):
         DEFAULT = 0
@@ -31,17 +36,38 @@ class ModelFile:
         self.__parent = None  # direct predecessor
 
     def __eq__(self, other):
-        # disregard timestamp in comparison
-        # disregard parent reference in comparison
+        # disregard in comparisons:
+        #   timestamp: we don't care about it
+        #   parent: semantics are to check self and children only
+        #   children: check these manually for easier debugging
         ka = set(self.__dict__).difference({
             "_ModelFile__update_timestamp",
-            "_ModelFile__parent"
+            "_ModelFile__parent",
+            "_ModelFile__children"
         })
         kb = set(other.__dict__).difference({
             "_ModelFile__update_timestamp",
-            "_ModelFile__parent"
+            "_ModelFile__parent",
+            "_ModelFile__children"
         })
-        return ka == kb and all(self.__dict__[k] == other.__dict__[k] for k in ka)
+        # Check self properties
+        if ka != kb:
+            return False
+        if not all(self.__dict__[k] == other.__dict__[k] for k in ka):
+            return False
+
+        # Check children's properties
+        if len(self.__children) != len(other.__children):
+            return False
+        my_children_dict = {f.name: f for f in self.__children}
+        other_children_dict = {f.name: f for f in other.__children}
+        if my_children_dict.keys() != other_children_dict.keys():
+            return False
+        for name in my_children_dict.keys():
+            if my_children_dict[name] != other_children_dict[name]:
+                return False
+
+        return True
 
     def __repr__(self):
         return str(self.__dict__)
