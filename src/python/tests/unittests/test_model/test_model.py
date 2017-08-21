@@ -5,17 +5,21 @@ import sys
 import unittest
 from unittest.mock import MagicMock
 
+from common import overrides
 from model import Model, ModelFile, IModelListener, ModelError
 
 
 class DummyModelListener(IModelListener):
+    @overrides(IModelListener)
     def file_added(self, file: ModelFile):
         pass
 
+    @overrides(IModelListener)
     def file_removed(self, file: ModelFile):
         pass
 
-    def file_updated(self, file: ModelFile):
+    @overrides(IModelListener)
+    def file_updated(self, old_file: ModelFile, new_file: ModelFile):
         pass
 
 
@@ -67,15 +71,6 @@ class TestLftpModel(unittest.TestCase):
         with self.assertRaises(ModelError):
             self.model.update_file(file)
 
-    def test_update_local_copy(self):
-        file = ModelFile("test", False)
-        file.local_size = 100
-        self.model.add_file(file)
-        file.local_size = 200
-        recv_file = self.model.get_file("test")
-        # local update should not be reflected in the model
-        self.assertEqual(100, recv_file.local_size)
-
     def test_get_file_names(self):
         self.assertEqual(set(), self.model.get_file_names())
         self.model.add_file(ModelFile("a", False))
@@ -122,40 +117,11 @@ class TestLftpModel(unittest.TestCase):
 
         listener.file_updated = MagicMock()
 
-        file = ModelFile("test", False)
-        file.local_size = 100
-        self.model.add_file(file)
-        file.local_size = 200
-        self.model.update_file(file)
+        old_file = ModelFile("test", False)
+        old_file.local_size = 100
+        self.model.add_file(old_file)
+        new_file = ModelFile("test", False)
+        new_file.local_size = 200
+        self.model.update_file(new_file)
         # noinspection PyUnresolvedReferences
-        listener.file_updated.assert_called_once_with(file)
-
-    def test_listener_receives_copies(self):
-        listener = DummyModelListener()
-        self.model.add_listener(listener)
-
-        def side_effect(rx_file: ModelFile):
-            rx_file.local_size = 200
-
-        listener.file_added = MagicMock()
-        listener.file_added.side_effect = side_effect
-        listener.file_updated = MagicMock()
-        listener.file_updated.side_effect = side_effect
-
-        file = ModelFile("test", False)
-        file.local_size = 100
-
-        # below we check that the side effect is not reflected in the
-        # file received from the get_file method
-
-        self.model.add_file(file)
-        # noinspection PyUnresolvedReferences
-        self.assertEqual(1, listener.file_added.call_count)
-        recv_file = self.model.get_file("test")
-        self.assertEqual(100, recv_file.local_size)
-
-        self.model.update_file(file)
-        # noinspection PyUnresolvedReferences
-        self.assertEqual(1, listener.file_updated.call_count)
-        recv_file = self.model.get_file("test")
-        self.assertEqual(100, recv_file.local_size)
+        listener.file_updated.assert_called_once_with(old_file, new_file)

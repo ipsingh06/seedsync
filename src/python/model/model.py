@@ -1,6 +1,5 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-import copy
 import logging
 from abc import ABC, abstractmethod
 from typing import Set
@@ -40,10 +39,11 @@ class IModelListener(ABC):
         pass
 
     @abstractmethod
-    def file_updated(self, file: ModelFile):
+    def file_updated(self, old_file: ModelFile, new_file: ModelFile):
         """
         Event indicating that the given file was updated
-        :param file:
+        :param old_file:
+        :param new_file:
         :return:
         """
         pass
@@ -80,9 +80,9 @@ class Model:
         self.logger.debug("LftpModel: Adding file '{}'".format(file.name))
         if file.name in self.__files:
             raise ModelError("File already exists in the model")
-        self.__files[file.name] = copy.copy(file)
+        self.__files[file.name] = file
         for listener in self.__listeners:
-            listener.file_added(copy.copy(self.__files[file.name]))
+            listener.file_added(self.__files[file.name])
 
     def remove_file(self, filename: str):
         """
@@ -93,7 +93,7 @@ class Model:
         self.logger.debug("LftpModel: Removing file '{}'".format(filename))
         if filename not in self.__files:
             raise ModelError("File does not exist in the model")
-        file = copy.copy(self.__files[filename])
+        file = self.__files[filename]
         del self.__files[filename]
         for listener in self.__listeners:
             listener.file_removed(file)
@@ -107,9 +107,11 @@ class Model:
         self.logger.debug("LftpModel: Updating file '{}'".format(file.name))
         if file.name not in self.__files:
             raise ModelError("File does not exist in the model")
-        self.__files[file.name] = copy.copy(file)
+        old_file = self.__files[file.name]
+        new_file = file
+        self.__files[file.name] = new_file
         for listener in self.__listeners:
-            listener.file_updated(copy.copy(self.__files[file.name]))
+            listener.file_updated(old_file, new_file)
 
     def get_file(self, name: str) -> ModelFile:
         """
@@ -119,7 +121,7 @@ class Model:
         """
         if name not in self.__files:
             raise ModelError("File does not exist in the model")
-        return copy.copy(self.__files[name])
+        return self.__files[name]
 
     def get_file_names(self) -> Set[str]:
         return set(self.__files.keys())
