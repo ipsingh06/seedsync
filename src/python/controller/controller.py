@@ -1,7 +1,20 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
+from typing import List
+import multiprocessing
+import queue
+import logging
+import pickle
+from threading import Lock
+
 # my libs
+from .scanner_process import IScanner, ScannerProcess
+from .model_builder import ModelBuilder
 from common import overrides, PylftpJob, PylftpContext
+from system import SystemFile, SystemScanner
+from ssh import Ssh
+from model import Model, ModelDiff, ModelDiffUtil, IModelListener
+from lftp import Lftp
 
 
 class ControllerJob(PylftpJob):
@@ -11,15 +24,188 @@ class ControllerJob(PylftpJob):
     """
     def __init__(self, context: PylftpContext):
         super().__init__(name=self.__class__.__name__, context=context)
+        self.__context = context
+        self.__controller = None
 
     @overrides(PylftpJob)
     def setup(self):
-        pass
+        self.__controller = Controller(self.__context)
 
     @overrides(PylftpJob)
     def execute(self):
-        pass
+        self.__controller.process()
 
     @overrides(PylftpJob)
     def cleanup(self):
+        self.__controller.exit()
+
+
+class LocalScanner(IScanner):
+    """
+    Scanner implementation to scan the local filesystem
+    """
+    def __init__(self, local_path: str):
+        self.__scanner = SystemScanner(local_path)
+
+    def set_base_logger(self, base_logger: logging.Logger):
         pass
+
+    @overrides(IScanner)
+    def scan(self) -> List[SystemFile]:
+        return self.__scanner.scan()
+
+
+class RemoteScanner(IScanner):
+    """
+    Scanner implementation to scan the remote filesystem
+    """
+    def __init__(self,
+                 remote_address: str,
+                 remote_username: str,
+                 remote_path_to_scan: str,
+                 remote_path_to_scan_script: str):
+        self.__remote_path_to_scan = remote_path_to_scan
+        self.__ssh = Ssh(host=remote_address,
+                         user=remote_username,
+                         target_dir=remote_path_to_scan_script)
+
+    def set_base_logger(self, base_logger: logging.Logger):
+        self.__ssh.set_base_logger(base_logger)
+
+    @overrides(IScanner)
+    def scan(self) -> List[SystemFile]:
+        out = self.__ssh.run_command("python3 scan_fs.py {}".format(self.__remote_path_to_scan))
+        remote_files = pickle.loads(out)
+        return remote_files
+
+
+class Controller:
+    """
+    Top-level class that controls the behaviour of pylftp
+    """
+    def __init__(self, context: PylftpContext):
+        self.__context = context
+        self.logger = context.logger.getChild("Controller")
+
+        # The model
+        self.__model = Model()
+        self.__model.set_base_logger(self.logger)
+        # Lock for the model
+        # Note: While the scanners are in a separate process, the rest of the application
+        #       is threaded in a single process. (The webserver is bottle+paste which is
+        #       multi-threaded). Therefore it is safe to use a threading Lock for the model
+        #       (the scanner processes never try to access the model)
+        self.__model_lock = Lock()
+
+        # Model builder
+        self.__model_builder = ModelBuilder()
+        self.__model_builder.set_base_logger(self.logger)
+
+        # Lftp
+        self.__lftp = Lftp(address=self.__context.config.lftp.remote_address,
+                           user=self.__context.config.lftp.remote_username,
+                           password="")
+        self.__lftp.set_base_logger(self.logger)
+
+        # Setup the scanners and scanner processes
+        self.__local_scanner = LocalScanner(self.__context.config.lftp.local_path)
+        self.__remote_scanner = RemoteScanner(
+            remote_address=self.__context.config.lftp.remote_address,
+            remote_username=self.__context.config.lftp.remote_username,
+            remote_path_to_scan=self.__context.config.lftp.remote_path,
+            remote_path_to_scan_script=self.__context.config.lftp.remote_path_to_scan_script
+        )
+        self.__local_scanner.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
+        self.__remote_scanner.set_base_logger(self.logger.getChild("Remote"))  # to differentiate scanner
+
+        self.__local_scan_queue = multiprocessing.Queue()
+        self.__remote_scan_queue = multiprocessing.Queue()
+
+        self.__local_scan_process = ScannerProcess(
+            queue=self.__local_scan_queue,
+            scanner=self.__local_scanner,
+            interval_in_ms=self.__context.config.controller.interval_ms_local_scan
+        )
+        self.__remote_scan_process = ScannerProcess(
+            queue=self.__remote_scan_queue,
+            scanner=self.__remote_scanner,
+            interval_in_ms=self.__context.config.controller.interval_ms_remote_scan
+        )
+        self.__local_scan_process.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
+        self.__remote_scan_process.set_base_logger(self.logger.getChild("Remote"))  # to differentiate scanner
+        self.__local_scan_process.start()
+        self.__remote_scan_process.start()
+
+    def process(self):
+        """
+        Advance the controller state
+        This method should return relatively quickly as the heavy lifting is done by concurrent tasks
+        :return:
+        """
+        self.__update_model()
+
+    def exit(self):
+        self.__local_scan_process.terminate()
+        self.__remote_scan_process.terminate()
+
+    def add_model_listener(self, listener: IModelListener):
+        """
+        Adds a listener to the controller's model
+        When a listener is added, a file_added event is triggered for all files in the model.
+        This is the only way to get the initial state of the model.
+        :param listener:
+        :return:
+        """
+        # Lock the model
+        self.__model_lock.acquire()
+        for filename in self.__model.get_file_names():
+            listener.file_added(self.__model.get_file(filename))
+        self.__model.add_listener(listener)
+        # Release the model
+        self.__model_lock.release()
+
+    def __update_model(self):
+        # Grab the latest remote scan result
+        latest_remote_scan = None
+        try:
+            while True:
+                latest_remote_scan = self.__remote_scan_queue.get(block=False)
+        except queue.Empty:
+            pass
+
+        # Grab the latest local scan result
+        latest_local_scan = None
+        try:
+            while True:
+                latest_local_scan = self.__local_scan_queue.get(block=False)
+        except queue.Empty:
+            pass
+
+        # Grab the Lftp status
+        lftp_statuses = self.__lftp.status()
+
+        # Build the new model
+        if latest_remote_scan:
+            self.__model_builder.set_remote_files(latest_remote_scan.files)
+        if latest_local_scan:
+            self.__model_builder.set_local_files(latest_local_scan.files)
+        self.__model_builder.set_lftp_statuses(lftp_statuses)
+        new_model = self.__model_builder.build_model()
+
+        # Lock the model
+        self.__model_lock.acquire()
+
+        # Diff the new model with old model
+        model_diff = ModelDiffUtil.diff_models(self.__model, new_model)
+
+        # Apply changes to the new model
+        for diff in model_diff:
+            if diff.change == ModelDiff.Change.ADDED:
+                self.__model.add_file(diff.new_file)
+            elif diff.change == ModelDiff.Change.REMOVED:
+                self.__model.remove_file(diff.old_file.name)
+            elif diff.change == ModelDiff.Change.UPDATED:
+                self.__model.update_file(diff.new_file)
+
+        # Release the model
+        self.__model_lock.release()
