@@ -6,6 +6,8 @@ import queue
 import logging
 import pickle
 from threading import Lock
+from queue import Queue
+from enum import Enum
 
 # my libs
 from .scanner_process import IScanner, ScannerProcess
@@ -13,8 +15,8 @@ from .model_builder import ModelBuilder
 from common import overrides, PylftpJob, PylftpContext
 from system import SystemFile, SystemScanner
 from ssh import Ssh
-from model import Model, ModelDiff, ModelDiffUtil, IModelListener
-from lftp import Lftp
+from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
+from lftp import Lftp, LftpError
 
 
 class ControllerJob(PylftpJob):
@@ -83,9 +85,21 @@ class Controller:
     """
     Top-level class that controls the behaviour of pylftp
     """
+    class Command:
+        class Action(Enum):
+            QUEUE = 0
+            STOP = 1
+
+        def __init__(self, action: Action, filename: str):
+            self.action = action
+            self.filename = filename
+
     def __init__(self, context: PylftpContext):
         self.__context = context
         self.logger = context.logger.getChild("Controller")
+
+        # The command queue
+        self.__command_queue = Queue()
 
         # The model
         self.__model = Model()
@@ -106,6 +120,8 @@ class Controller:
                            user=self.__context.config.lftp.remote_username,
                            password="")
         self.__lftp.set_base_logger(self.logger)
+        self.__lftp.set_base_remote_dir_path(self.__context.config.lftp.remote_path)
+        self.__lftp.set_base_local_dir_path(self.__context.config.lftp.local_path)
 
         # Setup the scanners and scanner processes
         self.__local_scanner = LocalScanner(self.__context.config.lftp.local_path)
@@ -142,6 +158,7 @@ class Controller:
         This method should return relatively quickly as the heavy lifting is done by concurrent tasks
         :return:
         """
+        self.__process_commands()
         self.__update_model()
 
     def exit(self):
@@ -164,6 +181,9 @@ class Controller:
         # Release the model
         self.__model_lock.release()
 
+    def queue_command(self, command: Command):
+        self.__command_queue.put(command)
+
     def __update_model(self):
         # Grab the latest remote scan result
         latest_remote_scan = None
@@ -182,14 +202,19 @@ class Controller:
             pass
 
         # Grab the Lftp status
-        lftp_statuses = self.__lftp.status()
+        lftp_statuses = None
+        try:
+            lftp_statuses = self.__lftp.status()
+        except LftpError as e:
+            self.logger.warn("Caught lftp error: {}".format(str(e)))
 
         # Build the new model
-        if latest_remote_scan:
+        if latest_remote_scan is not None:
             self.__model_builder.set_remote_files(latest_remote_scan.files)
-        if latest_local_scan:
+        if latest_local_scan is not None:
             self.__model_builder.set_local_files(latest_local_scan.files)
-        self.__model_builder.set_lftp_statuses(lftp_statuses)
+        if lftp_statuses is not None:
+            self.__model_builder.set_lftp_statuses(lftp_statuses)
         new_model = self.__model_builder.build_model()
 
         # Lock the model
@@ -209,3 +234,36 @@ class Controller:
 
         # Release the model
         self.__model_lock.release()
+
+    def __process_commands(self):
+        while not self.__command_queue.empty():
+            command = self.__command_queue.get()
+            self.logger.info("Received command {} for file {}".format(str(command.action), command.filename))
+            try:
+                file = self.__model.get_file(command.filename)
+            except ModelError:
+                self.logger.warn("Command failed. File {} does not exist in model".format(command.filename))
+                return
+
+            if command.action == Controller.Command.Action.QUEUE:
+                if file.remote_size is None:
+                    self.logger.warn("Command {} failed. File {} does not exist on remote".format(
+                        str(command.action),
+                        command.filename
+                    ))
+                    return
+                try:
+                    self.__lftp.queue(file.name, file.is_dir)
+                except LftpError as e:
+                    self.logger.warn("Caught lftp error: {}".format(str(e)))
+            elif command.action == Controller.Command.Action.STOP:
+                if file.state != ModelFile.State.DOWNLOADING:
+                    self.logger.warn("Command {} failed. File {} is not downloading".format(
+                        str(command.action),
+                        command.filename
+                    ))
+                    return
+                try:
+                    self.__lftp.kill(file.name)
+                except LftpError as e:
+                    self.logger.warn("Caught lftp error: {}".format(str(e)))

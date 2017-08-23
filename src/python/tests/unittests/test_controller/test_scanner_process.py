@@ -4,8 +4,9 @@ import unittest
 from unittest.mock import MagicMock
 import logging
 import sys
-import timeout_decorator
 from multiprocessing import Queue
+
+import timeout_decorator
 
 from controller import IScanner, ScannerProcess
 from system import SystemFile
