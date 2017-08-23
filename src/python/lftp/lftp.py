@@ -84,12 +84,14 @@ class Lftp:
 
     @with_check_process
     def __run_command(self, command: str):
-        self.logger.info("command: {}".format(command))
+        self.logger.debug("command: {}".format(command))
         self.__process.sendline(command)
         self.__process.expect(self.__expect_pattern)
         out = self.__process.before.decode()
         out = out.strip()  # remove any CRs
-        self.logger.debug("out:\n{}".format(out))
+        self.logger.debug("out:")
+        for line in out.split("\n"):
+            self.logger.debug("  {}".format(line))
         # let's try and detect some errors
         if self.__detect_errors_from_output(out):
             # we need to consume the actual output so that
@@ -98,7 +100,9 @@ class Lftp:
             self.__process.expect(self.__expect_pattern)
             out = self.__process.before.decode()
             out = out.strip()  # remove any CRs
-            self.logger.debug("retry out:\n{}".format(out))
+            self.logger.debug("retry out:")
+            for line in out.split("\n"):
+                self.logger.debug("  {}".format(line))
             raise LftpError("Detected error: {}".format(error_out))
         return out
 
