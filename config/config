@@ -13,4 +13,4 @@ interval_ms_remote_scan=30000
 interval_ms_local_scan=10000
 
 [Web]
-port=88
+port=8800
