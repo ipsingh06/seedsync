@@ -3,14 +3,19 @@
 import time
 import logging
 from threading import Thread
+import os
 
 # 3rd party libs
 import bottle
+from bottle import static_file
 from paste import httpserver
 from paste.translogger import TransLogger
 
 # my libs
 from common import overrides, PylftpJob, PylftpContext
+
+
+_DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 class WebAppJob(PylftpJob):
@@ -21,23 +26,24 @@ class WebAppJob(PylftpJob):
     def __init__(self, context: PylftpContext):
         super().__init__(name=self.__class__.__name__, context=context)
         self.web_access_logger = context.web_access_logger
-        self.app = None
-        self.server = None
-        self.server_thread = None
+        self.__context = context
+        self.__app = None
+        self.__server = None
+        self.__server_thread = None
 
     @overrides(PylftpJob)
     def setup(self):
-        self.app = WebApp(self.logger)
+        self.__app = WebApp(self.logger)
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
-
-        # TODO: grab from config
-        self.server = MyWSGIRefServer(self.web_access_logger, host="localhost", port=8080)
-        self.server_thread = Thread(target=bottle.run,
-                                    kwargs={
-                                        'app': self.app,
-                                        'server': self.server
-                                    })
-        self.server_thread.start()
+        self.__server = MyWSGIRefServer(self.web_access_logger,
+                                        host="localhost",
+                                        port=self.__context.config.web.port)
+        self.__server_thread = Thread(target=bottle.run,
+                                      kwargs={
+                                          'app': self.__app,
+                                          'server': self.__server
+                                      })
+        self.__server_thread.start()
 
     @overrides(PylftpJob)
     def execute(self):
@@ -45,42 +51,9 @@ class WebAppJob(PylftpJob):
 
     @overrides(PylftpJob)
     def cleanup(self):
-        self.app.stop()
-        self.server.stop()
-        self.server_thread.join()
-
-
-sse_test_page = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8" />
-        <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js "></script>
-        <script>
-            $(document).ready(function() {
-                console.log("Ready...")
-                var es = new EventSource("stream");
-                es.onerror = function (e) {
-                    console.log("Error!");
-                };
-                es.onopen = function (e) {
-                    console.log("Opened!");
-                };
-                es.onclose = function (e) {
-                    console.log("Closed!");
-                };
-                es.onmessage = function (e) {
-                    $("#log").html($("#log").html()
-                        + "<p>Event: " + e.event + ", data: " + e.data + "</p>");
-                };
-            })
-        </script>
-    </head>
-    <body>
-        <div id="log" style="font-family: courier; font-size: 0.75em;"></div>
-    </body>
-</html>
-"""
+        self.__app.stop()
+        self.__server.stop()
+        self.__server_thread.join()
 
 
 class WebApp(bottle.Bottle):
@@ -91,8 +64,9 @@ class WebApp(bottle.Bottle):
         super().__init__()
         self.logger = logger.getChild("WebApp")
         self.__stop = False
-        self.get("/")(self.index)
         self.get("/stream")(self.stream)
+        self.route("/")(self.index)
+        self.route("/<file_path:path>")(self.static)
 
     def stop(self):
         """
@@ -100,6 +74,13 @@ class WebApp(bottle.Bottle):
         :return: 
         """
         self.__stop = True
+
+    def index(self):
+        return self.static("index.html")
+
+    # noinspection PyMethodMayBeStatic
+    def static(self, file_path: str):
+        return static_file(file_path, root=os.path.join(_DIR_PATH, "..", "..", "html"))
 
     @staticmethod
     def _sse_pack(d):
@@ -109,9 +90,6 @@ class WebApp(bottle.Bottle):
             if k in d.keys():
                 buffer += '%s: %s\n' % (k, d[k])
         return buffer + '\n'
-
-    def index(self) -> str:
-        return sse_test_page
 
     def stream(self) -> str:
         # "Using server-sent events"
@@ -148,6 +126,17 @@ class WebApp(bottle.Bottle):
             self.logger.debug("App connection stopped by server")
 
 
+class MyWSGIHandler(httpserver.WSGIHandler):
+    """
+    This class is overridden to fix a bug in Paste http server
+    """
+    # noinspection SpellCheckingInspection
+    def wsgi_write_chunk(self, chunk):
+        if type(chunk) is str:
+            chunk = str.encode(chunk)
+        super().wsgi_write_chunk(chunk)
+
+
 class MyWSGIRefServer(bottle.ServerAdapter):
     """
     Extend bottle's default server to support programatic stopping of server
@@ -164,6 +153,7 @@ class MyWSGIRefServer(bottle.ServerAdapter):
     def run(self, handler):
         handler = TransLogger(handler, logger=self.logger, setup_console_handler=(not self.quiet))
         self.server = httpserver.serve(handler, host=self.host, port=str(self.port), start_loop=False,
+                                       handler=MyWSGIHandler,
                                        **self.options)
         self.server.serve_forever()
 
