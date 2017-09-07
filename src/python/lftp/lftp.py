@@ -33,6 +33,9 @@ class Lftp:
     __SET_MOVE_BACKGROUND_ON_EXIT = "cmd:move-background"
     __SET_COMMAND_AT_EXIT = "cmd:at-exit"
 
+    # Set this to True to enable verbose command logging
+    __LOG_COMMAND_OUTPUT = False
+
     def __init__(self, address: str, user: str, password: str):
         self.__user = user
         self.__password = password
@@ -84,14 +87,18 @@ class Lftp:
 
     @with_check_process
     def __run_command(self, command: str):
-        self.logger.debug("command: {}".format(command))
+        if Lftp.__LOG_COMMAND_OUTPUT:
+            self.logger.debug("command: {}".format(command))
         self.__process.sendline(command)
         self.__process.expect(self.__expect_pattern)
         out = self.__process.before.decode()
         out = out.strip()  # remove any CRs
-        self.logger.debug("out:")
-        for line in out.split("\n"):
-            self.logger.debug("  {}".format(line))
+
+        if Lftp.__LOG_COMMAND_OUTPUT:
+            self.logger.debug("out:")
+            for line in out.split("\n"):
+                self.logger.debug("  {}".format(line))
+
         # let's try and detect some errors
         if self.__detect_errors_from_output(out):
             # we need to consume the actual output so that
@@ -100,9 +107,10 @@ class Lftp:
             self.__process.expect(self.__expect_pattern)
             out = self.__process.before.decode()
             out = out.strip()  # remove any CRs
-            self.logger.debug("retry out:")
-            for line in out.split("\n"):
-                self.logger.debug("  {}".format(line))
+            if Lftp.__LOG_COMMAND_OUTPUT:
+                self.logger.debug("retry out:")
+                for line in out.split("\n"):
+                    self.logger.debug("  {}".format(line))
             raise LftpError("Detected error: {}".format(error_out))
         return out
 
