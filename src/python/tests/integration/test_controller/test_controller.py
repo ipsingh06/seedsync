@@ -185,20 +185,14 @@ class TestController(unittest.TestCase):
         time.sleep(0.5)
         self.controller.process()
 
-        listener = DummyListener()
-        listener.file_added = MagicMock()
-        listener.file_updated = MagicMock()
-        listener.file_removed = MagicMock()
-        self.controller.add_model_listener(listener)
-        self.assertEqual(len(self.initial_state.keys()), len(listener.file_added.call_args_list))
-        files_called = {c[0][0].name: c[0][0] for c in listener.file_added.call_args_list}
-        self.assertEqual(self.initial_state.keys(), files_called.keys())
+        model_files = self.controller.get_model_files()
+        self.assertEqual(len(self.initial_state.keys()), len(model_files))
+        files_dict = {f.name: f for f in model_files}
+        self.assertEqual(self.initial_state.keys(), files_dict.keys())
         for filename in self.initial_state.keys():
             # Note: put items in a list for a better diff output
-            self.assertEqual([self.initial_state[filename]], [files_called[filename]],
+            self.assertEqual([self.initial_state[filename]], [files_dict[filename]],
                              "Mismatch in file: {}".format(filename))
-        listener.file_updated.assert_not_called()
-        listener.file_removed.assert_not_called()
 
     def test_local_file_added(self):
         time.sleep(0.5)

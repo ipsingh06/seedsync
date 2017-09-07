@@ -8,6 +8,7 @@ import pickle
 from threading import Lock
 from queue import Queue
 from enum import Enum
+import copy
 
 # my libs
 from .scanner_process import IScanner, ScannerProcess
@@ -165,18 +166,28 @@ class Controller:
         self.__local_scan_process.terminate()
         self.__remote_scan_process.terminate()
 
+    def get_model_files(self) -> List[ModelFile]:
+        """
+        Returns a copy of all the model files
+        :return:
+        """
+        # Lock the model
+        self.__model_lock.acquire()
+        model_files = []
+        for filename in self.__model.get_file_names():
+            model_files.append(copy.deepcopy(self.__model.get_file(filename)))
+        # Release the model
+        self.__model_lock.release()
+        return model_files
+
     def add_model_listener(self, listener: IModelListener):
         """
         Adds a listener to the controller's model
-        When a listener is added, a file_added event is triggered for all files in the model.
-        This is the only way to get the initial state of the model.
         :param listener:
         :return:
         """
         # Lock the model
         self.__model_lock.acquire()
-        for filename in self.__model.get_file_names():
-            listener.file_added(self.__model.get_file(filename))
         self.__model.add_listener(listener)
         # Release the model
         self.__model_lock.release()
