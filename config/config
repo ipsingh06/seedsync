@@ -11,3 +11,6 @@ num_max_connections_per_file=4
 [Controller]
 interval_ms_remote_scan=30000
 interval_ms_local_scan=10000
+
+[Web]
+port=88

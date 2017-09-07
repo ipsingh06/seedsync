@@ -123,6 +123,22 @@ class TestPylftpConfig(unittest.TestCase):
         self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "-1")
         self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "-1")
 
+    def test_web(self):
+        good_dict = {
+            "port": "1234",
+        }
+        web = PylftpConfig.Web.from_dict(good_dict)
+        self.assertEqual(1234, web.port)
+
+        # unknown
+        self.__check_unknown_error(PylftpConfig.Web, good_dict)
+
+        # missing keys
+        self.__check_missing_error(PylftpConfig.Web, good_dict, "port")
+
+        # bad values
+        self.__check_bad_value_error(PylftpConfig.Web, good_dict, "port", "-1")
+
     def test_from_file(self):
         self.config_file.write("""
         [Lftp]
@@ -138,9 +154,13 @@ class TestPylftpConfig(unittest.TestCase):
         [Controller]
         interval_ms_remote_scan=30000
         interval_ms_local_scan=10000
+
+        [Web]
+        port=88
         """)
         self.config_file.flush()
         config = PylftpConfig.from_file(self.config_file.name)
+
         self.assertEqual("remote.server.com", config.lftp.remote_address)
         self.assertEqual("remote-user", config.lftp.remote_username)
         self.assertEqual("/path/on/remote/server", config.lftp.remote_path)
@@ -149,6 +169,11 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual(2, config.lftp.num_max_parallel_downloads)
         self.assertEqual(3, config.lftp.num_max_parallel_files_per_download)
         self.assertEqual(4, config.lftp.num_max_connections_per_file)
+
+        self.assertEqual(30000, config.controller.interval_ms_remote_scan)
+        self.assertEqual(10000, config.controller.interval_ms_local_scan)
+
+        self.assertEqual(88, config.web.port)
 
         # unknown section error
         self.config_file.write("""

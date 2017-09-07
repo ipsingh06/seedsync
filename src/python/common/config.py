@@ -106,9 +106,26 @@ class PylftpConfig:
             check_empty_inner_dict(PylftpConfig.Controller, config_dict)
             return config
 
+    class Web:
+        def __init__(self):
+            self.port = None
+
+        @staticmethod
+        def from_dict(config_dict: InnerConfig) -> "PylftpConfig.Web":
+            config_dict = dict(config_dict)  # copy that we can modify
+            config = PylftpConfig.Web()
+
+            config.port = check_int_positive(
+                PylftpConfig.Web, config_dict, "port"
+            )
+
+            check_empty_inner_dict(PylftpConfig.Web, config_dict)
+            return config
+
     def __init__(self):
         self.lftp = PylftpConfig.Lftp()
         self.controller = PylftpConfig.Controller()
+        self.web = PylftpConfig.Web()
 
     @staticmethod
     def from_file(config_file_path: str) -> "PylftpConfig":
@@ -131,6 +148,7 @@ class PylftpConfig:
 
         config.lftp = PylftpConfig.Lftp.from_dict(check_section(config_dict, "Lftp"))
         config.controller = PylftpConfig.Controller.from_dict(check_section(config_dict, "Controller"))
+        config.web = PylftpConfig.Web.from_dict(check_section(config_dict, "Web"))
 
         check_empty_outer_dict(config_dict)
         return config
