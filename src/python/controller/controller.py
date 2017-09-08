@@ -173,9 +173,7 @@ class Controller:
         """
         # Lock the model
         self.__model_lock.acquire()
-        model_files = []
-        for filename in self.__model.get_file_names():
-            model_files.append(copy.deepcopy(self.__model.get_file(filename)))
+        model_files = self.__get_model_files()
         # Release the model
         self.__model_lock.release()
         return model_files
@@ -192,8 +190,35 @@ class Controller:
         # Release the model
         self.__model_lock.release()
 
+    def get_model_files_and_add_listener(self, listener: IModelListener):
+        """
+        Adds a listener and returns the current state of model files in one atomic operation
+        This guarantees that model update events are not missed or duplicated for the clients
+        Without an atomic operation, the following scenarios can happen:
+            1. get_model() -> model updated -> add_listener()
+               The model update never propagates to client
+            2. add_listener() -> model updated -> get_model()
+               The model update is duplicated on client side (once through listener, and once
+               through the model).
+        :param listener:
+        :return:
+        """
+        # Lock the model
+        self.__model_lock.acquire()
+        self.__model.add_listener(listener)
+        model_files = self.__get_model_files()
+        # Release the model
+        self.__model_lock.release()
+        return model_files
+
     def queue_command(self, command: Command):
         self.__command_queue.put(command)
+
+    def __get_model_files(self) -> List[ModelFile]:
+        model_files = []
+        for filename in self.__model.get_file_names():
+            model_files.append(copy.deepcopy(self.__model.get_file(filename)))
+        return model_files
 
     def __update_model(self):
         # Grab the latest remote scan result

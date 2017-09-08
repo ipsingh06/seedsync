@@ -28,7 +28,7 @@ class WebAppJob(PylftpJob):
         super().__init__(name=self.__class__.__name__, context=context)
         self.web_access_logger = context.web_access_logger
         self.__context = context
-        self.__controller = Controller
+        self.__controller = controller
         self.__app = None
         self.__server = None
         self.__server_thread = None

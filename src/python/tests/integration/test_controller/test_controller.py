@@ -143,6 +143,9 @@ class TestController(unittest.TestCase):
         [Controller]
         interval_ms_remote_scan=100
         interval_ms_local_scan=100
+
+        [Web]
+        port=8800
         """.format(
             username=getpass.getuser(),
             remote_path=os.path.join(self.temp_dir, "remote"),
