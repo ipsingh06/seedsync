@@ -6,7 +6,7 @@ import time
 
 # my libs
 from common import ServiceExit, PylftpContext, Constants
-from controller import ControllerJob
+from controller import Controller, ControllerJob
 from web import WebAppJob
 
 
@@ -29,12 +29,17 @@ class Pylftpd:
     def run(self):
         self.context.logger.info("Starting pylftpd")
 
+        # Create controller
+        controller = Controller(self.context)
+
         # Define child threads
         controller_job = ControllerJob(
-            context=self.context.create_child_context(ControllerJob.__name__)
+            context=self.context.create_child_context(ControllerJob.__name__),
+            controller=controller
         )
         webapp_job = WebAppJob(
-            context=self.context.create_child_context(WebAppJob.__name__)
+            context=self.context.create_child_context(WebAppJob.__name__),
+            controller=controller
         )
 
         try:
@@ -51,6 +56,9 @@ class Pylftpd:
             # Wait for the threads to close
             controller_job.join()
             webapp_job.join()
+
+            # Stop any threads/process in controller
+            controller.exit()
 
         self.context.logger.info("Finished pylftpd")
 

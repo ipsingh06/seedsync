@@ -13,6 +13,7 @@ from paste.translogger import TransLogger
 
 # my libs
 from common import overrides, PylftpJob, PylftpContext
+from controller import Controller
 
 
 _DIR_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -23,10 +24,11 @@ class WebAppJob(PylftpJob):
     Web interface service 
     :return: 
     """
-    def __init__(self, context: PylftpContext):
+    def __init__(self, context: PylftpContext, controller: Controller):
         super().__init__(name=self.__class__.__name__, context=context)
         self.web_access_logger = context.web_access_logger
         self.__context = context
+        self.__controller = Controller
         self.__app = None
         self.__server = None
         self.__server_thread = None

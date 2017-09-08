@@ -25,14 +25,14 @@ class ControllerJob(PylftpJob):
     The Pylftp service
     Handles querying and downloading of files
     """
-    def __init__(self, context: PylftpContext):
+    def __init__(self, context: PylftpContext, controller: "Controller"):
         super().__init__(name=self.__class__.__name__, context=context)
         self.__context = context
-        self.__controller = None
+        self.__controller = controller
 
     @overrides(PylftpJob)
     def setup(self):
-        self.__controller = Controller(self.__context)
+        pass
 
     @overrides(PylftpJob)
     def execute(self):
@@ -40,7 +40,7 @@ class ControllerJob(PylftpJob):
 
     @overrides(PylftpJob)
     def cleanup(self):
-        self.__controller.exit()
+        pass
 
 
 class LocalScanner(IScanner):
