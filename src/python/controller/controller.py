@@ -190,6 +190,18 @@ class Controller:
         # Release the model
         self.__model_lock.release()
 
+    def remove_model_listener(self, listener: IModelListener):
+        """
+        Removes a listener from the controller's model
+        :param listener:
+        :return:
+        """
+        # Lock the model
+        self.__model_lock.acquire()
+        self.__model.remove_listener(listener)
+        # Release the model
+        self.__model_lock.release()
+
     def get_model_files_and_add_listener(self, listener: IModelListener):
         """
         Adds a listener and returns the current state of model files in one atomic operation

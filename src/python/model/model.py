@@ -71,6 +71,18 @@ class Model:
         if listener not in self.__listeners:
             self.__listeners.append(listener)
 
+    def remove_listener(self, listener: IModelListener):
+        """
+        Add a model listener
+        :param listener:
+        :return:
+        """
+        self.logger.debug("LftpModel: Removing a listener")
+        if listener not in self.__listeners:
+            self.logger.error("LftpModel: listener does not exist!")
+        else:
+            self.__listeners.remove(listener)
+
     def add_file(self, file: ModelFile):
         """
         Add a file to the model
