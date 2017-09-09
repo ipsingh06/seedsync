@@ -38,7 +38,7 @@ class WebAppJob(PylftpJob):
 
     @overrides(PylftpJob)
     def setup(self):
-        self.__app = WebApp(self.logger, self.__controller)
+        self.__app = WebApp(self.__context, self.__controller)
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
         self.__server = MyWSGIRefServer(self.web_access_logger,
                                         host="localhost",
@@ -108,9 +108,9 @@ class WebApp(bottle.Bottle):
     """
     _EVENT_BLOCK_INTERVAL_IN_MS = 500
 
-    def __init__(self, logger: logging.Logger, controller: Controller):
+    def __init__(self, context: PylftpContext, controller: Controller):
         super().__init__()
-        self.logger = logger.getChild("WebApp")
+        self.logger = context.logger.getChild("WebApp")
         self.__controller = controller
         self.__stop = False
         self.get("/stream")(self.stream)
