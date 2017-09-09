@@ -1,9 +1,10 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-import time
 import logging
 from threading import Thread
+from queue import Queue, Empty
 import os
+from typing import Optional
 
 # 3rd party libs
 import bottle
@@ -14,6 +15,8 @@ from paste.translogger import TransLogger
 # my libs
 from common import overrides, PylftpJob, PylftpContext
 from controller import Controller
+from .serialize import Serialize
+from model import IModelListener, ModelFile
 
 
 _DIR_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -35,7 +38,7 @@ class WebAppJob(PylftpJob):
 
     @overrides(PylftpJob)
     def setup(self):
-        self.__app = WebApp(self.logger)
+        self.__app = WebApp(self.logger, self.__controller)
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
         self.__server = MyWSGIRefServer(self.web_access_logger,
                                         host="localhost",
@@ -58,13 +61,57 @@ class WebAppJob(PylftpJob):
         self.__server_thread.join()
 
 
+class WebResponseModelListener(IModelListener):
+    """
+    Model listener used by Web app to listen to model updates
+    One listener should be created for each new request
+    This listener queues notifications in an event queue
+    so that they can be processed in the web thread (and quickly
+    free up the controller thread)
+    """
+    def __init__(self):
+        self.__queue = Queue()
+
+    @overrides(IModelListener)
+    def file_added(self, file: ModelFile):
+        self.__queue.put(Serialize.UpdateEvent(change=Serialize.UpdateEvent.Change.ADDED,
+                                               old_file=None,
+                                               new_file=file))
+
+    @overrides(IModelListener)
+    def file_removed(self, file: ModelFile):
+        self.__queue.put(Serialize.UpdateEvent(change=Serialize.UpdateEvent.Change.REMOVED,
+                                               old_file=file,
+                                               new_file=None))
+
+    @overrides(IModelListener)
+    def file_updated(self, old_file: ModelFile, new_file: ModelFile):
+        self.__queue.put(Serialize.UpdateEvent(change=Serialize.UpdateEvent.Change.UPDATED,
+                                               old_file=old_file,
+                                               new_file=new_file))
+
+    def get_next_event(self, timeout_in_ms: int) -> Optional[Serialize.UpdateEvent]:
+        """
+        Returns the next event, or blocks for the specified timeout until an event is available.
+        Returns None if timeout expires and no event is available
+        :return:
+        """
+        try:
+            return self.__queue.get(block=True, timeout=float(timeout_in_ms)/1000)
+        except Empty:
+            return None
+
+
 class WebApp(bottle.Bottle):
     """
     Web app implementation
     """
-    def __init__(self, logger: logging.Logger):
+    _EVENT_BLOCK_INTERVAL_IN_MS = 500
+
+    def __init__(self, logger: logging.Logger, controller: Controller):
         super().__init__()
         self.logger = logger.getChild("WebApp")
+        self.__controller = controller
         self.__stop = False
         self.get("/stream")(self.stream)
         self.route("/")(self.index)
@@ -84,48 +131,40 @@ class WebApp(bottle.Bottle):
     def static(self, file_path: str):
         return static_file(file_path, root=os.path.join(_DIR_PATH, "..", "..", "html"))
 
-    @staticmethod
-    def _sse_pack(d):
-        """Pack data in SSE format"""
-        buffer = ''
-        for k in ['retry', 'id', 'event', 'data']:
-            if k in d.keys():
-                buffer += '%s: %s\n' % (k, d[k])
-        return buffer + '\n'
-
     def stream(self) -> str:
-        # "Using server-sent events"
-        # https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events
-        # "Stream updates with server-sent events"
-        # http://www.html5rocks.com/en/tutorials/eventsource/basics/
-        bottle.response.content_type = 'text/event-stream'
-        bottle.response.cache_control = 'no-cache'
+        model_listener = None
+        try:
+            # Setup the response header
+            bottle.response.content_type = "text/event-stream"
+            bottle.response.cache_control = "no-cache"
 
-        # Set client-side auto-reconnect timeout, ms.
-        msg = {
-            'retry': '2000'
-        }
-        msg.update({
-            'event': 'init',
-            'data': 'something',
-            'id': 0
-        })
-        yield self._sse_pack(msg)
+            serialize = Serialize()
+            model_listener = WebResponseModelListener()
 
-        n = 1
+            initial_model_files = self.__controller.get_model_files_and_add_listener(model_listener)
 
-        # Keep connection alive no more then... (s)
-        end = time.time() + 60
-        while not self.__stop and time.time() < end:
-            msg = {
-                'id': n,
-                'data': '%i' % n,
-            }
-            yield self._sse_pack(msg)
-            n += 1
-            time.sleep(1)
-        if self.__stop:
-            self.logger.debug("App connection stopped by server")
+            # Send the initial model
+            yield serialize.model(initial_model_files)
+
+            # Send the model update event until the connection closes
+            while not self.__stop:
+                event = model_listener.get_next_event(timeout_in_ms=WebApp._EVENT_BLOCK_INTERVAL_IN_MS)
+                if event:
+                    yield serialize.update_event(event)
+                else:
+                    # need to yield a newline, otherwise the finally block
+                    # is not called upon connection exit
+                    yield "\n"
+
+        finally:
+            if self.__stop:
+                self.logger.debug("Stream connection stopped by server")
+            else:
+                self.logger.debug("Stream connection stopped by client")
+
+            # Cleanup
+            if model_listener:
+                self.__controller.remove_model_listener(model_listener)
 
 
 class MyWSGIHandler(httpserver.WSGIHandler):
