@@ -125,8 +125,8 @@ class LftpJobStatusParser:
                              "(?P<szlocal>\d+)\s+"
                              "of\s+"
                              "(?P<szremote>\d+)\s+"
-                             "\((?P<pctlocal>\d+)%\)\s+"
-                             "(?P<speed>\d+\.?\d*\s?({sz}))\/s"
+                             "\((?P<pctlocal>\d+)%\)"
+                             "(\s+(?P<speed>\d+\.?\d*\s?({sz}))\/s)?"
                              "(\seta:(?P<eta>{eta}))?")\
             .format(sz=LftpJobStatusParser.__SIZE_UNITS_REGEX,
                     eta=LftpJobStatusParser.__TIME_UNITS_REGEX)
@@ -170,12 +170,8 @@ class LftpJobStatusParser:
                 lines.pop(0)  # pop the 'sftp' line
                 line = lines.pop(0)  # data line
                 result_at = chunk_at_m.search(line)
-                if not result_at:
-                    raise ValueError("Invalid pget data line '{}'".format(line))
-                if result.group("remote") != result_at.group("name"):
-                    raise ValueError("Mismatch between pget names '{}' vs '{}'".format(
-                        result.group("remote"), result_at.group("name")
-                    ))
+                result_got = chunk_got_m.search(line)
+
                 id_ = int(result.group("id"))
                 name = os.path.basename(os.path.normpath(result.group("remote")))
                 flags = result.group("flags")
@@ -185,23 +181,51 @@ class LftpJobStatusParser:
                                        state=LftpJobStatus.State.RUNNING,
                                        name=name,
                                        flags=flags)
-                size_local = int(result_at.group("szlocal"))
-                percent_local = None
-                if result_at.group("pctlocal"):
-                    percent_local = int(result_at.group("pctlocal"))
-                speed = None
-                if result_at.group("speed"):
-                    speed = LftpJobStatusParser._size_to_bytes(result_at.group("speed"))
-                eta = None
-                if result_at.group("eta"):
-                    eta = LftpJobStatusParser._eta_to_seconds(result_at.group("eta"))
-                transfer_state = LftpJobStatus.TransferState(
-                    size_local,
-                    None,  # size remote
-                    percent_local,
-                    speed,
-                    eta
-                )
+                if result_at:
+                    if result.group("remote") != result_at.group("name"):
+                        raise ValueError("Mismatch between pget names '{}' vs '{}'".format(
+                            result.group("remote"), result_at.group("name")
+                        ))
+                    size_local = int(result_at.group("szlocal"))
+                    percent_local = None
+                    if result_at.group("pctlocal"):
+                        percent_local = int(result_at.group("pctlocal"))
+                    speed = None
+                    if result_at.group("speed"):
+                        speed = LftpJobStatusParser._size_to_bytes(result_at.group("speed"))
+                    eta = None
+                    if result_at.group("eta"):
+                        eta = LftpJobStatusParser._eta_to_seconds(result_at.group("eta"))
+                    transfer_state = LftpJobStatus.TransferState(
+                        size_local,
+                        None,  # size remote
+                        percent_local,
+                        speed,
+                        eta
+                    )
+                elif result_got:
+                    got_group_basename = os.path.basename(os.path.normpath(result_got.group("name")))
+                    if got_group_basename != name:
+                        raise ValueError("Mismatch: filename '{}' but chunk data for '{}'"
+                                         .format(name, got_group_basename))
+                    size_local = int(result_got.group("szlocal"))
+                    size_remote = int(result_got.group("szremote"))
+                    percent_local = int(result_got.group("pctlocal"))
+                    speed = None
+                    if result_got.group("speed"):
+                        speed = LftpJobStatusParser._size_to_bytes(result_got.group("speed"))
+                    eta = None
+                    if result_got.group("eta"):
+                        eta = LftpJobStatusParser._eta_to_seconds(result_got.group("eta"))
+                    transfer_state = LftpJobStatus.TransferState(
+                        size_local,
+                        size_remote,
+                        percent_local,
+                        speed,
+                        eta
+                    )
+                else:
+                    raise ValueError("Missing chunk data for filename '{}'".format(name))
                 status.total_transfer_state = transfer_state
                 jobs.append(status)
                 prev_job = status
@@ -242,13 +266,12 @@ class LftpJobStatusParser:
             # Note: this must be after the more restrictive mirror header above
             result = mirror_fl_header_m.search(line)
             if result:
-                if not lines or not (
+                # There may be a 'Connecting' or 'cd' line ahead, but not always
+                if lines and (
                         lines[0].startswith("Getting file list") or
                         lines[0].startswith("cd ")
                 ):
-                    raise ValueError("Missing expected 'Getting file list' line after mirror header: {}".format(
-                        lines[0]))
-                lines.pop(0)  # pop the connecting line
+                    lines.pop(0)  # pop the connecting line
                 id_ = int(result.group("id"))
                 name = os.path.basename(os.path.normpath(result.group("remote")))
                 flags = result.group("flags")
@@ -302,7 +325,9 @@ class LftpJobStatusParser:
                     size_local = int(result_got.group("szlocal"))
                     size_remote = int(result_got.group("szremote"))
                     percent_local = int(result_got.group("pctlocal"))
-                    speed = LftpJobStatusParser._size_to_bytes(result_got.group("speed"))
+                    speed = None
+                    if result_got.group("speed"):
+                        speed = LftpJobStatusParser._size_to_bytes(result_got.group("speed"))
                     eta = None
                     if result_got.group("eta"):
                         eta = LftpJobStatusParser._eta_to_seconds(result_got.group("eta"))

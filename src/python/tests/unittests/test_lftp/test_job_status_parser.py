@@ -458,7 +458,7 @@ class TestLftpJobStatusParser(unittest.TestCase):
 
     def test_jobs_2(self):
         """1 job, 1 dir, no units in local size"""
-        output="""
+        output = """
         [0] queue (sftp://someone:@localhost)  -- 90 B/s
         sftp://someone:@localhost/home/someone
         Now executing: [1] mirror -c /tmp/test_lftp_rm_s6oau/remote/a /tmp/test_lftp_rm_s6oau/local/ -- 345/26M (0%) 90 B/s
@@ -477,6 +477,39 @@ class TestLftpJobStatusParser(unittest.TestCase):
         golden_job1.add_active_file_transfer_state(
             "aa", LftpJobStatus.TransferState(315, None, 1, 90, 4*60)
         )
+        golden_jobs = [golden_job1]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
+    def test_jobs_3(self):
+        """1 job, 1 file, chunks"""
+        output = """
+        [0] queue (sftp://someone:@localhost) 
+        sftp://someone:@localhost/home/someone
+        Now executing: [1] pget -c /tmp/test_lftp/remote/A.b.C.rar -o /tmp/lftp/
+        [1] pget -c /tmp/test_lftp/remote/A.b.C.rar -o /tmp/lftp/ 
+        sftp://someone:@localhost/home/someone
+        `/tmp/test_lftp/remote/A.b.C.rar', got 2622559389 of 3274103236 (80%) 
+        \chunk 0-2752841944
+        `/tmp/test_lftp/remote/A.b.C.rar' at 2622559389 (0%) [Receiving data]
+        \chunk 3143787913-3274103235 
+        `/tmp/test_lftp/remote/A.b.C.rar' at 3143787913 (0%) [Connecting...]
+        \chunk 3013472590-3143787912 
+        `/tmp/test_lftp/remote/A.b.C.rar' at 3013472590 (0%) [Connecting...]
+        \chunk 2883157267-3013472589 
+        `/tmp/test_lftp/remote/A.b.C.rar' at 2883157267 (0%) [Connecting...]
+        \chunk 2752841944-2883157266 
+        `/tmp/test_lftp/remote/A.b.C.rar' at 2752841944 (0%) [Connecting...]
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.PGET,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="A.b.C.rar",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(2622559389, 3274103236, 80, None, None)
         golden_jobs = [golden_job1]
         self.assertEqual(len(golden_jobs), len(statuses))
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
@@ -572,6 +605,25 @@ class TestLftpJobStatusParser(unittest.TestCase):
                                     name="a",
                                     flags="-c")
         golden_jobs = [golden_job1, golden_job2]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
+    def test_jobs_empty(self):
+        output = """
+        [0] queue (sftp://someone:@localhost) 
+        sftp://someone:@localhost
+        Now executing: [2] mirror -c /tmp/test_lftp_yb58ogg6/remote/a /tmp/test_lftp_yb58ogg6/local/
+        [2] mirror -c /tmp/test_lftp_yb58ogg6/remote/a /tmp/test_lftp_yb58ogg6/local/ 
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job2 = LftpJobStatus(job_id=2,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="a",
+                                    flags="-c")
+        golden_jobs = [golden_job2]
         self.assertEqual(len(golden_jobs), len(statuses))
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
