@@ -113,7 +113,11 @@ class WebApp(bottle.Bottle):
         self.logger = context.logger.getChild("WebApp")
         self.__controller = controller
         self.__stop = False
+
+        # Routes
         self.get("/stream")(self.stream)
+        self.get("/queue/<file_name>")(self.action_queue)
+        self.get("/stop/<file_name>")(self.action_stop)
         self.route("/")(self.index)
         self.route("/<file_path:path>")(self.static)
 
@@ -130,6 +134,24 @@ class WebApp(bottle.Bottle):
     # noinspection PyMethodMayBeStatic
     def static(self, file_path: str):
         return static_file(file_path, root=os.path.join(_DIR_PATH, "..", "..", "html"))
+
+    def action_queue(self, file_name: str):
+        self.__controller.queue_command(
+            Controller.Command(
+                Controller.Command.Action.QUEUE,
+                file_name
+            )
+        )
+        return "Queuing '{}'".format(file_name)
+
+    def action_stop(self, file_name: str):
+        self.__controller.queue_command(
+            Controller.Command(
+                Controller.Command.Action.STOP,
+                file_name
+            )
+        )
+        return "Stopping '{}'".format(file_name)
 
     def stream(self) -> str:
         model_listener = None
