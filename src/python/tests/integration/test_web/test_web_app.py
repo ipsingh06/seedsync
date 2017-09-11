@@ -11,6 +11,7 @@ from webtest import TestApp
 from common import overrides
 from web import WebApp, Serialize
 from model import ModelFile
+from controller import Controller
 
 
 class TestWebApp(unittest.TestCase):
@@ -113,3 +114,41 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual(Serialize.UpdateEvent.Change.UPDATED, call3[0][0].change)
         self.assertEqual(old_file, call3[0][0].old_file)
         self.assertEqual(new_file, call3[0][0].new_file)
+
+    def test_queue(self):
+        self.controller.queue_command = MagicMock()
+        print(self.test_app.get("/queue/test1"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("test1", command.filename)
+        print(self.test_app.get("/queue/Really.Cool.Show"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("Really.Cool.Show", command.filename)
+        print(self.test_app.get("/queue/Really.Cool.Show.mp4"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("Really.Cool.Show.mp4", command.filename)
+        print(self.test_app.get("/queue/Really.Cool.Show%20%20With%20%20Spaces"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("Really.Cool.Show  With  Spaces", command.filename)
+
+    def test_stop(self):
+        self.controller.queue_command = MagicMock()
+        print(self.test_app.get("/stop/test1"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.STOP, command.action)
+        self.assertEqual("test1", command.filename)
+        print(self.test_app.get("/stop/Really.Cool.Show"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.STOP, command.action)
+        self.assertEqual("Really.Cool.Show", command.filename)
+        print(self.test_app.get("/stop/Really.Cool.Show.mp4"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.STOP, command.action)
+        self.assertEqual("Really.Cool.Show.mp4", command.filename)
+        print(self.test_app.get("/stop/Really.Cool.Show%20%20With%20%20Spaces"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.STOP, command.action)
+        self.assertEqual("Really.Cool.Show  With  Spaces", command.filename)
