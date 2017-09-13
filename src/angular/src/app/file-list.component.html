@@ -1,5 +1,7 @@
 <ul id="file-list">
     <li *ngFor="let file of files | async">
         <label>{{file.name}}</label>
+        <label>Local: {{file.local_size}}</label>
+        <label>Remote: {{file.remote_size}}</label>
     </li>
 </ul>

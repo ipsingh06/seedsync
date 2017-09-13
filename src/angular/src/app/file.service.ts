@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 
-import {List} from 'immutable';
+import {Set} from 'immutable';
 
 import {ModelFile} from './model-file'
 
@@ -19,7 +19,7 @@ export class FileService {
 
     private readonly EVENT_URL = "/stream";
 
-    private _files: BehaviorSubject<List<ModelFile>> = new BehaviorSubject(List([]));
+    private _files: BehaviorSubject<Set<ModelFile>> = new BehaviorSubject(Set([]));
 
     constructor() {
         this.init();
@@ -50,6 +50,8 @@ export class FileService {
             const eventSource = new EventSource(this.EVENT_URL);
             addEventListener("init", eventSource, observer);
             addEventListener("added", eventSource, observer);
+            addEventListener("removed", eventSource, observer);
+            addEventListener("updated", eventSource, observer);
 
             eventSource.onerror = x => observer.error(x);
 
@@ -71,15 +73,50 @@ export class FileService {
     private parseEvent(name: string, data: string) {
         console.debug("Received event: " + name);
         if(name == "init") {
+            // Init event receives an array of ModelFiles
             let newFiles: ModelFile[] = JSON.parse(data);
-            this._files.next(List(newFiles))
+            // Replace the entire model
+            this._files.next(Set(newFiles))
         } else if(name == "added") {
-
+            // Added event receives old and new ModelFiles
+            // Only new file is relevant
+            let addedFile: {new_file: ModelFile} = JSON.parse(data);
+            this._files.next(this._files.getValue().add(addedFile.new_file))
+            console.debug("Added ModelFile named " + addedFile.new_file.name)
+        } else if(name == "removed") {
+            // Removed event receives old and new ModelFiles
+            // Only old file is relevant
+            let removedFile: {old_file: ModelFile} = JSON.parse(data);
+            const file = this._files.getValue().find(
+                model_file => model_file.name == removedFile.old_file.name
+            );
+            if(file) {
+                this._files.next(this._files.getValue().remove(file));
+                console.debug("Removed ModelFile named " + removedFile.old_file.name);
+            } else {
+                console.error("Failed to find ModelFile named " + removedFile.old_file.name);
+            }
+        } else if(name == "updated") {
+            // Updated event received old and new ModelFiles
+            // We will only use the new one here
+            let updatedFile: {new_file: ModelFile} = JSON.parse(data);
+            const file = this._files.getValue().find(
+                model_file => model_file.name == updatedFile.new_file.name
+            );
+            if(file) {
+                this._files.next(
+                    this._files.getValue().remove(file)
+                                          .add(updatedFile.new_file)
+                );
+                console.debug("Updated ModelFile named " + updatedFile.new_file.name);
+            } else {
+                console.error("Failed to find ModelFile named " + updatedFile.new_file.name);
+            }
         }
     }
 
-    get files() {
-        return new Observable(fn => this._files.subscribe(fn));
+    get files() : Observable<Set<ModelFile>> {
+        return this._files.asObservable();
     }
 
 }
