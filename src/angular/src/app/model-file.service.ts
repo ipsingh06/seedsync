@@ -8,14 +8,14 @@ import {ModelFile} from './model-file'
 
 
 /**
- * FileService class provides the store for model files
+ * ModelFileService class provides the store for model files
  * It implements the observable service pattern to push updates
  * as they become available.
  * Reference: http://blog.angular-university.io/how-to-build-angular2
  *            -apps-using-rxjs-observable-data-services-pitfalls-to-avoid
  */
 @Injectable()
-export class FileService {
+export class ModelFileService {
 
     private readonly EVENT_URL = "/stream";
 
