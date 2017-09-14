@@ -74,43 +74,58 @@ export class ModelFileService {
         console.debug("Received event: " + name);
         if(name == "init") {
             // Init event receives an array of ModelFiles
-            let newFiles: ModelFile[] = JSON.parse(data);
+            let parsed = JSON.parse(data);
+            let newFiles: ModelFile[] = [];
+            for(let file of parsed) {
+                newFiles.push(new ModelFile(file));
+            }
             // Replace the entire model
-            this._files.next(Set(newFiles))
+            this._files.next(Set(newFiles));
+            console.debug("New model: %O", this._files.getValue().toJS());
         } else if(name == "added") {
             // Added event receives old and new ModelFiles
             // Only new file is relevant
-            let addedFile: {new_file: ModelFile} = JSON.parse(data);
-            this._files.next(this._files.getValue().add(addedFile.new_file))
-            console.debug("Added ModelFile named " + addedFile.new_file.name)
+            let parsed: {new_file: any} = JSON.parse(data);
+            let file = new ModelFile(parsed.new_file);
+            const existingFile = this._files.getValue().find(
+                modelFile => modelFile.name == file.name
+            );
+            if(existingFile) {
+                console.error("ModelFile named " + file.name + " already exists")
+            } else {
+                this._files.next(this._files.getValue().add(file));
+                console.debug("Added file: %O", file.toJS());
+            }
         } else if(name == "removed") {
             // Removed event receives old and new ModelFiles
             // Only old file is relevant
-            let removedFile: {old_file: ModelFile} = JSON.parse(data);
-            const file = this._files.getValue().find(
-                model_file => model_file.name == removedFile.old_file.name
+            let parsed: {old_file: any} = JSON.parse(data);
+            let file = new ModelFile(parsed.old_file);
+            const existingFile = this._files.getValue().find(
+                modelFile => modelFile.name == file.name
             );
-            if(file) {
-                this._files.next(this._files.getValue().remove(file));
-                console.debug("Removed ModelFile named " + removedFile.old_file.name);
+            if(existingFile) {
+                this._files.next(this._files.getValue().remove(existingFile));
+                console.debug("Removed file: %O", file.toJS());
             } else {
-                console.error("Failed to find ModelFile named " + removedFile.old_file.name);
+                console.error("Failed to find ModelFile named " + file.name);
             }
         } else if(name == "updated") {
             // Updated event received old and new ModelFiles
             // We will only use the new one here
-            let updatedFile: {new_file: ModelFile} = JSON.parse(data);
-            const file = this._files.getValue().find(
-                model_file => model_file.name == updatedFile.new_file.name
+            let parsed: {new_file: any} = JSON.parse(data);
+            let file = new ModelFile(parsed.new_file);
+            const existingFile = this._files.getValue().find(
+                modelFile => modelFile.name == file.name
             );
-            if(file) {
+            if(existingFile) {
                 this._files.next(
-                    this._files.getValue().remove(file)
-                                          .add(updatedFile.new_file)
+                    this._files.getValue().remove(existingFile)
+                                          .add(file)
                 );
-                console.debug("Updated ModelFile named " + updatedFile.new_file.name);
+                console.debug("Updated file: %O", file.toJS());
             } else {
-                console.error("Failed to find ModelFile named " + updatedFile.new_file.name);
+                console.error("Failed to find ModelFile named " + file.name);
             }
         }
     }
