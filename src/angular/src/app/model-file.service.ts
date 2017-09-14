@@ -11,6 +11,8 @@ import {ModelFile} from './model-file'
  * ModelFileService class provides the store for model files
  * It implements the observable service pattern to push updates
  * as they become available.
+ * The model is stored as an Immutable Set of ModelFiles. Hence, the
+ * ModelFiles have no defined order.
  * Reference: http://blog.angular-university.io/how-to-build-angular2
  *            -apps-using-rxjs-observable-data-services-pitfalls-to-avoid
  */
@@ -29,7 +31,7 @@ export class ModelFileService {
         // Add a EventSource observable to receive file list and updates
         // from the backend
         // Observable-SSE code from https://stackoverflow.com/a/36827897/8571324
-        let _fileService = this;
+        let _modelFileService = this;
 
         /**
          * Helper function to add an event listener to an event source
@@ -60,7 +62,7 @@ export class ModelFileService {
             };
         });
         observable.subscribe({
-            next: (x) => _fileService.parseEvent(x["event"], x["data"]),
+            next: (x) => _modelFileService.parseEvent(x["event"], x["data"]),
             error: err => console.error("SSE Error: " + err)
         });
     }
@@ -133,5 +135,4 @@ export class ModelFileService {
     get files() : Observable<Set<ModelFile>> {
         return this._files.asObservable();
     }
-
 }

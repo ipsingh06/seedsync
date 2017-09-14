@@ -1,17 +1,23 @@
 import {Component} from '@angular/core';
+import {Observable} from "rxjs/Observable";
 
-import {ModelFileService} from "./model-file.service";
+import {List} from "immutable";
+
+import {ModelFileService} from "./model-file.service"
+import {ViewFileService} from "./view-file.service";
+import {ViewFile} from "./view-file";
 
 @Component({
     selector: 'file-list',
-    providers: [ModelFileService],
+    providers: [ViewFileService,
+                ModelFileService],
     templateUrl: './file-list.component.html',
     styleUrls: ['./file-list.component.css']
 })
 export class FileListComponent {
-    public files;
+    public files: Observable<List<ViewFile>>;
 
-    constructor(private fileService: ModelFileService) {
-        this.files = fileService.files;
+    constructor(private viewFileService: ViewFileService) {
+        this.files = viewFileService.files;
     }
 }
