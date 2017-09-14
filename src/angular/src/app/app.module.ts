@@ -3,6 +3,8 @@ import {NgModule} from '@angular/core';
 
 import {AppComponent} from './app.component';
 import {FileListComponent} from "./file-list.component"
+import {ModelFileService} from "./model-file.service"
+import {ViewFileService} from "./view-file.service";
 
 @NgModule({
     declarations: [
@@ -12,7 +14,8 @@ import {FileListComponent} from "./file-list.component"
     imports: [
         BrowserModule
     ],
-    providers: [],
+    providers: [ModelFileService,
+                ViewFileService],
     bootstrap: [AppComponent]
 })
 export class AppModule {
