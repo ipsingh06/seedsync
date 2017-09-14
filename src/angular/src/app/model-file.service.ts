@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 
-import {Set} from 'immutable';
+import {Map} from 'immutable';
 
 import {ModelFile} from './model-file'
 
@@ -11,8 +11,9 @@ import {ModelFile} from './model-file'
  * ModelFileService class provides the store for model files
  * It implements the observable service pattern to push updates
  * as they become available.
- * The model is stored as an Immutable Set of ModelFiles. Hence, the
- * ModelFiles have no defined order.
+ * The model is stored as an Immutable Map of name=>ModelFiles. Hence, the
+ * ModelFiles have no defined order. The name key allows more efficient
+ * lookup and model diffing.
  * Reference: http://blog.angular-university.io/how-to-build-angular2
  *            -apps-using-rxjs-observable-data-services-pitfalls-to-avoid
  */
@@ -21,7 +22,7 @@ export class ModelFileService {
 
     private readonly EVENT_URL = "/stream";
 
-    private _files: BehaviorSubject<Set<ModelFile>> = new BehaviorSubject(Set([]));
+    private _files: BehaviorSubject<Map<string, ModelFile>> = new BehaviorSubject(Map<string, ModelFile>());
 
     constructor() {
         this.init();
@@ -82,20 +83,18 @@ export class ModelFileService {
                 newFiles.push(new ModelFile(file));
             }
             // Replace the entire model
-            this._files.next(Set(newFiles));
+            let newMap = Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
+            this._files.next(newMap);
             console.debug("New model: %O", this._files.getValue().toJS());
         } else if(name == "added") {
             // Added event receives old and new ModelFiles
             // Only new file is relevant
             let parsed: {new_file: any} = JSON.parse(data);
             let file = new ModelFile(parsed.new_file);
-            const existingFile = this._files.getValue().find(
-                modelFile => modelFile.name == file.name
-            );
-            if(existingFile) {
+            if(this._files.getValue().has(file.name)) {
                 console.error("ModelFile named " + file.name + " already exists")
             } else {
-                this._files.next(this._files.getValue().add(file));
+                this._files.next(this._files.getValue().set(file.name, file));
                 console.debug("Added file: %O", file.toJS());
             }
         } else if(name == "removed") {
@@ -103,11 +102,8 @@ export class ModelFileService {
             // Only old file is relevant
             let parsed: {old_file: any} = JSON.parse(data);
             let file = new ModelFile(parsed.old_file);
-            const existingFile = this._files.getValue().find(
-                modelFile => modelFile.name == file.name
-            );
-            if(existingFile) {
-                this._files.next(this._files.getValue().remove(existingFile));
+            if(this._files.getValue().has(file.name)) {
+                this._files.next(this._files.getValue().remove(file.name));
                 console.debug("Removed file: %O", file.toJS());
             } else {
                 console.error("Failed to find ModelFile named " + file.name);
@@ -117,14 +113,8 @@ export class ModelFileService {
             // We will only use the new one here
             let parsed: {new_file: any} = JSON.parse(data);
             let file = new ModelFile(parsed.new_file);
-            const existingFile = this._files.getValue().find(
-                modelFile => modelFile.name == file.name
-            );
-            if(existingFile) {
-                this._files.next(
-                    this._files.getValue().remove(existingFile)
-                                          .add(file)
-                );
+            if(this._files.getValue().has(file.name)) {
+                this._files.next(this._files.getValue().set(file.name, file));
                 console.debug("Updated file: %O", file.toJS());
             } else {
                 console.error("Failed to find ModelFile named " + file.name);
@@ -132,7 +122,7 @@ export class ModelFileService {
         }
     }
 
-    get files() : Observable<Set<ModelFile>> {
+    get files() : Observable<Map<string, ModelFile>> {
         return this._files.asObservable();
     }
 }
