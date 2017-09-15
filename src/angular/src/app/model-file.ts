@@ -8,6 +8,7 @@ interface IModelFile {
     name: string;
     local_size: number;
     remote_size: number;
+    state: ModelFile.State;
     children: Set<ModelFile>;
 }
 
@@ -16,6 +17,7 @@ const DefaultModelFile: IModelFile = {
     name: null,
     local_size: null,
     remote_size: null,
+    state: null,
     children: null
 };
 const ModelFileRecord = Record(DefaultModelFile);
@@ -30,6 +32,7 @@ export class ModelFile extends ModelFileRecord implements IModelFile {
     name: string;
     local_size: number;
     remote_size: number;
+    state: ModelFile.State;
     children: Set<ModelFile>;
 
     constructor(props) {
@@ -40,6 +43,18 @@ export class ModelFile extends ModelFileRecord implements IModelFile {
         }
         props.children = children;
 
+        // State mapping
+        props.state = ModelFile.State[props.state.toUpperCase()];
+
         super(props);
+    }
+}
+
+// Additional types
+export module ModelFile {
+    export enum State {
+        DEFAULT         = <any> "default",
+        QUEUED          = <any> "queued",
+        DOWNLOADING     = <any> "downloading"
     }
 }
