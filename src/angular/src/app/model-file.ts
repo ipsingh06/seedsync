@@ -55,6 +55,7 @@ export module ModelFile {
     export enum State {
         DEFAULT         = <any> "default",
         QUEUED          = <any> "queued",
-        DOWNLOADING     = <any> "downloading"
+        DOWNLOADING     = <any> "downloading",
+        DOWNLOADED      = <any> "downloaded"
     }
 }
