@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 
-import {Map} from 'immutable';
+import * as Immutable from 'immutable';
 
 import {ModelFile} from './model-file'
 
@@ -22,7 +22,8 @@ export class ModelFileService {
 
     private readonly EVENT_URL = "/stream";
 
-    private _files: BehaviorSubject<Map<string, ModelFile>> = new BehaviorSubject(Map<string, ModelFile>());
+    private _files: BehaviorSubject<Immutable.Map<string, ModelFile>> =
+        new BehaviorSubject(Immutable.Map<string, ModelFile>());
 
     constructor() {
         this.init();
@@ -83,7 +84,7 @@ export class ModelFileService {
                 newFiles.push(new ModelFile(file));
             }
             // Replace the entire model
-            let newMap = Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
+            let newMap = Immutable.Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
             this._files.next(newMap);
             console.debug("New model: %O", this._files.getValue().toJS());
         } else if(name == "added") {
@@ -122,7 +123,7 @@ export class ModelFileService {
         }
     }
 
-    get files() : Observable<Map<string, ModelFile>> {
+    get files() : Observable<Immutable.Map<string, ModelFile>> {
         return this._files.asObservable();
     }
 }
