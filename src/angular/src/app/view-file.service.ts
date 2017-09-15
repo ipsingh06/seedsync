@@ -48,12 +48,23 @@ export class ViewFileService {
 
     /**
      * Comparator used to sort the ViewFiles
+     * First, sorts by status.
+     * Second, sorts by name.
      * @param {ViewFile} a
      * @param {ViewFile} b
      * @returns {number}
      * @private
      */
     private _comparator = (a: ViewFile, b: ViewFile): number => {
+        if(a.status != b.status) {
+            const statusPriorities = {
+                [ViewFile.Status.DOWNLOADING]: 0,
+                [ViewFile.Status.QUEUED]: 1,
+                [ViewFile.Status.DOWNLOADED]: 2,
+                [ViewFile.Status.DEFAULT]: 3
+            };
+            return statusPriorities[a.status] - statusPriorities[b.status];
+        }
         return a.name.localeCompare(b.name);
     };
 
