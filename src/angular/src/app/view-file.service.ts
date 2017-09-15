@@ -46,6 +46,17 @@ export class ViewFileService {
 
     private _prevModelFiles: Immutable.Map<string, ModelFile> = Immutable.Map<string, ModelFile>();
 
+    /**
+     * Comparator used to sort the ViewFiles
+     * @param {ViewFile} a
+     * @param {ViewFile} b
+     * @returns {number}
+     * @private
+     */
+    private _comparator = (a: ViewFile, b: ViewFile): number => {
+        return a.name.localeCompare(b.name);
+    };
+
     constructor(private modelFileService: ModelFileService) {
         let _viewFileService = this;
         this.modelFileService.files.subscribe({
@@ -84,11 +95,14 @@ export class ViewFileService {
         let updateIndices = false;
         // Do the updates first before indices change (re-sort may be required)
         updatedNames.forEach(
-            // TODO: check for re-sort
             name => {
                 let index = this._indices.get(name);
+                let oldViewFile = newViewFiles.get(index);
                 let newViewFile = ViewFileService.createViewFile(modelFiles.get(name));
                 newViewFiles = newViewFiles.set(index, newViewFile);
+                if(this._comparator(oldViewFile, newViewFile) != 0) {
+                    reSort = true;
+                }
             }
         );
         // Do the adds (requires re-sort)
@@ -110,9 +124,10 @@ export class ViewFileService {
             }
         );
 
-        // TODO: re-sort
         if(reSort) {
+            console.log("Re-sorting view files");
             updateIndices = true;
+            newViewFiles = newViewFiles.sort(this._comparator).toList();
         }
         if(updateIndices) {
             this._indices.clear();
