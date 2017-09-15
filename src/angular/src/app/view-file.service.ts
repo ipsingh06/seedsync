@@ -145,10 +145,30 @@ export class ViewFileService {
     }
 
     private static createViewFile(modelFile: ModelFile): ViewFile {
+        let status = null;
+        switch(modelFile.state) {
+            case ModelFile.State.DEFAULT: {
+                status = ViewFile.Status.DEFAULT;
+                break;
+            }
+            case ModelFile.State.QUEUED: {
+                status = ViewFile.Status.QUEUED;
+                break;
+            }
+            case ModelFile.State.DOWNLOADING: {
+                status = ViewFile.Status.DOWNLOADING;
+                break;
+            }
+            case ModelFile.State.DOWNLOADED: {
+                status = ViewFile.Status.DOWNLOADED;
+                break;
+            }
+        }
         return new ViewFile({
             name: modelFile.name,
             localSize: modelFile.local_size,
-            remoteSize: modelFile.remote_size
+            remoteSize: modelFile.remote_size,
+            status: status,
         })
     }
 }
