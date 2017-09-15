@@ -26,7 +26,7 @@ class TestModelBuilder(unittest.TestCase):
         self.model_builder.clear()
 
         r_a = SystemFile("a", 1024, True)
-        r_aa = SystemFile("aa", 512, True)
+        r_aa = SystemFile("aa", 512, False)
         r_a.add_child(r_aa)
         r_ab = SystemFile("ab", 512, False)
         r_a.add_child(r_ab)
@@ -47,7 +47,7 @@ class TestModelBuilder(unittest.TestCase):
         r_d.add_child(r_da)
 
         l_a = SystemFile("a", 1024, True)
-        l_aa = SystemFile("aa", 512, True)
+        l_aa = SystemFile("aa", 512, False)
         l_a.add_child(l_aa)
         l_ab = SystemFile("ab", 512, False)
         l_a.add_child(l_ab)
@@ -169,6 +169,7 @@ class TestModelBuilder(unittest.TestCase):
         self.assertTrue(str(context.exception).startswith("Mismatch in is_dir"))
 
     def test_build_state(self):
+        # Queued
         self.model_builder.clear()
         self.model_builder.set_remote_files([SystemFile("a", 0, False)])
         self.model_builder.set_local_files([SystemFile("a", 0, False)])
@@ -178,6 +179,7 @@ class TestModelBuilder(unittest.TestCase):
         model = self.model_builder.build_model()
         self.assertEqual(ModelFile.State.QUEUED, model.get_file("a").state)
 
+        # Downloading
         self.model_builder.clear()
         self.model_builder.set_remote_files([SystemFile("a", 0, False)])
         self.model_builder.set_local_files([SystemFile("a", 0, False)])
@@ -187,11 +189,25 @@ class TestModelBuilder(unittest.TestCase):
         model = self.model_builder.build_model()
         self.assertEqual(ModelFile.State.DOWNLOADING, model.get_file("a").state)
 
+        # Default
         self.model_builder.clear()
-        self.model_builder.set_remote_files([SystemFile("a", 0, False)])
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
         self.model_builder.set_local_files([SystemFile("a", 0, False)])
         model = self.model_builder.build_model()
         self.assertEqual(ModelFile.State.DEFAULT, model.get_file("a").state)
+
+        # Default - local only
+        self.model_builder.clear()
+        self.model_builder.set_local_files([SystemFile("a", 100, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DEFAULT, model.get_file("a").state)
+
+        # Downloaded
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_local_files([SystemFile("a", 100, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DOWNLOADED, model.get_file("a").state)
 
     def test_build_remote_size(self):
         self.model_builder.set_remote_files([SystemFile("a", 42, False)])
@@ -329,7 +345,7 @@ class TestModelBuilder(unittest.TestCase):
         self.assertEqual(True, m_a.is_dir)
         m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
         m_aa = m_a_ch["aa"]
-        self.assertEqual(True, m_aa.is_dir)
+        self.assertEqual(False, m_aa.is_dir)
         m_ab = m_a_ch["ab"]
         self.assertEqual(False, m_ab.is_dir)
         m_b = model.get_file("b")
@@ -406,12 +422,13 @@ class TestModelBuilder(unittest.TestCase):
         self.assertEqual((5678, None), (m_da.remote_size, m_da.local_size))
 
     def test_build_children_state_default(self):
-        r_a = SystemFile("a", 0, True)
-        r_aa = SystemFile("aa", 0, True)
+        """File only exists remotely"""
+        r_a = SystemFile("a", 300, True)
+        r_aa = SystemFile("aa", 100, True)
         r_a.add_child(r_aa)
-        r_aaa = SystemFile("aaa", 0, False)
+        r_aaa = SystemFile("aaa", 100, False)
         r_aa.add_child(r_aaa)
-        r_ab = SystemFile("ab", 0, False)
+        r_ab = SystemFile("ab", 200, False)
         r_a.add_child(r_ab)
 
         self.model_builder.set_remote_files([r_a])
@@ -426,8 +443,26 @@ class TestModelBuilder(unittest.TestCase):
         m_ab = m_a_ch["ab"]
         self.assertEqual(ModelFile.State.DEFAULT, m_ab.state)
 
-        # fully downloaded
-        self.model_builder.set_local_files([r_a])
+    def test_build_children_state_default_partial(self):
+        """File is partially downloaded"""
+        r_a = SystemFile("a", 300, True)
+        r_aa = SystemFile("aa", 100, True)
+        r_a.add_child(r_aa)
+        r_aaa = SystemFile("aaa", 100, False)
+        r_aa.add_child(r_aaa)
+        r_ab = SystemFile("ab", 200, False)
+        r_a.add_child(r_ab)
+
+        l_a = SystemFile("a", 150, True)
+        l_aa = SystemFile("aa", 50, True)
+        l_a.add_child(l_aa)
+        l_aaa = SystemFile("aaa", 50, False)
+        l_aa.add_child(l_aaa)
+        l_ab = SystemFile("ab", 100, False)
+        l_a.add_child(l_ab)
+
+        self.model_builder.set_remote_files([r_a])
+        self.model_builder.set_local_files([l_a])
         model = self.model_builder.build_model()
         m_a = model.get_file("a")
         self.assertEqual(ModelFile.State.DEFAULT, m_a.state)
@@ -438,6 +473,170 @@ class TestModelBuilder(unittest.TestCase):
         self.assertEqual(ModelFile.State.DEFAULT, m_aaa.state)
         m_ab = m_a_ch["ab"]
         self.assertEqual(ModelFile.State.DEFAULT, m_ab.state)
+
+    def test_build_children_state_default_extra(self):
+        """File only exists locally"""
+        l_a = SystemFile("a", 150, True)
+        l_aa = SystemFile("aa", 50, True)
+        l_a.add_child(l_aa)
+        l_aaa = SystemFile("aaa", 50, False)
+        l_aa.add_child(l_aaa)
+        l_ab = SystemFile("ab", 100, False)
+        l_a.add_child(l_ab)
+
+        self.model_builder.set_local_files([l_a])
+        model = self.model_builder.build_model()
+        m_a = model.get_file("a")
+        self.assertEqual(ModelFile.State.DEFAULT, m_a.state)
+        m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
+        m_aa = m_a_ch["aa"]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
+        m_aaa = m_aa.get_children()[0]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aaa.state)
+        m_ab = m_a_ch["ab"]
+        self.assertEqual(ModelFile.State.DEFAULT, m_ab.state)
+
+    def test_build_children_state_downloaded_full(self):
+        r_a = SystemFile("a", 300, True)
+        r_aa = SystemFile("aa", 100, True)
+        r_a.add_child(r_aa)
+        r_aaa = SystemFile("aaa", 100, False)
+        r_aa.add_child(r_aaa)
+        r_ab = SystemFile("ab", 200, False)
+        r_a.add_child(r_ab)
+
+        l_a = SystemFile("a", 300, True)
+        l_aa = SystemFile("aa", 100, True)
+        l_a.add_child(l_aa)
+        l_aaa = SystemFile("aaa", 100, False)
+        l_aa.add_child(l_aaa)
+        l_ab = SystemFile("ab", 200, False)
+        l_a.add_child(l_ab)
+
+        self.model_builder.set_remote_files([r_a])
+        self.model_builder.set_local_files([l_a])
+
+        model = self.model_builder.build_model()
+        m_a = model.get_file("a")
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_a.state)
+        m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
+        m_aa = m_a_ch["aa"]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
+        m_aaa = m_aa.get_children()[0]
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_aaa.state)
+        m_ab = m_a_ch["ab"]
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_ab.state)
+
+    def test_build_children_state_downloaded_full_extra(self):
+        """Fully downloaded but with an extra local-only file"""
+        r_a = SystemFile("a", 300, True)
+        r_aa = SystemFile("aa", 100, True)
+        r_a.add_child(r_aa)
+        r_aaa = SystemFile("aaa", 100, False)
+        r_aa.add_child(r_aaa)
+        r_ab = SystemFile("ab", 200, False)
+        r_a.add_child(r_ab)
+
+        l_a = SystemFile("a", 400, True)
+        l_aa = SystemFile("aa", 100, True)
+        l_a.add_child(l_aa)
+        l_aaa = SystemFile("aaa", 100, False)
+        l_aa.add_child(l_aaa)
+        l_ab = SystemFile("ab", 200, False)
+        l_a.add_child(l_ab)
+        l_ac = SystemFile("ac", 100, True)  # local only
+        l_a.add_child(l_ac)
+        l_aca = SystemFile("aca", 100, False)  # local only
+        l_ac.add_child(l_aca)
+
+        self.model_builder.set_remote_files([r_a])
+        self.model_builder.set_local_files([l_a])
+
+        model = self.model_builder.build_model()
+        m_a = model.get_file("a")
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_a.state)
+        m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
+        m_aa = m_a_ch["aa"]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
+        m_aaa = m_aa.get_children()[0]
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_aaa.state)
+        m_ab = m_a_ch["ab"]
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_ab.state)
+        l_ac = SystemFile("ac", 100, True)  # local only
+        l_a.add_child(l_ac)
+        l_aca = SystemFile("aca", 100, False)  # local only
+        l_ac.add_child(l_aca)
+
+    def test_build_children_state_downloaded_partial(self):
+        r_a = SystemFile("a", 300, True)
+        r_aa = SystemFile("aa", 100, True)
+        r_a.add_child(r_aa)
+        r_aaa = SystemFile("aaa", 100, False)
+        r_aa.add_child(r_aaa)
+        r_ab = SystemFile("ab", 200, False)
+        r_a.add_child(r_ab)
+
+        l_a = SystemFile("a", 250, True)
+        l_aa = SystemFile("aa", 50, True)
+        l_a.add_child(l_aa)
+        l_aaa = SystemFile("aaa", 50, False)
+        l_aa.add_child(l_aaa)
+        l_ab = SystemFile("ab", 200, False)
+        l_a.add_child(l_ab)
+
+        self.model_builder.set_remote_files([r_a])
+        self.model_builder.set_local_files([l_a])
+
+        model = self.model_builder.build_model()
+        m_a = model.get_file("a")
+        self.assertEqual(ModelFile.State.DEFAULT, m_a.state)
+        m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
+        m_aa = m_a_ch["aa"]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
+        m_aaa = m_aa.get_children()[0]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aaa.state)
+        m_ab = m_a_ch["ab"]
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_ab.state)
+
+    def test_build_children_state_downloaded_partial_extra(self):
+        """Partially downloaded but with an extra local-only file"""
+        r_a = SystemFile("a", 300, True)
+        r_aa = SystemFile("aa", 100, True)
+        r_a.add_child(r_aa)
+        r_aaa = SystemFile("aaa", 100, False)
+        r_aa.add_child(r_aaa)
+        r_ab = SystemFile("ab", 200, False)
+        r_a.add_child(r_ab)
+
+        l_a = SystemFile("a", 350, True)
+        l_aa = SystemFile("aa", 50, True)
+        l_a.add_child(l_aa)
+        l_aaa = SystemFile("aaa", 50, False)
+        l_aa.add_child(l_aaa)
+        l_ab = SystemFile("ab", 200, False)
+        l_a.add_child(l_ab)
+        l_ac = SystemFile("ac", 100, True)  # local only
+        l_a.add_child(l_ac)
+        l_aca = SystemFile("aca", 100, False)  # local only
+        l_ac.add_child(l_aca)
+
+        self.model_builder.set_remote_files([r_a])
+        self.model_builder.set_local_files([l_a])
+
+        model = self.model_builder.build_model()
+        m_a = model.get_file("a")
+        self.assertEqual(ModelFile.State.DEFAULT, m_a.state)
+        m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
+        m_aa = m_a_ch["aa"]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
+        m_aaa = m_aa.get_children()[0]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aaa.state)
+        m_ab = m_a_ch["ab"]
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_ab.state)
+        m_ac = m_a_ch["ac"]
+        self.assertEqual(ModelFile.State.DEFAULT, m_ac.state)
+        m_aca = m_ac.get_children()[0]
+        self.assertEqual(ModelFile.State.DEFAULT, m_aca.state)
 
     def test_build_children_state_queued(self):
         r_a = SystemFile("a", 0, True)
@@ -456,7 +655,7 @@ class TestModelBuilder(unittest.TestCase):
         self.assertEqual(ModelFile.State.QUEUED, m_a.state)
         m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
         m_aa = m_a_ch["aa"]
-        self.assertEqual(ModelFile.State.QUEUED, m_aa.state)
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
         m_aaa = m_aa.get_children()[0]
         self.assertEqual(ModelFile.State.QUEUED, m_aaa.state)
         m_ab = m_a_ch["ab"]
@@ -482,7 +681,7 @@ class TestModelBuilder(unittest.TestCase):
         self.assertEqual(ModelFile.State.DOWNLOADING, m_a.state)
         m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
         m_aa = m_a_ch["aa"]
-        self.assertEqual(ModelFile.State.QUEUED, m_aa.state)
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
         m_aaa = m_aa.get_children()[0]
         self.assertEqual(ModelFile.State.DOWNLOADING, m_aaa.state)
         m_ab = m_a_ch["ab"]
@@ -490,13 +689,14 @@ class TestModelBuilder(unittest.TestCase):
 
     def test_build_children_state_downloading_2(self):
         # Child files are finished
-        r_a = SystemFile("a", 0, True)
-        r_aa = SystemFile("aa", 0, True)
+        r_a = SystemFile("a", 150, True)
+        r_aa = SystemFile("aa", 100, True)
         r_a.add_child(r_aa)
-        r_aaa = SystemFile("aaa", 0, False)
+        r_aaa = SystemFile("aaa", 100, False)
         r_aa.add_child(r_aaa)
-        r_ab = SystemFile("ab", 0, False)
+        r_ab = SystemFile("ab", 50, False)
         r_a.add_child(r_ab)
+
         s_a = LftpJobStatus(0, LftpJobStatus.Type.MIRROR, LftpJobStatus.State.RUNNING, "a", "")
         self.model_builder.set_remote_files([r_a])
         self.model_builder.set_local_files([r_a])
@@ -509,9 +709,9 @@ class TestModelBuilder(unittest.TestCase):
         m_aa = m_a_ch["aa"]
         self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
         m_aaa = m_aa.get_children()[0]
-        self.assertEqual(ModelFile.State.DEFAULT, m_aaa.state)
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_aaa.state)
         m_ab = m_a_ch["ab"]
-        self.assertEqual(ModelFile.State.DEFAULT, m_ab.state)
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_ab.state)
 
     def test_build_children_state_downloading_3(self):
         # Child files are queued
@@ -531,7 +731,7 @@ class TestModelBuilder(unittest.TestCase):
         self.assertEqual(ModelFile.State.DOWNLOADING, m_a.state)
         m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
         m_aa = m_a_ch["aa"]
-        self.assertEqual(ModelFile.State.QUEUED, m_aa.state)
+        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
         m_aaa = m_aa.get_children()[0]
         self.assertEqual(ModelFile.State.QUEUED, m_aaa.state)
         m_ab = m_a_ch["ab"]
@@ -568,21 +768,21 @@ class TestModelBuilder(unittest.TestCase):
     def test_build_children_state_all(self):
         model = self.__build_test_model_children_tree_1()
         m_a = model.get_file("a")
-        self.assertEqual(ModelFile.State.DEFAULT, m_a.state)
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_a.state)
         m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
         m_aa = m_a_ch["aa"]
-        self.assertEqual(ModelFile.State.DEFAULT, m_aa.state)
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_aa.state)
         m_ab = m_a_ch["ab"]
-        self.assertEqual(ModelFile.State.DEFAULT, m_ab.state)
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_ab.state)
         m_b = model.get_file("b")
         self.assertEqual(ModelFile.State.DOWNLOADING, m_b.state)
         m_b_ch = {m.name: m for m in model.get_file("b").get_children()}
         m_ba = m_b_ch["ba"]
-        self.assertEqual(ModelFile.State.QUEUED, m_ba.state)
+        self.assertEqual(ModelFile.State.DEFAULT, m_ba.state)
         m_baa = m_ba.get_children()[0]
         self.assertEqual(ModelFile.State.DOWNLOADING, m_baa.state)
         m_bb = m_b_ch["bb"]
-        self.assertEqual(ModelFile.State.QUEUED, m_bb.state)
+        self.assertEqual(ModelFile.State.DEFAULT, m_bb.state)
         m_bba = m_bb.get_children()[0]
         self.assertEqual(ModelFile.State.QUEUED, m_bba.state)
         m_bc = m_b_ch["bc"]
@@ -590,7 +790,7 @@ class TestModelBuilder(unittest.TestCase):
         m_bca = m_bc.get_children()[0]
         self.assertEqual(ModelFile.State.DEFAULT, m_bca.state)
         m_bd = m_b_ch["bd"]
-        self.assertEqual(ModelFile.State.DEFAULT, m_bd.state)
+        self.assertEqual(ModelFile.State.DOWNLOADED, m_bd.state)
         m_c = model.get_file("c")
         self.assertEqual(ModelFile.State.QUEUED, m_c.state)
         m_d = model.get_file("d")

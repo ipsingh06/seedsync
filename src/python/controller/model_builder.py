@@ -92,6 +92,8 @@ class ModelBuilder:
 
             model_file = ModelFile(name, is_dir)
             # set the file state
+            # for now we only set to Queued or Downloading
+            # later after all children are built, we can set to Downloaded after performing a check
             if status:
                 model_file.state = ModelFile.State.QUEUED if status.state == LftpJobStatus.State.QUEUED \
                                    else ModelFile.State.DOWNLOADING
@@ -139,27 +141,27 @@ class ModelBuilder:
                         _child_transfer_state = next((ts for n, ts in _status.get_active_file_transfer_states()
                                                      if n == _child_status_path), None)
                     # Set the state, first matching criteria below decides state
+                    #   child is a directory: Default
                     #   child is active: Downloading
-                    #                    Note: only files can be active, not dirs
-                    #   child remote size <= local size: Default
-                    #   local exists but not remote: Default
-                    #   parent is downloading: Queued
-                    #   use parent state
+                    #   child local_size >= remote_size: Downloaded
+                    #   remote child exists and root is Queued or Downloading: Queued
+                    #   Default
                     # Result:
-                    #   Default and Queued root's children are same state (there's no status object)
-                    #   Downloading root's dirs are Default if completed, else Queued
-                    #   Downloading files can be Default, Queued, or Downloading
-                    #   Any files on only local will always be Default
-                    if _child_transfer_state:
+                    #   subdirectories are always Default
+                    #   downloading files are Downloading
+                    #   finished files are Downloaded
+                    #   Queued and Downloading root's unfinished files are Queued
+                    #   Local-only files are Default
+                    if _is_dir:
+                        _child_model_file.state = ModelFile.State.DEFAULT
+                    elif _child_transfer_state:
                         _child_model_file.state = ModelFile.State.DOWNLOADING
-                    elif _remote_child and _local_child and _remote_child.size <= _local_child.size:
-                        _child_model_file.state = ModelFile.State.DEFAULT
-                    elif _local_child and not _remote_child:
-                        _child_model_file.state = ModelFile.State.DEFAULT
-                    elif _model_file.state == ModelFile.State.DOWNLOADING:
+                    elif _remote_child and _local_child and _local_child.size >= _remote_child.size:
+                        _child_model_file.state = ModelFile.State.DOWNLOADED
+                    elif _remote_child and model_file.state in (ModelFile.State.QUEUED, ModelFile.State.DOWNLOADING):
                         _child_model_file.state = ModelFile.State.QUEUED
                     else:
-                        _child_model_file.state = _model_file.state
+                        _child_model_file.state = ModelFile.State.DEFAULT
 
                     # fill the rest
                     __fill_model_file(_child_model_file,
@@ -168,6 +170,33 @@ class ModelBuilder:
                                       _child_transfer_state)
                     # add child to frontier
                     frontier.append((_remote_child, _local_child, _status, _child_model_file))
+
+            # now we can determine if root is Downloaded
+            # root is Downloaded if all child remote files are Downloaded
+            # again we use BFS to traverse
+            if model_file.state == ModelFile.State.DEFAULT:
+                if not model_file.is_dir and \
+                        model_file.local_size is not None and \
+                        model_file.remote_size is not None and \
+                        model_file.local_size >= model_file.remote_size:
+                    # root is a finished single file
+                    model_file.state = ModelFile.State.DOWNLOADED
+                elif model_file.is_dir and model_file.remote_size is not None:
+                    # root is a directory that also exists remotely
+                    # check all the children
+                    all_downloaded = True
+                    frontier = []
+                    frontier += model_file.get_children()
+                    while frontier:
+                        _child_file = frontier.pop(0)
+                        if not _child_file.is_dir and \
+                                _child_file.remote_size is not None and \
+                                _child_file.state != ModelFile.State.DOWNLOADED:
+                            all_downloaded = False
+                            break
+                        frontier += _child_file.get_children()
+                    if all_downloaded:
+                        model_file.state = ModelFile.State.DOWNLOADED
 
             model.add_file(model_file)
         return model

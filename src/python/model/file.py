@@ -20,6 +20,7 @@ class ModelFile:
         DEFAULT = 0
         DOWNLOADING = 1
         QUEUED = 2
+        DOWNLOADED = 3
 
     def __init__(self, name: str, is_dir: bool):
         self.__name = name  # file or folder name

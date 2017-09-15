@@ -162,13 +162,16 @@ class TestSerialize(unittest.TestCase):
         b.state = ModelFile.State.DOWNLOADING
         c = ModelFile("c", True)
         c.state = ModelFile.State.QUEUED
-        files = [a, b, c]
+        d = ModelFile("d", True)
+        d.state = ModelFile.State.DOWNLOADED
+        files = [a, b, c, d]
         out = TestSerialize.__parse(serialize.model(files))
         data = json.loads(out["data"])
-        self.assertEqual(3, len(data))
+        self.assertEqual(4, len(data))
         self.assertEqual("default", data[0]["state"])
         self.assertEqual("downloading", data[1]["state"])
         self.assertEqual("queued", data[2]["state"])
+        self.assertEqual("downloaded", data[3]["state"])
 
     def test_remote_size(self):
         serialize = Serialize()
