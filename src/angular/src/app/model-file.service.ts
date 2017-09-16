@@ -4,6 +4,7 @@ import {BehaviorSubject} from "rxjs/Rx";
 
 import * as Immutable from 'immutable';
 
+import {LoggerService} from "./logger.service";
 import {ModelFile} from './model-file'
 
 
@@ -25,7 +26,7 @@ export class ModelFileService {
     private _files: BehaviorSubject<Immutable.Map<string, ModelFile>> =
         new BehaviorSubject(Immutable.Map<string, ModelFile>());
 
-    constructor() {
+    constructor(private _logger: LoggerService) {
         this.init();
     }
 
@@ -65,7 +66,7 @@ export class ModelFileService {
         });
         observable.subscribe({
             next: (x) => _modelFileService.parseEvent(x["event"], x["data"]),
-            error: err => console.error("SSE Error: " + err)
+            error: err => this._logger.error("SSE Error: " + err)
         });
     }
 
@@ -75,7 +76,7 @@ export class ModelFileService {
      * @param {string} data
      */
     private parseEvent(name: string, data: string) {
-        console.debug("Received event: " + name);
+        this._logger.debug("Received event: " + name);
         if(name == "init") {
             // Init event receives an array of ModelFiles
             let parsed = JSON.parse(data);
@@ -86,17 +87,17 @@ export class ModelFileService {
             // Replace the entire model
             let newMap = Immutable.Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
             this._files.next(newMap);
-            console.debug("New model: %O", this._files.getValue().toJS());
+            this._logger.debug("New model: %O", this._files.getValue().toJS());
         } else if(name == "added") {
             // Added event receives old and new ModelFiles
             // Only new file is relevant
             let parsed: {new_file: any} = JSON.parse(data);
             let file = new ModelFile(parsed.new_file);
             if(this._files.getValue().has(file.name)) {
-                console.error("ModelFile named " + file.name + " already exists")
+                this._logger.error("ModelFile named " + file.name + " already exists")
             } else {
                 this._files.next(this._files.getValue().set(file.name, file));
-                console.debug("Added file: %O", file.toJS());
+                this._logger.debug("Added file: %O", file.toJS());
             }
         } else if(name == "removed") {
             // Removed event receives old and new ModelFiles
@@ -105,9 +106,9 @@ export class ModelFileService {
             let file = new ModelFile(parsed.old_file);
             if(this._files.getValue().has(file.name)) {
                 this._files.next(this._files.getValue().remove(file.name));
-                console.debug("Removed file: %O", file.toJS());
+                this._logger.debug("Removed file: %O", file.toJS());
             } else {
-                console.error("Failed to find ModelFile named " + file.name);
+                this._logger.error("Failed to find ModelFile named " + file.name);
             }
         } else if(name == "updated") {
             // Updated event received old and new ModelFiles
@@ -116,9 +117,9 @@ export class ModelFileService {
             let file = new ModelFile(parsed.new_file);
             if(this._files.getValue().has(file.name)) {
                 this._files.next(this._files.getValue().set(file.name, file));
-                console.debug("Updated file: %O", file.toJS());
+                this._logger.debug("Updated file: %O", file.toJS());
             } else {
-                console.error("Failed to find ModelFile named " + file.name);
+                this._logger.error("Failed to find ModelFile named " + file.name);
             }
         }
     }

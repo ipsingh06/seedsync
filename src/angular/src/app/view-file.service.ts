@@ -4,6 +4,7 @@ import {BehaviorSubject} from "rxjs/Rx";
 
 import * as Immutable from 'immutable';
 
+import {LoggerService} from "./logger.service";
 import {ModelFile} from './model-file'
 import {ModelFileService} from "./model-file.service";
 import {ViewFile} from "./view-file"
@@ -68,7 +69,8 @@ export class ViewFileService {
         return a.name.localeCompare(b.name);
     };
 
-    constructor(private modelFileService: ModelFileService) {
+    constructor(private _logger: LoggerService,
+                private modelFileService: ModelFileService) {
         let _viewFileService = this;
         this.modelFileService.files.subscribe({
             next: modelFiles => _viewFileService.nextModelFiles(modelFiles)
@@ -76,7 +78,7 @@ export class ViewFileService {
     }
 
     private nextModelFiles(modelFiles: Immutable.Map<string, ModelFile>) {
-        console.debug("Received next model files");
+        this._logger.debug("Received next model files");
 
         // Diff the previous domain model with the current domain model, then apply
         // those changes to the view model
@@ -136,7 +138,7 @@ export class ViewFileService {
         );
 
         if(reSort) {
-            console.log("Re-sorting view files");
+            this._logger.debug("Re-sorting view files");
             updateIndices = true;
             newViewFiles = newViewFiles.sort(this._comparator).toList();
         }
