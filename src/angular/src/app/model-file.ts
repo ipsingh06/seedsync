@@ -6,18 +6,26 @@ import {Record, Set} from 'immutable';
  */
 interface IModelFile {
     name: string;
+    is_dir: boolean;
     local_size: number;
     remote_size: number;
     state: ModelFile.State;
+    downloading_speed: number;
+    eta: number;
+    full_path: string;
     children: Set<ModelFile>;
 }
 
 // Boiler plate code to set up an immutable class
 const DefaultModelFile: IModelFile = {
     name: null,
+    is_dir: null,
     local_size: null,
     remote_size: null,
     state: null,
+    downloading_speed: null,
+    eta: null,
+    full_path: null,
     children: null
 };
 const ModelFileRecord = Record(DefaultModelFile);
@@ -30,9 +38,13 @@ const ModelFileRecord = Record(DefaultModelFile);
  */
 export class ModelFile extends ModelFileRecord implements IModelFile {
     name: string;
+    is_dir: boolean;
     local_size: number;
     remote_size: number;
     state: ModelFile.State;
+    downloading_speed: number;
+    eta: number;
+    full_path: string;
     children: Set<ModelFile>;
 
     constructor(props) {
