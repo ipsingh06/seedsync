@@ -1,5 +1,13 @@
-<ul id="file-list">
-    <li *ngFor="let file of files | async; trackBy: identify">
-        <file [file]="file"></file>
-    </li>
-</ul>
+<table id="file-list">
+    <thead>
+        <tr>
+            <th>Filename</th>
+            <th>Status</th>
+            <th>Speed</th>
+            <th>Size</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr file [file]="file" *ngFor="let file of files | async; trackBy: identify"></tr>
+    </tbody>
+</table>
