@@ -151,6 +151,7 @@ export class ViewFileService {
 
         this._files.next(newViewFiles);
         this._prevModelFiles = modelFiles;
+        this._logger.debug("New view model: %O", this._files.getValue().toJS());
     }
 
     get files() : Observable<Immutable.List<ViewFile>> {
@@ -179,9 +180,13 @@ export class ViewFileService {
         }
         return new ViewFile({
             name: modelFile.name,
+            isDir: modelFile.is_dir,
             localSize: modelFile.local_size,
             remoteSize: modelFile.remote_size,
             status: status,
+            downloadingSpeed: modelFile.downloading_speed,
+            eta: modelFile.eta,
+            fullPath: modelFile.full_path
         })
     }
 }

@@ -6,17 +6,25 @@ import {Record} from 'immutable';
  */
 interface IViewFile {
     name: string;
+    isDir: boolean;
     localSize: number;
     remoteSize: number;
     status: ViewFile.Status;
+    downloadingSpeed: number;
+    eta: number;
+    fullPath: string;
 }
 
 // Boiler plate code to set up an immutable class
 const DefaultViewFile: IViewFile = {
     name: null,
+    isDir: null,
     localSize: null,
     remoteSize: null,
-    status: null
+    status: null,
+    downloadingSpeed: null,
+    eta: null,
+    fullPath: null
 };
 const ViewFileRecord = Record(DefaultViewFile);
 
@@ -25,9 +33,13 @@ const ViewFileRecord = Record(DefaultViewFile);
  */
 export class ViewFile extends ViewFileRecord implements IViewFile {
     name: string;
+    isDir: boolean;
     localSize: number;
     remoteSize: number;
     status: ViewFile.Status;
+    downloadingSpeed: number;
+    eta: number;
+    fullPath: string;
 
     constructor(props) {
         super(props);
