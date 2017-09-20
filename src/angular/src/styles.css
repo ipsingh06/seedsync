@@ -66,6 +66,12 @@ div {
 }
 .file .name {text-align: left;}
 
+/* Speed */
+.file .speed {
+    font-size: 90%;
+
+}
+
 /* Progress bar */
 .file .progress-bar {
     min-width: 2em;

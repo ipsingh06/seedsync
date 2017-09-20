@@ -33,6 +33,6 @@ export class FileSizePipe implements PipeTransform {
       unit ++;
     }
 
-    return bytes.toFixed( + precision ) + ' ' + this.units[ unit ];
+    return Number(bytes.toPrecision( + precision )) + ' ' + this.units[ unit ];
   }
 }
