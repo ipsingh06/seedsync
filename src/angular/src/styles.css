@@ -1,1 +1,100 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * COMMON
+ */
+
+html {
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+}
+
+html, body {
+    font-family: Verdana,sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/*
+ * FILE-LIST
+ */
+
+div {
+    border: 1px solid black;
+    /* make padding and border inside box */
+    box-sizing: border-box;
+}
+
+#file-list #header {
+    display: none;
+}
+
+
+#file {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#file div {
+    /* break up long text */
+    overflow-wrap: normal;
+    hyphens: auto;
+    word-break: break-all;
+}
+
+/* width */
+#file #status   {width: 100px; min-width: 100px;}
+#file #name     {flex-grow: 1; flex-basis: calc(100% - 100px);}
+#file #speed    {width: 100px; min-width: 100px;}
+#file #size     {flex-grow: 1;}
+
+/* content elements */
+#file div {
+    padding: 4px 4px;
+    text-align: center;
+    vertical-align: top;
+}
+#file #name {text-align: left;}
+
+/* Desktop */
+@media only screen and (min-width: 601px) {
+    #file-list #header {
+        display: flex;
+    }
+
+    /* width */
+    #header #status, #file #status      {width: 100px; min-width: 100px;}
+    #header #name, #file #name          {flex-grow: 1;}
+    #header #speed, #file #speed        {width: 100px; min-width: 100px;}
+    #header #size, #file #size          {width: 30%; min-width: 30%;}
+
+    /* striped rows */
+    #file-list > div:nth-child(even){
+        background-color:#f1f1f1;
+    }
+
+    /* header and content elements */
+    #header div, #file div {
+        padding: 8px 8px;
+        text-align: center;
+        vertical-align: top;
+    }
+    #header #name, #file #name {text-align: left;}
+
+    /* header color */
+    #header div {
+        font-weight: bold;
+        color: #fff;
+        background-color: #000;
+    }
+
+    /* single row */
+    #file {flex-wrap: nowrap;}
+
+    /* Re-order columns */
+    #file #status {order: 2;}
+    #file #name {order: 1;}
+    #file #speed {order: 3;}
+    #file #size {order: 4;}
+}

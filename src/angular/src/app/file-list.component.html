@@ -1,13 +1,9 @@
-<table id="file-list">
-    <thead>
-        <tr>
-            <th>Filename</th>
-            <th>Status</th>
-            <th>Speed</th>
-            <th>Size</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr file [file]="file" *ngFor="let file of files | async; trackBy: identify"></tr>
-    </tbody>
-</table>
+<div id="file-list">
+    <div id="header">
+        <div id="name">Filename</div>
+        <div id="status">Status</div>
+        <div id="speed">Speed</div>
+        <div id="size">Size</div>
+    </div>
+    <div file [file]="file" *ngFor="let file of files | async; trackBy: identify"></div>
+</div>
