@@ -8,6 +8,7 @@ import {LoggerService} from "./logger.service";
 import {ModelFile} from './model-file'
 import {ModelFileService} from "./model-file.service";
 import {ViewFile} from "./view-file"
+import {MOCK_MODEL_FILES} from "./mock-model-files"
 
 
 /**
@@ -42,6 +43,8 @@ import {ViewFile} from "./view-file"
 @Injectable()
 export class ViewFileService {
 
+    private readonly USE_MOCK_MODEL = false;
+
     private _files: BehaviorSubject<Immutable.List<ViewFile>> = new BehaviorSubject(Immutable.List([]));
     private _indices: Map<string, number> = new Map<string, number>();
 
@@ -72,9 +75,15 @@ export class ViewFileService {
     constructor(private _logger: LoggerService,
                 private modelFileService: ModelFileService) {
         let _viewFileService = this;
-        this.modelFileService.files.subscribe({
-            next: modelFiles => _viewFileService.nextModelFiles(modelFiles)
-        });
+
+        if(!this.USE_MOCK_MODEL) {
+            this.modelFileService.files.subscribe({
+                next: modelFiles => _viewFileService.nextModelFiles(modelFiles)
+            });
+        } else {
+            // For layout/style testing
+            this.nextModelFiles(MOCK_MODEL_FILES);
+        }
     }
 
     private nextModelFiles(modelFiles: Immutable.Map<string, ModelFile>) {
