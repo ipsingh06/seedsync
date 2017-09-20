@@ -9,6 +9,7 @@ interface IViewFile {
     isDir: boolean;
     localSize: number;
     remoteSize: number;
+    percentDownloaded: number;
     status: ViewFile.Status;
     downloadingSpeed: number;
     eta: number;
@@ -21,6 +22,7 @@ const DefaultViewFile: IViewFile = {
     isDir: null,
     localSize: null,
     remoteSize: null,
+    percentDownloaded: null,
     status: null,
     downloadingSpeed: null,
     eta: null,
@@ -36,6 +38,7 @@ export class ViewFile extends ViewFileRecord implements IViewFile {
     isDir: boolean;
     localSize: number;
     remoteSize: number;
+    percentDownloaded: number;
     status: ViewFile.Status;
     downloadingSpeed: number;
     eta: number;

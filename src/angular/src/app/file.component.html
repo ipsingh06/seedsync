@@ -2,5 +2,15 @@
     <div class="status">{{file.status}}</div>
     <div class="name">{{file.name}}</div>
     <div class="speed">{{file.downloadingSpeed}}</div>
-    <div class="size">{{file.localSize}} / {{file.remoteSize}}</div>
+    <div class="size">
+        <div class="progress">
+            <div class="progress-bar" role="progressbar"
+                 [class.active]="file.status === ViewFile.Status.DOWNLOADING"
+                 [class.progress-bar-striped]="file.status === ViewFile.Status.DOWNLOADING"
+                 [attr.aria-valuenow]="file.percentDownloaded" aria-valuemin="0" aria-valuemax="100"
+                 [style.width]="file.percentDownloaded + '%'">
+                {{file.percentDownloaded}}%
+            </div>
+        </div>
+    </div>
 </div>

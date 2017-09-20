@@ -59,12 +59,17 @@ div {
 .file .size     {flex-grow: 1;}
 
 /* content elements */
-.file div {
+.file > div {
     padding: 4px 4px;
     text-align: center;
     vertical-align: top;
 }
 .file .name {text-align: left;}
+
+/* Progress bar */
+.file .progress-bar {
+    min-width: 2em;
+}
 
 /* Desktop */
 @media only screen and (min-width: 601px) {
@@ -79,7 +84,7 @@ div {
     #header .size, .file .size          {width: 30%; min-width: 30%;}
 
     /* header and content elements */
-    #header div, .file div {
+    #header > div, .file > div {
         padding: 8px 8px;
         text-align: center;
         vertical-align: top;

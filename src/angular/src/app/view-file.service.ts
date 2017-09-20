@@ -168,6 +168,7 @@ export class ViewFileService {
     }
 
     private static createViewFile(modelFile: ModelFile): ViewFile {
+        // Translate the status
         let status = null;
         switch(modelFile.state) {
             case ModelFile.State.DEFAULT: {
@@ -187,11 +188,29 @@ export class ViewFileService {
                 break;
             }
         }
+
+        // Use zero for unknown sizes
+        let localSize: number = modelFile.local_size;
+        if(localSize == null) {
+            localSize = 0;
+        }
+        let remoteSize: number = modelFile.remote_size;
+        if(remoteSize == null) {
+            remoteSize = 0;
+        }
+        let percentDownloaded: number = null;
+        if(remoteSize > 0) {
+            percentDownloaded = Math.trunc(100.0 * localSize / remoteSize);
+        } else {
+            percentDownloaded = 100;
+        }
+
         return new ViewFile({
             name: modelFile.name,
             isDir: modelFile.is_dir,
-            localSize: modelFile.local_size,
-            remoteSize: modelFile.remote_size,
+            localSize: localSize,
+            remoteSize: remoteSize,
+            percentDownloaded: percentDownloaded,
             status: status,
             downloadingSpeed: modelFile.downloading_speed,
             eta: modelFile.eta,

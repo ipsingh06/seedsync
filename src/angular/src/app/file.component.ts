@@ -10,5 +10,8 @@ import {ViewFile} from "./view-file";
 })
 
 export class FileComponent {
+    // Make ViewFile type accessible from template
+    ViewFile = ViewFile;
+
     @Input() file: ViewFile;
 }
