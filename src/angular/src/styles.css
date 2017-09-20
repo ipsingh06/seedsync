@@ -20,7 +20,7 @@ html, body {
  */
 
 div {
-    border: 1px solid black;
+    /*border: 1px solid black;*/
     /* make padding and border inside box */
     box-sizing: border-box;
 }
@@ -29,14 +29,23 @@ div {
     display: none;
 }
 
+/* striped rows */
+#file-list > div:nth-child(even){
+    background-color: #f6f6f6;
+}
 
-#file {
+/* list separator */
+#file-list > div {border-bottom: 1px solid #ddd;}
+#file-list > div:last-child{border-bottom: none;}
+
+.file {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    padding: 8px 0;
 }
 
-#file div {
+.file div {
     /* break up long text */
     overflow-wrap: normal;
     hyphens: auto;
@@ -44,18 +53,18 @@ div {
 }
 
 /* width */
-#file #status   {width: 100px; min-width: 100px;}
-#file #name     {flex-grow: 1; flex-basis: calc(100% - 100px);}
-#file #speed    {width: 100px; min-width: 100px;}
-#file #size     {flex-grow: 1;}
+.file .status   {width: 100px; min-width: 100px;}
+.file .name     {flex-grow: 1; flex-basis: calc(100% - 100px);}
+.file .speed    {width: 100px; min-width: 100px;}
+.file .size     {flex-grow: 1;}
 
 /* content elements */
-#file div {
+.file div {
     padding: 4px 4px;
     text-align: center;
     vertical-align: top;
 }
-#file #name {text-align: left;}
+.file .name {text-align: left;}
 
 /* Desktop */
 @media only screen and (min-width: 601px) {
@@ -64,23 +73,18 @@ div {
     }
 
     /* width */
-    #header #status, #file #status      {width: 100px; min-width: 100px;}
-    #header #name, #file #name          {flex-grow: 1;}
-    #header #speed, #file #speed        {width: 100px; min-width: 100px;}
-    #header #size, #file #size          {width: 30%; min-width: 30%;}
-
-    /* striped rows */
-    #file-list > div:nth-child(even){
-        background-color:#f1f1f1;
-    }
+    #header .status, .file .status      {width: 100px; min-width: 100px;}
+    #header .name, .file .name          {flex-grow: 1;}
+    #header .speed, .file .speed        {width: 100px; min-width: 100px;}
+    #header .size, .file .size          {width: 30%; min-width: 30%;}
 
     /* header and content elements */
-    #header div, #file div {
+    #header div, .file div {
         padding: 8px 8px;
         text-align: center;
         vertical-align: top;
     }
-    #header #name, #file #name {text-align: left;}
+    #header .name, .file .name {text-align: left;}
 
     /* header color */
     #header div {
@@ -89,12 +93,16 @@ div {
         background-color: #000;
     }
 
-    /* single row */
-    #file {flex-wrap: nowrap;}
+    .file {
+        /* single row */
+        flex-wrap: nowrap;
+        /* no top/bottom padding */
+        padding: 0 0;
+    }
 
     /* Re-order columns */
-    #file #status {order: 2;}
-    #file #name {order: 1;}
-    #file #speed {order: 3;}
-    #file #size {order: 4;}
+    .file .status {order: 2;}
+    .file .name {order: 1;}
+    .file .speed {order: 3;}
+    .file .size {order: 4;}
 }
