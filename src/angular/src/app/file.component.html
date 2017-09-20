@@ -2,7 +2,15 @@
     <div class="status">{{file.status}}</div>
     <div class="name">{{file.name}}</div>
     <div class="speed">
-        <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize}}/s</span>
+        <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize:3}}/s</span>
+        <!-- for mobile layout -->
+        <div class="speed-eta">
+            <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">eta: {{file.eta | eta}}</span>
+        </div>
+    </div>
+    <!-- for desktop layout -->
+    <div class="eta">
+        <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">{{file.eta | eta}}</span>
     </div>
     <div class="size">
         <div class="progress">

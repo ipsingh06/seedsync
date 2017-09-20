@@ -3,6 +3,7 @@
         <div class="name">Filename</div>
         <div class="status">Status</div>
         <div class="speed">Speed</div>
+        <div class="eta">ETA</div>
         <div class="size">Size</div>
     </div>
     <div file [file]="file" *ngFor="let file of files | async; trackBy: identify"></div>
