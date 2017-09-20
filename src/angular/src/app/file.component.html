@@ -2,7 +2,7 @@
     <div class="status">{{file.status}}</div>
     <div class="name">{{file.name}}</div>
     <div class="speed">
-        <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize}}PS</span>
+        <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize}}/s</span>
     </div>
     <div class="size">
         <div class="progress">
