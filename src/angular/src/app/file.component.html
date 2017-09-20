@@ -12,5 +12,8 @@
                 {{file.percentDownloaded}}%
             </div>
         </div>
+        <div class="size_info">
+            {{file.localSize | fileSize}} of {{file.remoteSize | fileSize}}
+        </div>
     </div>
 </div>

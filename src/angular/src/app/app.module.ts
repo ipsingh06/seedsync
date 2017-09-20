@@ -8,9 +8,11 @@ import {FileListComponent} from "./file-list.component"
 import {FileComponent} from "./file.component"
 import {ModelFileService} from "./model-file.service"
 import {ViewFileService} from "./view-file.service";
+import {FileSizePipe} from "./file-size.pipe";
 
 @NgModule({
     declarations: [
+        FileSizePipe,
         AppComponent,
         FileListComponent,
         FileComponent

@@ -70,6 +70,12 @@ div {
 .file .progress-bar {
     min-width: 2em;
 }
+.file .progress {
+    margin-bottom: 5px;
+}
+.file .size_info {
+    font-size: 80%;
+}
 
 /* Desktop */
 @media only screen and (min-width: 601px) {
