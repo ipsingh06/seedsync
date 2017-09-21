@@ -44,6 +44,14 @@ div {
     flex-wrap: wrap;
     padding: 8px 0;
 }
+.file:hover {
+    background-color: rgba(122, 222, 180, 0.43);
+}
+
+/* selected file */
+.file.selected {
+    background-color: #79DFB6;
+}
 
 .file div {
     /* break up long text */

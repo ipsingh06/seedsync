@@ -121,7 +121,7 @@ export class ViewFileService {
             name => {
                 let index = this._indices.get(name);
                 let oldViewFile = newViewFiles.get(index);
-                let newViewFile = ViewFileService.createViewFile(modelFiles.get(name));
+                let newViewFile = ViewFileService.createViewFile(modelFiles.get(name), oldViewFile.isSelected);
                 newViewFiles = newViewFiles.set(index, newViewFile);
                 if(this._comparator(oldViewFile, newViewFile) != 0) {
                     reSort = true;
@@ -168,7 +168,65 @@ export class ViewFileService {
         return this._files.asObservable();
     }
 
-    private static createViewFile(modelFile: ModelFile): ViewFile {
+    /**
+     * Set a file to be in selected state
+     * @param {ViewFile} file
+     */
+    public setSelected(file: ViewFile) {
+        // Find the selected file, if any
+        // Note: we can optimize this by storing an additional
+        //       state that tracks the selected file
+        //       but that would duplicate state and can introduce
+        //       bugs, so we just search instead
+        let viewFiles = this._files.getValue();
+        let unSelectIndex = viewFiles.findIndex(value => value.isSelected);
+
+        // Unset the previously selected file, if any
+        if(unSelectIndex >= 0) {
+            let unSelectViewFile = viewFiles.get(unSelectIndex);
+
+            // Do nothing if file is already selected
+            if(unSelectViewFile.name == file.name) return;
+
+            unSelectViewFile = new ViewFile(unSelectViewFile.set('isSelected', false));
+            viewFiles = viewFiles.set(unSelectIndex, unSelectViewFile);
+        }
+
+        // Set the new selected file
+        if(this._indices.has(file.name)) {
+            let index = this._indices.get(file.name);
+            let viewFile = viewFiles.get(index);
+            viewFile = new ViewFile(viewFile.set('isSelected', true));
+            viewFiles = viewFiles.set(index, viewFile);
+        } else {
+            this._logger.error("Can't find file to select: " + file.name);
+        }
+
+        // Send update
+        this._files.next(viewFiles);
+    }
+
+    /**
+     * Un-select the currently selected file
+     */
+    public unsetSelected() {
+        // Unset the previously selected file, if any
+        let viewFiles = this._files.getValue();
+        let unSelectIndex = viewFiles.findIndex(value => value.isSelected);
+
+        // Unset the previously selected file, if any
+        if(unSelectIndex >= 0) {
+            let unSelectViewFile = viewFiles.get(unSelectIndex);
+
+            unSelectViewFile = new ViewFile(unSelectViewFile.set('isSelected', false));
+            viewFiles = viewFiles.set(unSelectIndex, unSelectViewFile);
+
+            // Send update
+            this._files.next(viewFiles);
+        }
+    }
+
+    private static createViewFile(modelFile: ModelFile, isSelected: boolean = false): ViewFile {
         // Use zero for unknown sizes
         let localSize: number = modelFile.local_size;
         if(localSize == null) {
@@ -219,7 +277,8 @@ export class ViewFileService {
             status: status,
             downloadingSpeed: modelFile.downloading_speed,
             eta: modelFile.eta,
-            fullPath: modelFile.full_path
+            fullPath: modelFile.full_path,
+            isSelected: isSelected
         })
     }
 }

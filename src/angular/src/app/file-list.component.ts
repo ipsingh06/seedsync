@@ -29,4 +29,12 @@ export class FileListComponent {
     static identify(index: number, item: ViewFile): string {
         return item.name
     }
+
+    onSelect(file: ViewFile): void {
+        if(file.isSelected) {
+            this.viewFileService.unsetSelected();
+        } else {
+            this.viewFileService.setSelected(file);
+        }
+    }
 }

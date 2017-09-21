@@ -1,4 +1,4 @@
-<div class="file">
+<div class="file" [class.selected]="file.isSelected">
     <div class="status">
         <span *ngIf="file.status === ViewFile.Status.DEFAULT"
               class="icon glyphicon glyphicon-unchecked" aria-hidden="true"></span>

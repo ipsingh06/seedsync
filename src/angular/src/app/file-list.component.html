@@ -6,5 +6,8 @@
         <div class="eta">ETA</div>
         <div class="size">Size</div>
     </div>
-    <div file [file]="file" *ngFor="let file of files | async; trackBy: identify"></div>
+    <div file [file]="file"
+         *ngFor="let file of files | async; trackBy: identify"
+         (click)="onSelect(file)">
+    </div>
 </div>
