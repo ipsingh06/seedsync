@@ -305,8 +305,8 @@ class Controller:
                 except LftpError as e:
                     self.logger.warn("Caught lftp error: {}".format(str(e)))
             elif command.action == Controller.Command.Action.STOP:
-                if file.state != ModelFile.State.DOWNLOADING:
-                    self.logger.warn("Command {} failed. File {} is not downloading".format(
+                if file.state not in (ModelFile.State.DOWNLOADING, ModelFile.State.QUEUED):
+                    self.logger.warn("Command {} failed. File {} is not downloading or queued".format(
                         str(command.action),
                         command.filename
                     ))

@@ -136,7 +136,7 @@ class TestController(unittest.TestCase):
         remote_path={remote_path}
         local_path={local_path}
         remote_path_to_scan_script={path_to_scan_script}
-        num_max_parallel_downloads=2
+        num_max_parallel_downloads=1
         num_max_parallel_files_per_download=3
         num_max_connections_per_file=4
         
@@ -579,6 +579,86 @@ class TestController(unittest.TestCase):
         self.assertEqual("rc", new_file.name)
         self.assertEqual(ModelFile.State.DEFAULT, new_file.state)
         self.assertLess(new_file.local_size, new_file.remote_size)
+
+        listener.file_added.assert_not_called()
+        listener.file_removed.assert_not_called()
+
+    @timeout_decorator.timeout(10)
+    def test_command_stop_default(self):
+        time.sleep(0.5)
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        # Verify that rc is Default
+        files = self.controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DEFAULT, files_dict["rc"].state)
+
+        # Now stop the download
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rc"))
+        self.controller.process()
+
+        # Verify nothign happened
+        listener.file_updated.assert_not_called()
+        listener.file_added.assert_not_called()
+        listener.file_removed.assert_not_called()
+
+    @timeout_decorator.timeout(10)
+    def test_command_stop_queued(self):
+        # White box hack: limit the rate of lftp so download doesn't finish
+        # noinspection PyUnresolvedReferences
+        self.controller._Controller__lftp.rate_limit = 100
+
+        time.sleep(0.5)
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        # Queue two downloads
+        # This one will be Downloading
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
+        # This one will be Queued
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rb"))
+        # Process until download starts
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                if new_file.name == "rc" and new_file.local_size and new_file.local_size > 0:
+                    break
+            time.sleep(0.5)
+
+        # Verify that rb is Queued
+        files = self.controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.QUEUED, files_dict["rb"].state)
+
+        # Now stop the download
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rb"))
+        self.controller.process()
+        time.sleep(0.5)
+
+        # Verify that rc is Downloading, rb is Default
+        files = self.controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["rc"].state)
+        self.assertEqual(ModelFile.State.DEFAULT, files_dict["rb"].state)
 
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
