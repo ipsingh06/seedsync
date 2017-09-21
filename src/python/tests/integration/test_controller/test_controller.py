@@ -168,8 +168,8 @@ class TestController(unittest.TestCase):
         sys.argv.append("-c")
         sys.argv.append(self.config_file.name)
         sys.argv.append("-d")
-        context = PylftpContext()
-        self.controller = Controller(context)
+        self.context = PylftpContext()
+        self.controller = Controller(self.context)
 
     @overrides(unittest.TestCase)
     def tearDown(self):
@@ -752,3 +752,59 @@ class TestController(unittest.TestCase):
 
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+
+    @timeout_decorator.timeout(5)
+    def test_config_num_max_parallel_downloads(self):
+        # Exit the default controller and create a new one
+        self.controller.exit()
+
+        self.context.config.lftp.num_max_parallel_downloads = 2
+        new_controller = Controller(self.context)
+
+        # White box hack: limit the rate of lftp so download doesn't finish
+        # noinspection PyUnresolvedReferences
+        new_controller._Controller__lftp.rate_limit = 100
+
+        time.sleep(0.5)
+
+        # Ignore the initial state
+        listener = DummyListener()
+        new_controller.add_model_listener(listener)
+        new_controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        # Queue 3 downloads
+        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rb"))
+        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
+
+        # Process until 2 downloads starts
+        ra_downloading = False
+        rb_downloading = False
+
+        def updated_side_effect(old_file: ModelFile, new_file: ModelFile):
+            nonlocal  ra_downloading, rb_downloading
+            if new_file.local_size and new_file.local_size > 0:
+                if new_file.name == "ra":
+                    ra_downloading = True
+                elif new_file.name == "rb":
+                    rb_downloading = True
+            return
+        listener.file_updated.side_effect = updated_side_effect
+        while True:
+            new_controller.process()
+            if ra_downloading and rb_downloading:
+                break
+
+        # Verify that ra, rb is Downloading, rc is Queued
+        files = new_controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
+        self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["rb"].state)
+        self.assertEqual(ModelFile.State.QUEUED, files_dict["rc"].state)
+
+        new_controller.exit()

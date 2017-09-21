@@ -123,6 +123,10 @@ class Controller:
         self.__lftp.set_base_logger(self.logger)
         self.__lftp.set_base_remote_dir_path(self.__context.config.lftp.remote_path)
         self.__lftp.set_base_local_dir_path(self.__context.config.lftp.local_path)
+        # Configure Lftp
+        self.__lftp.num_parallel_jobs = self.__context.config.lftp.num_max_parallel_downloads
+        self.__lftp.num_parallel_files = self.__context.config.lftp.num_max_parallel_files_per_download
+        self.__lftp.num_connections = self.__context.config.lftp.num_max_connections_per_file
 
         # Setup the scanners and scanner processes
         self.__local_scanner = LocalScanner(self.__context.config.lftp.local_path)
@@ -165,6 +169,7 @@ class Controller:
     def exit(self):
         self.__local_scan_process.terminate()
         self.__remote_scan_process.terminate()
+        self.logger.info("Exited controller")
 
     def get_model_files(self) -> List[ModelFile]:
         """
