@@ -10,11 +10,13 @@ import {ModelFileService} from "./model-file.service"
 import {ViewFileService} from "./view-file.service";
 import {FileSizePipe} from "./file-size.pipe";
 import {EtaPipe} from "./eta.pipe";
+import {CapitalizePipe} from "./capitalize.pipe";
 
 @NgModule({
     declarations: [
         FileSizePipe,
         EtaPipe,
+        CapitalizePipe,
         AppComponent,
         FileListComponent,
         FileComponent

@@ -67,6 +67,19 @@ div {
 }
 .file .name {text-align: left;}
 
+/* Status */
+.file .status {
+    display: flex;
+    flex-direction: column;
+}
+.file .status .icon {
+    font-size: 32px;
+}
+.file .status .text {
+    margin-top: 3px;
+    font-size: 70%;
+}
+
 /* Speed */
 .file .speed {
     font-size: 90%;
