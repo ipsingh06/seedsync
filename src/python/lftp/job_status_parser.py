@@ -141,13 +141,17 @@ class LftpJobStatusParser:
         mirror_pattern = ("\\\\mirror\s"
                           "`(?P<name>[^']*)'\s+"
                           "--\s+"
-                          "(?P<szlocal>\d+\.?\d*\s?({sz}))"
+                          "(?P<szlocal>\d+\.?\d*\s?({sz})?)"  # size=0 has no units
                           "\/"
                           "(?P<szremote>\d+\.?\d*\s?({sz}))\s+"
                           "\((?P<pctlocal>\d+)%\)"
                           "(\s+(?P<speed>\d+\.?\d*\s?({sz}))\/s)?$")\
             .format(sz=LftpJobStatusParser.__SIZE_UNITS_REGEX)
         mirror_m = re.compile(mirror_pattern)
+
+        mirror_empty_pattern = ("\\\\mirror\s"
+                                "`(?P<name>[^']*)'\s*$")
+        mirror_empty_m = re.compile(mirror_empty_pattern)
 
         prev_job = None
         while lines:
@@ -347,6 +351,13 @@ class LftpJobStatusParser:
             # Search for but ignore "\mirror" line
             result = mirror_m.search(line)
             if result:
+                # Continue the outer loop
+                continue
+            result = mirror_empty_m.search(line)
+            if result:
+                # There may be "Getting files list" or "cd" line next, ignore it as well
+                if lines and ("Getting file list" in lines[0] or lines[0].startswith("cd ")):
+                    lines.pop(0)
                 # Continue the outer loop
                 continue
 
