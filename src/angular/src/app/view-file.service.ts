@@ -65,7 +65,8 @@ export class ViewFileService {
                 [ViewFile.Status.DOWNLOADING]: 0,
                 [ViewFile.Status.QUEUED]: 1,
                 [ViewFile.Status.DOWNLOADED]: 2,
-                [ViewFile.Status.DEFAULT]: 3
+                [ViewFile.Status.STOPPED]: 3,
+                [ViewFile.Status.DEFAULT]: 4
             };
             return statusPriorities[a.status] - statusPriorities[b.status];
         }
@@ -168,27 +169,6 @@ export class ViewFileService {
     }
 
     private static createViewFile(modelFile: ModelFile): ViewFile {
-        // Translate the status
-        let status = null;
-        switch(modelFile.state) {
-            case ModelFile.State.DEFAULT: {
-                status = ViewFile.Status.DEFAULT;
-                break;
-            }
-            case ModelFile.State.QUEUED: {
-                status = ViewFile.Status.QUEUED;
-                break;
-            }
-            case ModelFile.State.DOWNLOADING: {
-                status = ViewFile.Status.DOWNLOADING;
-                break;
-            }
-            case ModelFile.State.DOWNLOADED: {
-                status = ViewFile.Status.DOWNLOADED;
-                break;
-            }
-        }
-
         // Use zero for unknown sizes
         let localSize: number = modelFile.local_size;
         if(localSize == null) {
@@ -203,6 +183,31 @@ export class ViewFileService {
             percentDownloaded = Math.trunc(100.0 * localSize / remoteSize);
         } else {
             percentDownloaded = 100;
+        }
+
+        // Translate the status
+        let status = null;
+        switch(modelFile.state) {
+            case ModelFile.State.DEFAULT: {
+                if(localSize > 0 && remoteSize > 0) {
+                    status = ViewFile.Status.STOPPED;
+                } else {
+                    status = ViewFile.Status.DEFAULT;
+                }
+                break;
+            }
+            case ModelFile.State.QUEUED: {
+                status = ViewFile.Status.QUEUED;
+                break;
+            }
+            case ModelFile.State.DOWNLOADING: {
+                status = ViewFile.Status.DOWNLOADING;
+                break;
+            }
+            case ModelFile.State.DOWNLOADED: {
+                status = ViewFile.Status.DOWNLOADED;
+                break;
+            }
         }
 
         return new ViewFile({

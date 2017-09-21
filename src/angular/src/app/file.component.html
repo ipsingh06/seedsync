@@ -8,7 +8,11 @@
               class="icon glyphicon glyphicon-save" aria-hidden="true"></span>
         <span *ngIf="file.status === ViewFile.Status.DOWNLOADED"
               class="icon glyphicon glyphicon-saved" aria-hidden="true"></span>
-        <span class="text">{{file.status | capitalize}}</span>
+        <span *ngIf="file.status === ViewFile.Status.STOPPED"
+              class="icon glyphicon glyphicon glyphicon-stop" aria-hidden="true"></span>
+        <!-- don't show text for default status -->
+        <span *ngIf="file.status != ViewFile.Status.DEFAULT"
+              class="text">{{file.status | capitalize}}</span>
     </div>
     <div class="name">{{file.name}}</div>
     <div class="speed">
