@@ -15,7 +15,11 @@
             <span *ngIf="file.status != ViewFile.Status.DEFAULT"
                   class="text">{{file.status | capitalize}}</span>
         </div>
-        <div class="name">{{file.name}}</div>
+        <div class="name">
+            <div *ngIf="!file.isDir" class="icon glyphicon glyphicon-file"></div>
+            <div *ngIf="file.isDir" class="icon glyphicon glyphicon-folder-open"></div>
+            <div class="text">{{file.name}}</div>
+        </div>
         <div class="speed">
             <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize:3}}/s</span>
             <!-- for mobile layout -->

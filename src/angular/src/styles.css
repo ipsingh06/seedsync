@@ -77,6 +77,16 @@ div {
 }
 .content .name {text-align: left;}
 
+/* Name */
+.content .name {
+    display: flex;
+    flex-direction: row;
+}
+.content .name .icon {
+    padding-right: 8px;
+    padding-top: 3px;
+}
+
 /* Status */
 .content .status {
     display: flex;

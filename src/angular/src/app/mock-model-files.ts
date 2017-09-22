@@ -75,9 +75,9 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         children: []
     }),
 
-    "This File Needs To Be Resumed": new ModelFile({
-        name: "This File Needs To Be Resumed",
-        is_dir: true,
+    "This_File_Needs_To_Be_Resumed.exe": new ModelFile({
+        name: "This_File_Needs_To_Be_Resumed.exe",
+        is_dir: false,
         local_size: 11111111,
         remote_size: 44444444,
         state: ModelFile.State.DEFAULT,
