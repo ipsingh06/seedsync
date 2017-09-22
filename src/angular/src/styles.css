@@ -39,13 +39,7 @@ div {
 #file-list > div:last-child{border-bottom: none;}
 
 .file {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 8px 0;
-}
-.file:hover {
-    background-color: rgba(122, 222, 180, 0.43);
+    padding: 10px;
 }
 
 /* selected file */
@@ -53,7 +47,15 @@ div {
     background-color: #79DFB6;
 }
 
-.file div {
+/* content */
+.content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 8px 0;
+}
+
+.content div {
     /* break up long text */
     overflow-wrap: normal;
     hyphens: auto;
@@ -61,53 +63,103 @@ div {
 }
 
 /* width */
-.file .status   {width: 100px; min-width: 100px;}
-.file .name     {flex-grow: 1; flex-basis: calc(100% - 100px);}
-.file .speed    {width: 100px; min-width: 100px;}
-/* .file .eta is hidden on mobile */
-.file .size     {flex-grow: 1;}
+.content .status   {width: 100px; min-width: 100px;}
+.content .name     {flex-grow: 1; flex-basis: calc(100% - 100px);}
+.content .speed    {width: 100px; min-width: 100px;}
+/* .content .eta is hidden on mobile */
+.content .size     {flex-grow: 1;}
 
 /* content elements */
-.file > div {
+.content > div {
     padding: 4px 4px;
     text-align: center;
     vertical-align: top;
 }
-.file .name {text-align: left;}
+.content .name {text-align: left;}
 
 /* Status */
-.file .status {
+.content .status {
     display: flex;
     flex-direction: column;
 }
-.file .status .icon {
+.content .status .icon {
     font-size: 32px;
 }
-.file .status .text {
+.content .status .text {
     margin-top: 3px;
     font-size: 70%;
 }
 
 /* Speed */
-.file .speed {
+.content .speed {
     font-size: 90%;
 
 }
 
 /* Progress bar */
-.file .progress-bar {
+.content .progress-bar {
     min-width: 2em;
 }
-.file .progress {
+.content .progress {
     margin-bottom: 5px;
 }
-.file .size_info {
+.content .size_info {
     font-size: 80%;
 }
 
 /* Hide the outer eta */
-.file .eta {display: none;}
-.file .speed .speed-eta {font-size: 90%;}
+.content .eta {display: none;}
+.content .speed .speed-eta {font-size: 90%;}
+
+/* actions */
+.actions {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    /* offsets the button's margin-bottom */
+    margin-bottom: -10px;
+}
+.actions .button {
+    /* bottom margin for when buttons get wrapped to multiple rows */
+    margin-bottom: 10px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background-color: #337BB7;
+    border: 1px solid #2e6da4;
+    border-radius: 4px;
+    width: 50px;
+    min-width: 50px;
+    height: 50px;
+    cursor: default;
+    user-select: none;
+}
+.actions .button:active {
+    background-color: #286090;
+}
+.actions .button[disabled] {
+    opacity: .65;
+    background-color: #337BB7;
+}
+.actions .button .icon {
+    font-size: 26px;
+}
+.actions .button .text {
+    font-size: 12px;
+}
+
+/* action toolbar show and hide */
+.actions {
+    display: none;
+}
+.file.selected .actions {
+    display: flex;
+}
 
 /* Desktop */
 @media only screen and (min-width: 601px) {
@@ -115,20 +167,25 @@ div {
         display: flex;
     }
 
+    /* enable row hover */
+    .file:not(.selected):hover {
+        background-color: rgba(122, 222, 180, 0.43);
+    }
+
     /* width */
-    #header .status, .file .status      {width: 100px; min-width: 100px;}
-    #header .name, .file .name          {flex-grow: 1;}
-    #header .speed, .file .speed        {width: 100px; min-width: 100px;}
-    #header .eta, .file .eta            {width: 100px; min-width: 100px;}
-    #header .size, .file .size          {width: 30%; min-width: 30%;}
+    #header .status, .content .status      {width: 100px; min-width: 100px;}
+    #header .name, .content .name          {flex-grow: 1;}
+    #header .speed, .content .speed        {width: 100px; min-width: 100px;}
+    #header .eta, .content .eta            {width: 100px; min-width: 100px;}
+    #header .size, .content .size          {width: 30%; min-width: 30%;}
 
     /* header and content elements */
-    #header > div, .file > div {
+    #header > div, .content > div {
         padding: 8px 8px;
         text-align: center;
         vertical-align: top;
     }
-    #header .name, .file .name {text-align: left;}
+    #header .name, .content .name {text-align: left;}
 
     /* header color */
     #header div {
@@ -137,7 +194,7 @@ div {
         background-color: #000;
     }
 
-    .file {
+    .content {
         /* single row */
         flex-wrap: nowrap;
         /* no top/bottom padding */
@@ -145,13 +202,13 @@ div {
     }
 
     /* Re-order columns */
-    .file .status {order: 2;}
-    .file .name {order: 1;}
-    .file .speed {order: 3;}
-    .file .eta {order: 4;}
-    .file .size {order: 5;}
+    .content .status {order: 2;}
+    .content .name {order: 1;}
+    .content .speed {order: 3;}
+    .content .eta {order: 4;}
+    .content .size {order: 5;}
 
     /* Hide the inner eta, show outer eta */
-    .file .eta {display: inline;}
-    .file .speed .speed-eta {display: none;}
+    .content .eta {display: inline;}
+    .content .speed .speed-eta {display: none;}
 }

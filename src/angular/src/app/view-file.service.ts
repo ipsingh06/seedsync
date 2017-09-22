@@ -268,6 +268,10 @@ export class ViewFileService {
             }
         }
 
+        let isQueueable: boolean = [ViewFile.Status.DEFAULT, ViewFile.Status.STOPPED].includes(status)
+                                    && remoteSize > 0;
+        let isStoppable: boolean = [ViewFile.Status.QUEUED, ViewFile.Status.DOWNLOADING].includes(status);
+
         return new ViewFile({
             name: modelFile.name,
             isDir: modelFile.is_dir,
@@ -278,7 +282,9 @@ export class ViewFileService {
             downloadingSpeed: modelFile.downloading_speed,
             eta: modelFile.eta,
             fullPath: modelFile.full_path,
-            isSelected: isSelected
+            isSelected: isSelected,
+            isQueueable: isQueueable,
+            isStoppable: isStoppable
         })
     }
 }

@@ -11,12 +11,14 @@ import {ViewFileService} from "./view-file.service";
 import {FileSizePipe} from "./file-size.pipe";
 import {EtaPipe} from "./eta.pipe";
 import {CapitalizePipe} from "./capitalize.pipe";
+import {ClickStopPropagation} from "./click-stop-propagation.directive";
 
 @NgModule({
     declarations: [
         FileSizePipe,
         EtaPipe,
         CapitalizePipe,
+        ClickStopPropagation,
         AppComponent,
         FileListComponent,
         FileComponent

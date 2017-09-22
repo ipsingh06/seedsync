@@ -1,43 +1,57 @@
 <div class="file" [class.selected]="file.isSelected">
-    <div class="status">
-        <span *ngIf="file.status === ViewFile.Status.DEFAULT"
-              class="icon glyphicon glyphicon-unchecked" aria-hidden="true"></span>
-        <span *ngIf="file.status === ViewFile.Status.QUEUED"
-              class="icon glyphicon glyphicon-list" aria-hidden="true"></span>
-        <span *ngIf="file.status === ViewFile.Status.DOWNLOADING"
-              class="icon glyphicon glyphicon-save" aria-hidden="true"></span>
-        <span *ngIf="file.status === ViewFile.Status.DOWNLOADED"
-              class="icon glyphicon glyphicon-saved" aria-hidden="true"></span>
-        <span *ngIf="file.status === ViewFile.Status.STOPPED"
-              class="icon glyphicon glyphicon glyphicon-stop" aria-hidden="true"></span>
-        <!-- don't show text for default status -->
-        <span *ngIf="file.status != ViewFile.Status.DEFAULT"
-              class="text">{{file.status | capitalize}}</span>
-    </div>
-    <div class="name">{{file.name}}</div>
-    <div class="speed">
-        <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize:3}}/s</span>
-        <!-- for mobile layout -->
-        <div class="speed-eta">
-            <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">eta: {{file.eta | eta}}</span>
+    <div class="content">
+        <div class="status">
+            <span *ngIf="file.status === ViewFile.Status.DEFAULT"
+                  class="icon glyphicon glyphicon-unchecked" aria-hidden="true"></span>
+            <span *ngIf="file.status === ViewFile.Status.QUEUED"
+                  class="icon glyphicon glyphicon-list" aria-hidden="true"></span>
+            <span *ngIf="file.status === ViewFile.Status.DOWNLOADING"
+                  class="icon glyphicon glyphicon-save" aria-hidden="true"></span>
+            <span *ngIf="file.status === ViewFile.Status.DOWNLOADED"
+                  class="icon glyphicon glyphicon-saved" aria-hidden="true"></span>
+            <span *ngIf="file.status === ViewFile.Status.STOPPED"
+                  class="icon glyphicon glyphicon glyphicon-stop" aria-hidden="true"></span>
+            <!-- don't show text for default status -->
+            <span *ngIf="file.status != ViewFile.Status.DEFAULT"
+                  class="text">{{file.status | capitalize}}</span>
         </div>
-    </div>
-    <!-- for desktop layout -->
-    <div class="eta">
-        <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">{{file.eta | eta}}</span>
-    </div>
-    <div class="size">
-        <div class="progress">
-            <div class="progress-bar" role="progressbar"
-                 [class.active]="file.status === ViewFile.Status.DOWNLOADING"
-                 [class.progress-bar-striped]="file.status === ViewFile.Status.DOWNLOADING"
-                 [attr.aria-valuenow]="file.percentDownloaded" aria-valuemin="0" aria-valuemax="100"
-                 [style.width]="file.percentDownloaded + '%'">
-                {{file.percentDownloaded}}%
+        <div class="name">{{file.name}}</div>
+        <div class="speed">
+            <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize:3}}/s</span>
+            <!-- for mobile layout -->
+            <div class="speed-eta">
+                <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">eta: {{file.eta | eta}}</span>
             </div>
         </div>
-        <div class="size_info">
-            {{file.localSize | fileSize}} of {{file.remoteSize | fileSize}}
+        <!-- for desktop layout -->
+        <div class="eta">
+            <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">{{file.eta | eta}}</span>
+        </div>
+        <div class="size">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar"
+                     [class.active]="file.status === ViewFile.Status.DOWNLOADING"
+                     [class.progress-bar-striped]="file.status === ViewFile.Status.DOWNLOADING"
+                     [attr.aria-valuenow]="file.percentDownloaded" aria-valuemin="0" aria-valuemax="100"
+                     [style.width]="file.percentDownloaded + '%'">
+                    {{file.percentDownloaded}}%
+                </div>
+            </div>
+            <div class="size_info">
+                {{file.localSize | fileSize}} of {{file.remoteSize | fileSize}}
+            </div>
+        </div>
+    </div>
+
+    <!-- actions div, visible on selection -->
+    <div class="actions">
+        <div class="button" click-stop-propagation [attr.disabled]="file.isQueueable ? null : true">
+            <span class="icon glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+            <span class="text">Queue</span>
+        </div>
+        <div class="button" click-stop-propagation [attr.disabled]="file.isStoppable ? null : true">
+            <span class="icon glyphicon glyphicon-stop" aria-hidden="true"></span>
+            <span class="text">Stop</span>
         </div>
     </div>
 </div>

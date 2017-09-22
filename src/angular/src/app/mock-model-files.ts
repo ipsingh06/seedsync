@@ -74,4 +74,16 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         full_path: null,
         children: []
     }),
+
+    "This File Needs To Be Resumed": new ModelFile({
+        name: "This File Needs To Be Resumed",
+        is_dir: true,
+        local_size: 11111111,
+        remote_size: 44444444,
+        state: ModelFile.State.DEFAULT,
+        downloading_speed: null,
+        eta: null,
+        full_path: null,
+        children: []
+    }),
 });

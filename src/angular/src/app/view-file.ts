@@ -15,6 +15,8 @@ interface IViewFile {
     eta: number;
     fullPath: string;
     isSelected: boolean;
+    isQueueable: boolean;
+    isStoppable: boolean;
 }
 
 // Boiler plate code to set up an immutable class
@@ -28,7 +30,9 @@ const DefaultViewFile: IViewFile = {
     downloadingSpeed: null,
     eta: null,
     fullPath: null,
-    isSelected: null
+    isSelected: null,
+    isQueueable: null,
+    isStoppable: null
 };
 const ViewFileRecord = Record(DefaultViewFile);
 
@@ -46,6 +50,8 @@ export class ViewFile extends ViewFileRecord implements IViewFile {
     eta: number;
     fullPath: string;
     isSelected: boolean;
+    isQueueable: boolean;
+    isStoppable: boolean;
 
     constructor(props) {
         super(props);
