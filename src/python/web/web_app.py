@@ -1,14 +1,14 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 import logging
-from threading import Thread
+from threading import Thread, Event
 from queue import Queue, Empty
 import os
 from typing import Optional
 
 # 3rd party libs
 import bottle
-from bottle import static_file
+from bottle import static_file, HTTPResponse
 from paste import httpserver
 from paste.translogger import TransLogger
 
@@ -102,6 +102,34 @@ class WebResponseModelListener(IModelListener):
             return None
 
 
+class WebResponseActionCallback(Controller.Command.ICallback):
+    """
+    Controller action callback used by Webapp to wait for action
+    status.
+    Clients should call wait() method to wait for the status,
+    then query the status from 'success' and 'error'
+    """
+
+    def __init__(self):
+        self.__event = Event()
+        self.success = None
+        self.error = None
+
+    @overrides(Controller.Command.ICallback)
+    def on_failure(self, error: str):
+        self.success = False
+        self.error = error
+        self.__event.set()
+
+    @overrides(Controller.Command.ICallback)
+    def on_success(self):
+        self.success = True
+        self.__event.set()
+
+    def wait(self):
+        self.__event.wait()
+
+
 class WebApp(bottle.Bottle):
     """
     Web app implementation
@@ -136,22 +164,26 @@ class WebApp(bottle.Bottle):
         return static_file(file_path, root=os.path.join(_DIR_PATH, "..", "..", "html"))
 
     def action_queue(self, file_name: str):
-        self.__controller.queue_command(
-            Controller.Command(
-                Controller.Command.Action.QUEUE,
-                file_name
-            )
-        )
-        return "Queuing '{}'".format(file_name)
+        command = Controller.Command(Controller.Command.Action.QUEUE, file_name)
+        callback = WebResponseActionCallback()
+        command.add_callback(callback)
+        self.__controller.queue_command(command)
+        callback.wait()
+        if callback.success:
+            return HTTPResponse(body="Queued file '{}'".format(file_name))
+        else:
+            return HTTPResponse(body=callback.error, status=400)
 
     def action_stop(self, file_name: str):
-        self.__controller.queue_command(
-            Controller.Command(
-                Controller.Command.Action.STOP,
-                file_name
-            )
-        )
-        return "Stopping '{}'".format(file_name)
+        command = Controller.Command(Controller.Command.Action.STOP, file_name)
+        callback = WebResponseActionCallback()
+        command.add_callback(callback)
+        self.__controller.queue_command(command)
+        callback.wait()
+        if callback.success:
+            return HTTPResponse(body="Stopped file '{}'".format(file_name))
+        else:
+            return HTTPResponse(body=callback.error, status=400)
 
     def stream(self) -> str:
         model_listener = None
