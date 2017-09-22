@@ -1,5 +1,6 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
+from abc import ABC, abstractmethod
 from typing import List
 import multiprocessing
 import queue
@@ -87,13 +88,35 @@ class Controller:
     Top-level class that controls the behaviour of pylftp
     """
     class Command:
+        """
+        Class by which clients of Controller can request Actions to be executed
+        Supports callbacks by which clients can be notified of action success/failure
+        Note: callbacks will be executed in Controller thread, so any heavy computation
+              should be moved out of the callback
+        """
         class Action(Enum):
             QUEUE = 0
             STOP = 1
 
+        class ICallback(ABC):
+            """Command callback interface"""
+            @abstractmethod
+            def on_success(self):
+                """Called on successful completion of action"""
+                pass
+
+            @abstractmethod
+            def on_failure(self, error: str):
+                """Called on action failure"""
+                pass
+
         def __init__(self, action: Action, filename: str):
             self.action = action
             self.filename = filename
+            self.callbacks = []
+
+        def add_callback(self, callback: ICallback):
+            self.callbacks.append(callback)
 
     def __init__(self, context: PylftpContext):
         self.__context = context
@@ -259,7 +282,7 @@ class Controller:
         try:
             lftp_statuses = self.__lftp.status()
         except LftpError as e:
-            self.logger.warn("Caught lftp error: {}".format(str(e)))
+            self.logger.warning("Caught lftp error: {}".format(str(e)))
 
         # Build the new model
         if latest_remote_scan is not None:
@@ -295,28 +318,44 @@ class Controller:
             try:
                 file = self.__model.get_file(command.filename)
             except ModelError:
-                self.logger.warn("Command failed. File {} does not exist in model".format(command.filename))
-                return
+                self.logger.warning("Command failed. File {} does not exist in model".format(command.filename))
+                for callback in command.callbacks:
+                    callback.on_failure("File '{}' not found".format(command.filename))
+                continue
 
             if command.action == Controller.Command.Action.QUEUE:
                 if file.remote_size is None:
-                    self.logger.warn("Command {} failed. File {} does not exist on remote".format(
+                    self.logger.warning("Command {} failed. File {} does not exist on remote".format(
                         str(command.action),
                         command.filename
                     ))
-                    return
+                    for callback in command.callbacks:
+                        callback.on_failure("File '{}' does not exist remotely".format(command.filename))
+                    continue
                 try:
                     self.__lftp.queue(file.name, file.is_dir)
                 except LftpError as e:
-                    self.logger.warn("Caught lftp error: {}".format(str(e)))
+                    self.logger.warning("Caught lftp error: {}".format(str(e)))
+                    for callback in command.callbacks:
+                        callback.on_failure("Lftp error: ".format(str(e)))
+                    continue
             elif command.action == Controller.Command.Action.STOP:
                 if file.state not in (ModelFile.State.DOWNLOADING, ModelFile.State.QUEUED):
-                    self.logger.warn("Command {} failed. File {} is not downloading or queued".format(
+                    self.logger.warning("Command {} failed. File {} is not downloading or queued".format(
                         str(command.action),
                         command.filename
                     ))
-                    return
+                    for callback in command.callbacks:
+                        callback.on_failure("File '{}' is not Queued or Downloading".format(command.filename))
+                    continue
                 try:
                     self.__lftp.kill(file.name)
                 except LftpError as e:
-                    self.logger.warn("Caught lftp error: {}".format(str(e)))
+                    self.logger.warning("Caught lftp error: {}".format(str(e)))
+                    for callback in command.callbacks:
+                        callback.on_failure("Lftp error: ".format(str(e)))
+                    continue
+
+            # If we get here, it was a success
+            for callback in command.callbacks:
+                callback.on_success()

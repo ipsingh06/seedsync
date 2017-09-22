@@ -32,6 +32,16 @@ class DummyListener(IModelListener):
         pass
 
 
+class DummyCommandCallback(Controller.Command.ICallback):
+    @overrides(Controller.Command.ICallback)
+    def on_failure(self, error: str):
+        pass
+
+    @overrides(Controller.Command.ICallback)
+    def on_success(self):
+        pass
+
+
 # noinspection SpellCheckingInspection
 class TestController(unittest.TestCase):
     maxDiff = None
@@ -364,9 +374,14 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "ra")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until done
         while True:
             self.controller.process()
@@ -381,6 +396,8 @@ class TestController(unittest.TestCase):
         # Verify
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
         dcmp = dircmp(os.path.join(TestController.temp_dir, "remote", "ra"),
                       os.path.join(TestController.temp_dir, "local", "ra"))
         self.assertFalse(dcmp.left_only)
@@ -400,9 +417,14 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rc")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until done
         while True:
             self.controller.process()
@@ -417,6 +439,8 @@ class TestController(unittest.TestCase):
         # Verify
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
         fcmp = cmp(os.path.join(TestController.temp_dir, "remote", "rc"),
                    os.path.join(TestController.temp_dir, "local", "rc"))
         self.assertTrue(fcmp)
@@ -434,16 +458,27 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "invaliddir"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "invaliddir")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until done
         self.controller.process()
         time.sleep(0.5)
         self.controller.process()
+
+        # Verify
         listener.file_added.assert_not_called()
         listener.file_updated.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'invaliddir' not found", error)
 
     def test_command_queue_local_directory(self):
         time.sleep(0.5)
@@ -457,9 +492,14 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "la"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "la")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until done
         self.controller.process()
         time.sleep(0.5)
@@ -467,6 +507,10 @@ class TestController(unittest.TestCase):
         listener.file_added.assert_not_called()
         listener.file_updated.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'la' does not exist remotely", error)
 
     def test_command_queue_local_file(self):
         time.sleep(0.5)
@@ -480,9 +524,14 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "lb"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "lb")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until done
         self.controller.process()
         time.sleep(0.5)
@@ -490,6 +539,10 @@ class TestController(unittest.TestCase):
         listener.file_added.assert_not_called()
         listener.file_updated.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'lb' does not exist remotely", error)
 
     @timeout_decorator.timeout(10)
     def test_command_stop_directory(self):
@@ -508,9 +561,14 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "ra")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until download starts
         while True:
             self.controller.process()
@@ -536,6 +594,8 @@ class TestController(unittest.TestCase):
 
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
 
     @timeout_decorator.timeout(10)
     def test_command_stop_file(self):
@@ -554,9 +614,14 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rc")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until download starts
         while True:
             self.controller.process()
@@ -582,6 +647,8 @@ class TestController(unittest.TestCase):
 
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
 
     @timeout_decorator.timeout(10)
     def test_command_stop_default(self):
@@ -596,6 +663,9 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Verify that rc is Default
         files = self.controller.get_model_files()
@@ -603,13 +673,19 @@ class TestController(unittest.TestCase):
         self.assertEqual(ModelFile.State.DEFAULT, files_dict["rc"].state)
 
         # Now stop the download
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rc"))
+        command = Controller.Command(Controller.Command.Action.STOP, "rc")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         self.controller.process()
 
-        # Verify nothign happened
+        # Verify nothing happened
         listener.file_updated.assert_not_called()
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'rc' is not Queued or Downloading", error)
 
     @timeout_decorator.timeout(10)
     def test_command_stop_queued(self):
@@ -629,11 +705,17 @@ class TestController(unittest.TestCase):
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
 
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
         # Queue two downloads
         # This one will be Downloading
         self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
         # This one will be Queued
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rb"))
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rb")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         # Process until download starts
         while True:
             self.controller.process()
@@ -662,6 +744,8 @@ class TestController(unittest.TestCase):
 
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
 
     @timeout_decorator.timeout(5)
     def test_command_stop_wrong(self):
@@ -681,6 +765,10 @@ class TestController(unittest.TestCase):
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
 
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
         # Queue a download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
         # Process until download starts
@@ -695,7 +783,9 @@ class TestController(unittest.TestCase):
             time.sleep(0.5)
 
         # Now stop the download with wrong name
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rb"))
+        command = Controller.Command(Controller.Command.Action.STOP, "rb")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         self.controller.process()
         time.sleep(1.0)
 
@@ -707,6 +797,10 @@ class TestController(unittest.TestCase):
 
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'rb' is not Queued or Downloading", error)
 
     @timeout_decorator.timeout(5)
     def test_command_stop_invalid(self):
@@ -725,6 +819,9 @@ class TestController(unittest.TestCase):
         listener.file_added = MagicMock()
         listener.file_updated = MagicMock()
         listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
 
         # Queue a download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
@@ -740,7 +837,9 @@ class TestController(unittest.TestCase):
             time.sleep(0.5)
 
         # Now stop the download with wrong name
-        self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "invalidfile"))
+        command = Controller.Command(Controller.Command.Action.STOP, "invalidfile")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
         self.controller.process()
         time.sleep(1.0)
 
@@ -752,6 +851,10 @@ class TestController(unittest.TestCase):
 
         listener.file_added.assert_not_called()
         listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'invalidfile' not found", error)
 
     @timeout_decorator.timeout(5)
     def test_config_num_max_parallel_downloads(self):
