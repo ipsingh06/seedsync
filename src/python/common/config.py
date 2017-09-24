@@ -90,6 +90,7 @@ class PylftpConfig:
         def __init__(self):
             self.interval_ms_remote_scan = None
             self.interval_ms_local_scan = None
+            self.interval_ms_downloading_scan = None
 
         @staticmethod
         def from_dict(config_dict: InnerConfig) -> "PylftpConfig.Controller":
@@ -101,6 +102,9 @@ class PylftpConfig:
             )
             config.interval_ms_local_scan = check_int_positive(
                 PylftpConfig.Controller, config_dict, "interval_ms_local_scan"
+            )
+            config.interval_ms_downloading_scan = check_int_positive(
+                PylftpConfig.Controller, config_dict, "interval_ms_downloading_scan"
             )
 
             check_empty_inner_dict(PylftpConfig.Controller, config_dict)

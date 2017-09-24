@@ -107,10 +107,12 @@ class TestPylftpConfig(unittest.TestCase):
         good_dict = {
             "interval_ms_remote_scan": "30000",
             "interval_ms_local_scan": "10000",
+            "interval_ms_downloading_scan": "2000",
         }
         lftp = PylftpConfig.Controller.from_dict(good_dict)
         self.assertEqual(30000, lftp.interval_ms_remote_scan)
         self.assertEqual(10000, lftp.interval_ms_local_scan)
+        self.assertEqual(2000, lftp.interval_ms_downloading_scan)
 
         # unknown
         self.__check_unknown_error(PylftpConfig.Controller, good_dict)
@@ -118,10 +120,12 @@ class TestPylftpConfig(unittest.TestCase):
         # missing keys
         self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan")
         self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan")
+        self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan")
 
         # bad values
         self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "-1")
         self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "-1")
+        self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan", "-1")
 
     def test_web(self):
         good_dict = {
@@ -154,6 +158,7 @@ class TestPylftpConfig(unittest.TestCase):
         [Controller]
         interval_ms_remote_scan=30000
         interval_ms_local_scan=10000
+        interval_ms_downloading_scan=2000
 
         [Web]
         port=88
@@ -172,6 +177,7 @@ class TestPylftpConfig(unittest.TestCase):
 
         self.assertEqual(30000, config.controller.interval_ms_remote_scan)
         self.assertEqual(10000, config.controller.interval_ms_local_scan)
+        self.assertEqual(2000, config.controller.interval_ms_downloading_scan)
 
         self.assertEqual(88, config.web.port)
 
