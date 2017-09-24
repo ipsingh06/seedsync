@@ -116,7 +116,10 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual(new_file, call3[0][0].new_file)
 
     def test_queue(self):
+        def side_effect(cmd: Controller.Command):
+            cmd.callbacks[0].on_success()
         self.controller.queue_command = MagicMock()
+        self.controller.queue_command.side_effect = side_effect
         print(self.test_app.get("/queue/test1"))
         command = self.controller.queue_command.call_args[0][0]
         self.assertEqual(Controller.Command.Action.QUEUE, command.action)
@@ -135,7 +138,10 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual("Really.Cool.Show  With  Spaces", command.filename)
 
     def test_stop(self):
+        def side_effect(cmd: Controller.Command):
+            cmd.callbacks[0].on_success()
         self.controller.queue_command = MagicMock()
+        self.controller.queue_command.side_effect = side_effect
         print(self.test_app.get("/stop/test1"))
         command = self.controller.queue_command.call_args[0][0]
         self.assertEqual(Controller.Command.Action.STOP, command.action)
