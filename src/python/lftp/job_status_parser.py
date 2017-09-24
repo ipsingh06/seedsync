@@ -111,8 +111,8 @@ class LftpJobStatusParser:
 
         chunk_at_pattern = ("^`(?P<name>[^']*?)'\s+"
                             "at\s+"
-                            "(?P<szlocal>\d+)\s+"
-                            "(\((?P<pctlocal>\d+)%\)\s+)?"
+                            "\d+\s+"  # this is NOT the local size
+                            "(?:\(\d+%\)\s+)?"  # this is NOT the local percent
                             "((?P<speed>\d+\.?\d*\s?({sz}))\/s\s+)?"
                             "(eta:(?P<eta>{eta})\s+)?"
                             "\s*\[(?P<desc>.*)\]$")\
@@ -190,10 +190,8 @@ class LftpJobStatusParser:
                         raise ValueError("Mismatch between pget names '{}' vs '{}'".format(
                             result.group("remote"), result_at.group("name")
                         ))
-                    size_local = int(result_at.group("szlocal"))
+                    size_local = None
                     percent_local = None
-                    if result_at.group("pctlocal"):
-                        percent_local = int(result_at.group("pctlocal"))
                     speed = None
                     if result_at.group("speed"):
                         speed = LftpJobStatusParser._size_to_bytes(result_at.group("speed"))
@@ -304,10 +302,8 @@ class LftpJobStatusParser:
                     if result_at.group("name") != os.path.basename(os.path.normpath(name)):
                         raise ValueError("Mismatch: filename '{}' but chunk data for '{}'"
                                          .format(name, result_at.group("name")))
-                    size_local = int(result_at.group("szlocal"))
+                    size_local = None
                     percent_local = None
-                    if result_at.group("pctlocal"):
-                        percent_local = int(result_at.group("pctlocal"))
                     speed = None
                     if result_at.group("speed"):
                         speed = LftpJobStatusParser._size_to_bytes(result_at.group("speed"))

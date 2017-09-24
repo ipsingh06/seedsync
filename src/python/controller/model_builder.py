@@ -77,13 +77,8 @@ class ModelBuilder:
                 if _transfer_state:
                     if _transfer_state.size_local:
                         _model_file.local_size = _transfer_state.size_local
-                    elif _transfer_state.size_remote and _transfer_state.percent_local:
-                        # estimate the local size
-                        _model_file.local_size = int(float(_transfer_state.size_remote) *
-                                                     _transfer_state.percent_local)
                     if _transfer_state.size_remote:
                         _model_file.remote_size = _transfer_state.size_remote
-                    # we won't try and estimate the remote size since it's unlikely to change often
 
                 # set the downloading speed and eta
                 if _transfer_state:
