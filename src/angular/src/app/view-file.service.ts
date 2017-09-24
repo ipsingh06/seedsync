@@ -6,9 +6,24 @@ import * as Immutable from 'immutable';
 
 import {LoggerService} from "./logger.service";
 import {ModelFile} from './model-file'
-import {ModelFileService} from "./model-file.service";
+import {ModelFileReaction, ModelFileService} from "./model-file.service";
 import {ViewFile} from "./view-file"
 import {MOCK_MODEL_FILES} from "./mock-model-files"
+
+
+/**
+ * ViewFileReaction encapsulates the response for an action
+ * executed on the ViewFileService
+ */
+export class ViewFileReaction {
+    readonly success: boolean;
+    readonly errorMessage: string;
+
+    constructor(success: boolean, errorMessage: string) {
+        this.success = success;
+        this.errorMessage = errorMessage;
+    }
+}
 
 
 /**
@@ -226,6 +241,26 @@ export class ViewFileService {
         }
     }
 
+    /**
+     * Queue a file for download
+     * @param {ViewFile} file
+     * @returns {Observable<ViewFileReaction>}
+     */
+    public queue(file: ViewFile): Observable<ViewFileReaction> {
+        this._logger.debug("Queue view file: " + file.name);
+        return this.createAction(file, (f) => this.modelFileService.queue(f));
+    }
+
+    /**
+     * Stop a file
+     * @param {ViewFile} file
+     * @returns {Observable<ViewFileReaction>}
+     */
+    public stop(file: ViewFile): Observable<ViewFileReaction> {
+        this._logger.debug("Stop view file: " + file.name);
+        return this.createAction(file, (f) => this.modelFileService.stop(f));
+    }
+
     private static createViewFile(modelFile: ModelFile, isSelected: boolean = false): ViewFile {
         // Use zero for unknown sizes
         let localSize: number = modelFile.local_size;
@@ -286,5 +321,29 @@ export class ViewFileService {
             isQueueable: isQueueable,
             isStoppable: isStoppable
         })
+    }
+
+    /**
+     * Helper method to execute an action on ModelFileService and generate a ViewFileReaction
+     * @param {ViewFile} file
+     * @param {Observable<ModelFileReaction>} action
+     * @returns {Observable<ViewFileReaction>}
+     */
+    private createAction(file: ViewFile,
+                         action: (file: ModelFile) => Observable<ModelFileReaction>)
+            : Observable<ViewFileReaction> {
+        return Observable.create(observer => {
+            if(!this._prevModelFiles.has(file.name)) {
+                // File not found, exit early
+                this._logger.error("File to queue not found: " + file.name);
+                observer.next(new ViewFileReaction(false, `File '${file.name}' not found`));
+            } else {
+                let modelFile = this._prevModelFiles.get(file.name);
+                action(modelFile).subscribe(data => {
+                    this._logger.debug("Received model reaction: %O", data);
+                    observer.next(new ViewFileReaction(data.success, data.errorMessage));
+                });
+            }
+        });
     }
 }

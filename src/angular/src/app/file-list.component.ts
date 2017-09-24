@@ -5,6 +5,7 @@ import {List} from "immutable";
 
 import {ViewFileService} from "./view-file.service";
 import {ViewFile} from "./view-file";
+import {LoggerService} from "./logger.service";
 
 @Component({
     selector: 'file-list',
@@ -17,7 +18,8 @@ export class FileListComponent {
     public files: Observable<List<ViewFile>>;
     public identify = FileListComponent.identify;
 
-    constructor(private viewFileService: ViewFileService) {
+    constructor(private _logger: LoggerService,
+                private viewFileService: ViewFileService) {
         this.files = viewFileService.files;
     }
 
@@ -36,5 +38,17 @@ export class FileListComponent {
         } else {
             this.viewFileService.setSelected(file);
         }
+    }
+
+    onQueue(file: ViewFile) {
+        this.viewFileService.queue(file).subscribe(data => {
+            this._logger.info(data);
+        });
+    }
+
+    onStop(file: ViewFile) {
+        this.viewFileService.stop(file).subscribe(data => {
+            this._logger.info(data);
+        });
     }
 }

@@ -2,15 +2,15 @@
     <div class="content">
         <div class="status">
             <span *ngIf="file.status === ViewFile.Status.DEFAULT"
-                  class="icon glyphicon glyphicon-unchecked" aria-hidden="true"></span>
+                  class="icon glyphicon glyphicon-unchecked"></span>
             <span *ngIf="file.status === ViewFile.Status.QUEUED"
-                  class="icon glyphicon glyphicon-list" aria-hidden="true"></span>
+                  class="icon glyphicon glyphicon-list"></span>
             <span *ngIf="file.status === ViewFile.Status.DOWNLOADING"
-                  class="icon glyphicon glyphicon-save" aria-hidden="true"></span>
+                  class="icon glyphicon glyphicon-save"></span>
             <span *ngIf="file.status === ViewFile.Status.DOWNLOADED"
-                  class="icon glyphicon glyphicon-saved" aria-hidden="true"></span>
+                  class="icon glyphicon glyphicon-saved"></span>
             <span *ngIf="file.status === ViewFile.Status.STOPPED"
-                  class="icon glyphicon glyphicon glyphicon-stop" aria-hidden="true"></span>
+                  class="icon glyphicon glyphicon glyphicon-stop"></span>
             <!-- don't show text for default status -->
             <span *ngIf="file.status != ViewFile.Status.DEFAULT"
                   class="text">{{file.status | capitalize}}</span>
@@ -49,12 +49,14 @@
 
     <!-- actions div, visible on selection -->
     <div class="actions">
-        <div class="button" click-stop-propagation [attr.disabled]="file.isQueueable ? null : true">
-            <span class="icon glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+        <div class="button" click-stop-propagation [attr.disabled]="file.isQueueable ? null : true"
+             (click)="!file.isQueueable || onQueue(file)">
+            <span class="icon glyphicon glyphicon-plus-sign"></span>
             <span class="text">Queue</span>
         </div>
-        <div class="button" click-stop-propagation [attr.disabled]="file.isStoppable ? null : true">
-            <span class="icon glyphicon glyphicon-stop" aria-hidden="true"></span>
+        <div class="button" click-stop-propagation [attr.disabled]="file.isStoppable ? null : true"
+             (click)="!file.isStoppable || onStop(file)">
+            <span class="icon glyphicon glyphicon-stop"></span>
             <span class="text">Stop</span>
         </div>
     </div>

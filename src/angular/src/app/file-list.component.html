@@ -8,6 +8,8 @@
     </div>
     <div file [file]="file"
          *ngFor="let file of files | async; trackBy: identify"
-         (click)="onSelect(file)">
+         (click)="onSelect(file)"
+         (queueEvent)="onQueue($event)"
+         (stopEvent)="onStop($event)">
     </div>
 </div>

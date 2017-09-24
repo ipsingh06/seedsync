@@ -1,5 +1,6 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
+import {HttpClientModule} from '@angular/common/http';
 
 import {AppComponent} from './app.component';
 import {environment}    from '../environments/environment';
@@ -24,7 +25,8 @@ import {ClickStopPropagation} from "./click-stop-propagation.directive";
         FileComponent
     ],
     imports: [
-        BrowserModule
+        BrowserModule,
+        HttpClientModule
     ],
     providers: [LoggerService,
                 ModelFileService,

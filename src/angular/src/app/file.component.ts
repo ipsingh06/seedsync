@@ -1,4 +1,4 @@
-import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
+import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from '@angular/core';
 
 import {ViewFile} from "./view-file";
 
@@ -14,4 +14,17 @@ export class FileComponent {
     ViewFile = ViewFile;
 
     @Input() file: ViewFile;
+
+    @Output() queueEvent = new EventEmitter<ViewFile>();
+    @Output() stopEvent = new EventEmitter<ViewFile>();
+
+    onQueue(file: ViewFile) {
+        // Pass to parent component
+        this.queueEvent.emit(file);
+    }
+
+    onStop(file: ViewFile) {
+        // Pass to parent component
+        this.stopEvent.emit(file);
+    }
 }
