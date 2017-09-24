@@ -50,8 +50,6 @@ class LocalScanner(IScanner):
     """
     def __init__(self, local_path: str):
         self.__scanner = SystemScanner(local_path)
-        # For local scanner ignore the lftp status files
-        self.__scanner.add_exclude_suffix(".lftp-pget-status")
 
     def set_base_logger(self, base_logger: logging.Logger):
         pass

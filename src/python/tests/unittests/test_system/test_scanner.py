@@ -40,7 +40,7 @@ class TestSystemScanner(unittest.TestCase):
         def my_touch(size, *args):
             path = os.path.join(TestSystemScanner.temp_dir, *args)
             with open(path, 'wb') as f:
-                f.write(bytearray([0xff]*size))
+                f.write(bytearray([0xff] * size))
 
         my_mkdir("a")
         my_mkdir("a", "aa")
@@ -230,3 +230,54 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(512+7, b.size)
         self.assertEqual(512+7, ba.size)
         self.assertEqual(1234, c.size)
+
+    def test_lftp_status_file_size(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+        size = scanner._lftp_status_file_size("""
+        size=243644865
+        0.pos=31457280
+        0.limit=60911217
+        1.pos=87060081
+        1.limit=121822433
+        2.pos=144268513
+        2.limit=182733649
+        3.pos=207473489
+        3.limit=243644865
+        """)
+        self.assertEqual(104792064, size)
+
+    def test_scan_lftp_partial_file(self):
+        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+
+        # Create a partial file
+        os.mkdir(os.path.join(tempdir, "t"))
+        path = os.path.join(tempdir, "t", "partial.mkv")
+        with open(path, 'wb') as f:
+            f.write(bytearray([0xff] * 24588))
+        # Write the lftp status out
+        path = os.path.join(tempdir, "t", "partial.mkv.lftp-pget-status")
+        with open(path, "w") as f:
+            f.write("""
+            size=24588
+            0.pos=3157
+            0.limit=6147
+            1.pos=11578
+            1.limit=12294
+            2.pos=12295
+            2.limit=18441
+            3.pos=20000
+            3.limit=24588
+            """)
+        scanner = SystemScanner(tempdir)
+        files = scanner.scan()
+        self.assertEqual(1, len(files))
+        t = files[0]
+        self.assertEqual("t", t.name)
+        self.assertEqual(10148, t.size)
+        self.assertEqual(1, len(t.children))
+        partial_mkv = t.children[0]
+        self.assertEqual("partial.mkv", partial_mkv.name)
+        self.assertEqual(10148, partial_mkv.size)
+
+        # Cleanup
+        shutil.rmtree(tempdir)
