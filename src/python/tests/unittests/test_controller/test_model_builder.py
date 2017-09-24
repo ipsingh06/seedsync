@@ -259,14 +259,6 @@ class TestModelBuilder(unittest.TestCase):
         model = self.model_builder.build_model()
         self.assertEqual(12345, model.get_file("a").local_size)
 
-        # guesses local size
-        self.model_builder.set_local_files([SystemFile("a", 42, False)])
-        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
-        s.total_transfer_state = LftpJobStatus.TransferState(None, 1000, 0.25, None, None)
-        self.model_builder.set_lftp_statuses([s])
-        model = self.model_builder.build_model()
-        self.assertEqual(250, model.get_file("a").local_size)
-
     def test_build_downloading_speed(self):
         s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
         s.total_transfer_state = LftpJobStatus.TransferState(None, None, None, 1234, None)
