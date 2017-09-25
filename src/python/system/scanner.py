@@ -20,6 +20,26 @@ class SystemScanner:
         self.path_to_scan = path_to_scan
         self.exclude_prefixes = []
         self.exclude_suffixes = [SystemScanner.__LFTP_STATUS_FILE_SUFFIX]
+        self.root_filters = []
+
+    def add_root_filter(self, file_name: str):
+        """
+        Add a file name filter. Only filtered files will be included in the scan.
+        The filter applies only at the root level. I.e., all files in a filtered
+        directory are included
+        Note: exclude prefix/suffix will be ignored for filtering. They will
+              however be applied for a filtered directory's children
+        :param file_name:
+        :return:
+        """
+        self.root_filters.append(file_name)
+
+    def clear_root_filters(self):
+        """
+        Clear the filters. All files will be scanned.
+        :return:
+        """
+        self.root_filters.clear()
 
     def add_exclude_prefix(self, prefix: str):
         """
@@ -48,14 +68,19 @@ class SystemScanner:
             for entry in os.scandir(path):
                 # Skip excluded entries
                 skip = False
-                for prefix in self.exclude_prefixes:
-                    if entry.name.startswith(prefix):
+                # Check for filters, but only at the root level
+                if self.root_filters and path == self.path_to_scan:
+                    if entry.name not in self.root_filters:
                         skip = True
-                        break
-                for suffix in self.exclude_suffixes:
-                    if entry.name.endswith(suffix):
-                        skip = True
-                        break
+                else:
+                    for prefix in self.exclude_prefixes:
+                        if entry.name.startswith(prefix):
+                            skip = True
+                            break
+                    for suffix in self.exclude_suffixes:
+                        if entry.name.endswith(suffix):
+                            skip = True
+                            break
                 if skip:
                     continue
 

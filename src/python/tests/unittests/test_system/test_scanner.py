@@ -231,6 +231,28 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(512+7, ba.size)
         self.assertEqual(1234, c.size)
 
+    def test_scan_add_root_filters(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+        scanner.add_root_filter("a")
+        scanner.add_root_filter("c")
+        files = scanner.scan()
+        self.assertEqual(2, len(files))
+        a, c = tuple(files)
+        self.assertEqual("a", a.name)
+        self.assertEqual(12*1024+4+512, a.size)
+        self.assertEqual("c", c.name)
+        self.assertEqual(1234, c.size)
+
+    def test_scan_clear_root_filters(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+        scanner.add_root_filter("a")
+        scanner.add_root_filter("c")
+        files = scanner.scan()
+        self.assertEqual(2, len(files))
+        scanner.clear_root_filters()
+        files = scanner.scan()
+        self.assertEqual(3, len(files))
+
     def test_lftp_status_file_size(self):
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         size = scanner._lftp_status_file_size("""
