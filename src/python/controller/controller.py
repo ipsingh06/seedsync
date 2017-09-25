@@ -12,35 +12,12 @@ import copy
 # my libs
 from .scanner_process import ScannerProcess
 from .model_builder import ModelBuilder
-from common import overrides, PylftpJob, PylftpContext
+from common import PylftpContext
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
 from lftp import Lftp, LftpError, LftpJobStatus
 from .downloading_scanner import DownloadingScanner
 from .local_scanner import LocalScanner
 from .remote_scanner import RemoteScanner
-
-
-class ControllerJob(PylftpJob):
-    """
-    The Pylftp service
-    Handles querying and downloading of files
-    """
-    def __init__(self, context: PylftpContext, controller: "Controller"):
-        super().__init__(name=self.__class__.__name__, context=context)
-        self.__context = context
-        self.__controller = controller
-
-    @overrides(PylftpJob)
-    def setup(self):
-        pass
-
-    @overrides(PylftpJob)
-    def execute(self):
-        self.__controller.process()
-
-    @overrides(PylftpJob)
-    def cleanup(self):
-        pass
 
 
 class Controller:
