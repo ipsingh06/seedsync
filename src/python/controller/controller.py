@@ -4,21 +4,18 @@ from abc import ABC, abstractmethod
 from typing import List
 import multiprocessing
 import queue
-import logging
-import pickle
 from threading import Lock
 from queue import Queue
 from enum import Enum
 import copy
 
 # my libs
-from .scanner_process import IScanner, ScannerProcess
+from .scanner_process import ScannerProcess
 from .model_builder import ModelBuilder
 from common import overrides, PylftpJob, PylftpContext
-from system import SystemFile, SystemScanner
-from ssh import Ssh
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
-from lftp import Lftp, LftpError
+from lftp import Lftp, LftpError, LftpJobStatus
+from .downloading_scanner import DownloadingScanner
 from .local_scanner import LocalScanner
 from .remote_scanner import RemoteScanner
 
@@ -115,6 +112,7 @@ class Controller:
         self.__lftp.num_connections = self.__context.config.lftp.num_max_connections_per_file
 
         # Setup the scanners and scanner processes
+        self.__downloading_scanner = DownloadingScanner(self.__context.config.lftp.local_path)
         self.__local_scanner = LocalScanner(self.__context.config.lftp.local_path)
         self.__remote_scanner = RemoteScanner(
             remote_address=self.__context.config.lftp.remote_address,
@@ -122,12 +120,19 @@ class Controller:
             remote_path_to_scan=self.__context.config.lftp.remote_path,
             remote_path_to_scan_script=self.__context.config.lftp.remote_path_to_scan_script
         )
+        self.__downloading_scanner.set_base_logger(self.logger.getChild("Downloading"))  # to differentiate scanner
         self.__local_scanner.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
         self.__remote_scanner.set_base_logger(self.logger.getChild("Remote"))  # to differentiate scanner
 
+        self.__downloading_scan_queue = multiprocessing.Queue()
         self.__local_scan_queue = multiprocessing.Queue()
         self.__remote_scan_queue = multiprocessing.Queue()
 
+        self.__downloading_scan_process = ScannerProcess(
+            queue=self.__downloading_scan_queue,
+            scanner=self.__downloading_scanner,
+            interval_in_ms=self.__context.config.controller.interval_ms_downloading_scan
+        )
         self.__local_scan_process = ScannerProcess(
             queue=self.__local_scan_queue,
             scanner=self.__local_scanner,
@@ -138,8 +143,10 @@ class Controller:
             scanner=self.__remote_scanner,
             interval_in_ms=self.__context.config.controller.interval_ms_remote_scan
         )
+        self.__downloading_scan_process.set_base_logger(self.logger.getChild("Downloading"))  # to differentiate scanner
         self.__local_scan_process.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
         self.__remote_scan_process.set_base_logger(self.logger.getChild("Remote"))  # to differentiate scanner
+        self.__downloading_scan_process.start()
         self.__local_scan_process.start()
         self.__remote_scan_process.start()
 
@@ -153,6 +160,7 @@ class Controller:
         self.__update_model()
 
     def exit(self):
+        self.__downloading_scan_process.terminate()
         self.__local_scan_process.terminate()
         self.__remote_scan_process.terminate()
         self.logger.info("Exited controller")
@@ -240,6 +248,14 @@ class Controller:
         except queue.Empty:
             pass
 
+        # Grab the latest downloading scan result
+        latest_downloading_scan = None
+        try:
+            while True:
+                latest_downloading_scan = self.__downloading_scan_queue.get(block=False)
+        except queue.Empty:
+            pass
+
         # Grab the Lftp status
         lftp_statuses = None
         try:
@@ -247,11 +263,18 @@ class Controller:
         except LftpError as e:
             self.logger.warning("Caught lftp error: {}".format(str(e)))
 
+        # Update the downloading scanner's state
+        if lftp_statuses is not None:
+            downloading_file_names = [s.name for s in lftp_statuses if s.state == LftpJobStatus.State.RUNNING]
+            self.__downloading_scanner.set_downloading_files(downloading_file_names)
+
         # Build the new model
         if latest_remote_scan is not None:
             self.__model_builder.set_remote_files(latest_remote_scan.files)
         if latest_local_scan is not None:
             self.__model_builder.set_local_files(latest_local_scan.files)
+        if latest_downloading_scan is not None:
+            self.__model_builder.set_downloading_files(latest_downloading_scan.files)
         if lftp_statuses is not None:
             self.__model_builder.set_lftp_statuses(lftp_statuses)
         new_model = self.__model_builder.build_model()

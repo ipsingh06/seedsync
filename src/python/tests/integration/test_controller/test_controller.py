@@ -890,8 +890,9 @@ class TestController(unittest.TestCase):
         ra_downloading = False
         rb_downloading = False
 
+        # noinspection PyUnusedLocal
         def updated_side_effect(old_file: ModelFile, new_file: ModelFile):
-            nonlocal  ra_downloading, rb_downloading
+            nonlocal ra_downloading, rb_downloading
             if new_file.local_size and new_file.local_size > 0:
                 if new_file.name == "ra":
                     ra_downloading = True
@@ -910,5 +911,60 @@ class TestController(unittest.TestCase):
         self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
         self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["rb"].state)
         self.assertEqual(ModelFile.State.QUEUED, files_dict["rc"].state)
+
+        new_controller.exit()
+
+    @timeout_decorator.timeout(5)
+    def test_downloading_scan(self):
+        # Test that downloading scan is independent of local scan
+        # Set a very large local scan interval and verify that downloading
+        # updates are still propagated
+
+        # Exit the default controller and create a new one
+        self.controller.exit()
+
+        self.context.config.controller.interval_ms_downloading_scan = 200
+        self.context.config.controller.interval_ms_local_scan = 10000
+        new_controller = Controller(self.context)
+
+        # White box hack: limit the rate of lftp so download doesn't finish
+        # noinspection PyUnresolvedReferences
+        new_controller._Controller__lftp.rate_limit = 100
+
+        time.sleep(0.5)
+
+        # Ignore the initial state
+        listener = DummyListener()
+        new_controller.add_model_listener(listener)
+        new_controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        # Queue a download
+        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+
+        # Process until the downloads starts
+        ra_downloading = False
+
+        # noinspection PyUnusedLocal
+        def updated_side_effect(old_file: ModelFile, new_file: ModelFile):
+            nonlocal ra_downloading
+            if new_file.local_size and new_file.local_size > 0:
+                if new_file.name == "ra":
+                    ra_downloading = True
+            return
+        listener.file_updated.side_effect = updated_side_effect
+        while True:
+            new_controller.process()
+            if ra_downloading:
+                break
+
+        # Verify that ra is Downloading
+        files = new_controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
 
         new_controller.exit()
