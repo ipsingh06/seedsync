@@ -6,7 +6,7 @@ import time
 
 # my libs
 from common import ServiceExit, PylftpContext, Constants
-from controller import Controller, ControllerJob
+from controller import Controller, ControllerJob, AutoQueue
 from web import WebAppJob
 
 
@@ -32,10 +32,14 @@ class Pylftpd:
         # Create controller
         controller = Controller(self.context)
 
+        # Create auto queue
+        auto_queue = AutoQueue(self.context, controller)
+
         # Define child threads
         controller_job = ControllerJob(
             context=self.context.create_child_context(ControllerJob.__name__),
-            controller=controller
+            controller=controller,
+            auto_queue=auto_queue
         )
         webapp_job = WebAppJob(
             context=self.context.create_child_context(WebAppJob.__name__),

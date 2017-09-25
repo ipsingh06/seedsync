@@ -4,3 +4,4 @@ from .controller import Controller
 from .controller_job import ControllerJob
 from .model_builder import ModelBuilder
 from .scanner_process import IScanner, ScannerResult, ScannerProcess
+from .auto_queue import AutoQueue
