@@ -13,6 +13,7 @@ import {FileSizePipe} from "./file-size.pipe";
 import {EtaPipe} from "./eta.pipe";
 import {CapitalizePipe} from "./capitalize.pipe";
 import {ClickStopPropagation} from "./click-stop-propagation.directive";
+import {FileListFilterComponent} from "./file-list-filter.component";
 
 @NgModule({
     declarations: [
@@ -22,7 +23,8 @@ import {ClickStopPropagation} from "./click-stop-propagation.directive";
         ClickStopPropagation,
         AppComponent,
         FileListComponent,
-        FileComponent
+        FileComponent,
+        FileListFilterComponent
     ],
     imports: [
         BrowserModule,

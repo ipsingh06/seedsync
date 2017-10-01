@@ -103,7 +103,6 @@ div {
 /* Speed */
 .content .speed {
     font-size: 90%;
-
 }
 
 /* Progress bar */
@@ -171,6 +170,92 @@ div {
     display: flex;
 }
 
+/*
+ * FILE-SEARCH
+ */
+
+#file-list-filter {
+    background-color: #dddddd;
+    padding: 8px;
+}
+
+#filter-search, #filter-status {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+#filter-search {
+    position: relative;
+}
+
+#filter-search .icon {
+    position: absolute;
+    left: 7px;
+    top: 7px;
+    font-size: 20px;
+    z-index: 100;
+    color: #dddddd;
+}
+
+#filter-search .input-group{
+    flex-grow: 1;
+    display: inline;
+}
+
+#filter-search input {
+    border-radius: 5px;
+    padding: 3px 15px 3px 30px;
+}
+
+#filter-status {
+    margin-top: 8px;
+}
+
+#filter-status .button {
+    padding: 5px;
+    margin-right: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background-color: #337BB7;
+    border: 1px solid #2e6da4;
+    border-radius: 4px;
+    /*width: 50px;*/
+    /*min-width: 50px;*/
+    height: 30px;
+    cursor: default;
+    user-select: none;
+    flex-grow: 1;
+}
+#filter-status .button:active {
+    background-color: #286090;
+}
+#filter-status .button[disabled] {
+    opacity: .65;
+    background-color: #337BB7;
+}
+#filter-status .button.selected {
+    background-color: #79DFB6;
+    border-color: #6ac19e;
+}
+
+#filter-status .button .icon {
+    margin-top: -2px;
+}
+
+#filter-status .button .text {
+    margin-left: 5px;
+    display: none;
+}
+/* Do show the text for 'All' button */
+#filter-status .button:first-of-type .text {
+    display: inline;
+}
+
 /* Desktop */
 @media only screen and (min-width: 601px) {
     #file-list #header {
@@ -221,4 +306,12 @@ div {
     /* Hide the inner eta, show outer eta */
     .content .eta {display: inline;}
     .content .speed .speed-eta {display: none;}
+
+    /* Show the filter button text */
+    #filter-status .button {
+        flex-grow: 0;
+    }
+    #filter-status .button .text {
+        display: inline;
+    }
 }
