@@ -60,7 +60,8 @@ export class ViewFileService {
 
     private readonly USE_MOCK_MODEL = false;
 
-    private _files: BehaviorSubject<Immutable.List<ViewFile>> = new BehaviorSubject(Immutable.List([]));
+    private _files: Immutable.List<ViewFile> = Immutable.List([]);
+    private _filesSubject: BehaviorSubject<Immutable.List<ViewFile>> = new BehaviorSubject(this._files);
     private _indices: Map<string, number> = new Map<string, number>();
 
     private _prevModelFiles: Immutable.Map<string, ModelFile> = Immutable.Map<string, ModelFile>();
@@ -94,15 +95,15 @@ export class ViewFileService {
 
         if(!this.USE_MOCK_MODEL) {
             this.modelFileService.files.subscribe({
-                next: modelFiles => _viewFileService.nextModelFiles(modelFiles)
+                next: modelFiles => _viewFileService.buildViewFromModelFiles(modelFiles)
             });
         } else {
             // For layout/style testing
-            this.nextModelFiles(MOCK_MODEL_FILES);
+            this.buildViewFromModelFiles(MOCK_MODEL_FILES);
         }
     }
 
-    private nextModelFiles(modelFiles: Immutable.Map<string, ModelFile>) {
+    private buildViewFromModelFiles(modelFiles: Immutable.Map<string, ModelFile>) {
         this._logger.debug("Received next model files");
 
         // Diff the previous domain model with the current domain model, then apply
@@ -110,7 +111,7 @@ export class ViewFileService {
         // This is a roughly O(2N) operation on every update, so won't scale well
         // But should be fine for small models
         // A more scalable solution would be to subscribe to domain model updates
-        let newViewFiles = this._files.getValue();
+        let newViewFiles = this._files;
 
         let addedNames: string[] = [];
         let removedNames: string[] = [];
@@ -174,13 +175,14 @@ export class ViewFileService {
             );
         }
 
-        this._files.next(newViewFiles);
+        this._files = newViewFiles;
+        this.pushViewFiles();
         this._prevModelFiles = modelFiles;
-        this._logger.debug("New view model: %O", this._files.getValue().toJS());
+        this._logger.debug("New view model: %O", this._files.toJS());
     }
 
     get files() : Observable<Immutable.List<ViewFile>> {
-        return this._files.asObservable();
+        return this._filesSubject.asObservable();
     }
 
     /**
@@ -193,7 +195,7 @@ export class ViewFileService {
         //       state that tracks the selected file
         //       but that would duplicate state and can introduce
         //       bugs, so we just search instead
-        let viewFiles = this._files.getValue();
+        let viewFiles = this._files;
         let unSelectIndex = viewFiles.findIndex(value => value.isSelected);
 
         // Unset the previously selected file, if any
@@ -218,7 +220,8 @@ export class ViewFileService {
         }
 
         // Send update
-        this._files.next(viewFiles);
+        this._files = viewFiles;
+        this.pushViewFiles();
     }
 
     /**
@@ -226,7 +229,7 @@ export class ViewFileService {
      */
     public unsetSelected() {
         // Unset the previously selected file, if any
-        let viewFiles = this._files.getValue();
+        let viewFiles = this._files;
         let unSelectIndex = viewFiles.findIndex(value => value.isSelected);
 
         // Unset the previously selected file, if any
@@ -237,7 +240,8 @@ export class ViewFileService {
             viewFiles = viewFiles.set(unSelectIndex, unSelectViewFile);
 
             // Send update
-            this._files.next(viewFiles);
+            this._files = viewFiles;
+            this.pushViewFiles();
         }
     }
 
@@ -345,5 +349,9 @@ export class ViewFileService {
                 });
             }
         });
+    }
+
+    private pushViewFiles() {
+        this._filesSubject.next(this._files);
     }
 }
