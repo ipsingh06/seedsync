@@ -10,11 +10,48 @@ import {ViewFileFilterCriteria, ViewFileService} from "./view-file.service";
 import {ViewFileFilter} from "./view-file-filter";
 
 
+class AndFilterCriteria implements ViewFileFilterCriteria {
+    constructor(private a: ViewFileFilterCriteria,
+                private b: ViewFileFilterCriteria) {
+    }
+
+    meetsCriteria(viewFile: ViewFile): boolean {
+        return this.a.meetsCriteria(viewFile) && this.b.meetsCriteria(viewFile);
+    }
+}
+
 class StatusFilterCriteria implements ViewFileFilterCriteria {
     status: ViewFile.Status = null;
 
     meetsCriteria(viewFile: ViewFile): boolean {
         return this.status == null || this.status == viewFile.status;
+    }
+}
+
+class NameFilterCriteria implements ViewFileFilterCriteria {
+    private _name: string = null;
+    private _queryCandidates = [];
+
+    get name(): string {
+        return this._name;
+    }
+
+    set name(name: string) {
+        this._name = name;
+        let query = this._name.toLowerCase();
+        this._queryCandidates = [
+            query,
+            query.replace(/\s/g, "."),
+        ];
+    }
+
+    meetsCriteria(viewFile: ViewFile): boolean {
+        if(this._name == null || this._name == "") return true;
+        let search = viewFile.name.toLowerCase();
+        return this._queryCandidates.reduce(
+            (a: boolean, b: string) => a || search.indexOf(b) >= 0,
+            false  // initial value
+        );
     }
 }
 
@@ -33,6 +70,7 @@ export class ViewFileFilterService {
 
     private _viewFiles: Immutable.List<ViewFile> = Immutable.List<ViewFile>([]);
     private _statusFilter: StatusFilterCriteria = new StatusFilterCriteria();
+    private _nameFilter: NameFilterCriteria = new NameFilterCriteria();
 
     constructor(private _logger: LoggerService,
                 private _viewFileService: ViewFileService) {
@@ -42,7 +80,7 @@ export class ViewFileFilterService {
         });
 
         // Setup the filters
-        this._viewFileService.setFilterCriteria(this._statusFilter);
+        this._viewFileService.setFilterCriteria(new AndFilterCriteria(this._statusFilter, this._nameFilter));
     }
 
     get filter(): Observable<ViewFileFilter> {
@@ -70,6 +108,17 @@ export class ViewFileFilterService {
             // component has no way to disable the button on its end
             // So instead, we gracefully accept this invalid action and do nothing
         }
+    }
+
+    /**
+     * Filter by name
+     * @param {string} name
+     */
+    public filterName(name: string) {
+        if(this._nameFilter.name == name) return;
+
+        this._nameFilter.name = name;
+        this._viewFileService.reapplyFilters();
     }
 
     private isStatusEnabled(status: ViewFile.Status) {

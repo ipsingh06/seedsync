@@ -2,7 +2,8 @@
     <div id="filter-search">
         <i class="icon glyphicon glyphicon-search"></i>
         <div class="input-group">
-            <input class="form-control" placeholder="Filter by name..." type="text">
+            <input class="form-control" placeholder="Filter by name..." type="search"
+                   [ngModel]="filterName" (ngModelChange)="onFilterByName($event)">
         </div>
     </div>
     <div id="filter-status">

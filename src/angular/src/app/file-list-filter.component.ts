@@ -16,6 +16,8 @@ import {ViewFile} from "./view-file";
 export class FileListFilterComponent {
     public filter: Observable<ViewFileFilter>;
 
+    public filterName: string = "";
+
     constructor(private _logger: LoggerService,
                 private viewFileFilterService: ViewFileFilterService) {
         this.filter = this.viewFileFilterService.filter;
@@ -43,5 +45,10 @@ export class FileListFilterComponent {
 
     onFilterDefault() {
         this.viewFileFilterService.filterStatus(ViewFile.Status.DEFAULT);
+    }
+
+    onFilterByName(name: string) {
+        this.filterName = name;
+        this.viewFileFilterService.filterName(this.filterName);
     }
 }

@@ -15,6 +15,11 @@ html, body {
     margin: 0;
 }
 
+/* show the input search cancel button */
+input[type=search]::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+}
+
 /*
  * FILE-LIST
  */
