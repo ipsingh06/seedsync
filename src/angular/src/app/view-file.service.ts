@@ -25,6 +25,13 @@ export class ViewFileReaction {
     }
 }
 
+/**
+ * Interface defining filtering criteria for view files
+ */
+export interface ViewFileFilterCriteria {
+    meetsCriteria(viewFile: ViewFile): boolean;
+}
+
 
 /**
  * ViewFileService class provides the store of view files.
@@ -54,6 +61,15 @@ export class ViewFileReaction {
  *    4. Remove:
  *          O(n) to remove from sorted list
  *          O(n) to update indexMap
+ *
+ * Filtering:
+ *      This service also supports providing a filtered list of view files.
+ *      The strategy of using pipes to filter at the component level is not
+ *      recommended by Angular: https://angular.io/guide/pipes#appendix-no
+ *      -filterpipe-or-orderbypipe
+ *      Instead, we provide a separate filtered observer.
+ *      Filtering is controlled via a single filter criteria. Advanced filters
+ *      need to be built outside the service (see ViewFileFilterService)
  */
 @Injectable()
 export class ViewFileService {
@@ -62,9 +78,12 @@ export class ViewFileService {
 
     private _files: Immutable.List<ViewFile> = Immutable.List([]);
     private _filesSubject: BehaviorSubject<Immutable.List<ViewFile>> = new BehaviorSubject(this._files);
+    private _filteredFilesSubject: BehaviorSubject<Immutable.List<ViewFile>> = new BehaviorSubject(this._files);
     private _indices: Map<string, number> = new Map<string, number>();
 
     private _prevModelFiles: Immutable.Map<string, ModelFile> = Immutable.Map<string, ModelFile>();
+
+    private _filterCriteria: ViewFileFilterCriteria = null;
 
     /**
      * Comparator used to sort the ViewFiles
@@ -181,8 +200,12 @@ export class ViewFileService {
         this._logger.debug("New view model: %O", this._files.toJS());
     }
 
-    get files() : Observable<Immutable.List<ViewFile>> {
+    get files(): Observable<Immutable.List<ViewFile>> {
         return this._filesSubject.asObservable();
+    }
+
+    get filteredFiles(): Observable<Immutable.List<ViewFile>> {
+        return this._filteredFilesSubject.asObservable();
     }
 
     /**
@@ -263,6 +286,23 @@ export class ViewFileService {
     public stop(file: ViewFile): Observable<ViewFileReaction> {
         this._logger.debug("Stop view file: " + file.name);
         return this.createAction(file, (f) => this.modelFileService.stop(f));
+    }
+
+    /**
+     * Set a new filter criteria
+     * @param {ViewFileFilterCriteria} criteria
+     */
+    public setFilterCriteria(criteria: ViewFileFilterCriteria) {
+        this._filterCriteria = criteria;
+        this.pushViewFiles();
+    }
+
+    /**
+     * Re-apply the filters and push out the view files
+     * Use this if filter criteria's state changed but the reference did not
+     */
+    public reapplyFilters() {
+        this.pushViewFiles();
     }
 
     private static createViewFile(modelFile: ModelFile, isSelected: boolean = false): ViewFile {
@@ -352,6 +392,16 @@ export class ViewFileService {
     }
 
     private pushViewFiles() {
+        // Unfiltered files
         this._filesSubject.next(this._files);
+
+        // Filtered files
+        let filteredFiles = this._files;
+        if(this._filterCriteria != null) {
+            filteredFiles = Immutable.List<ViewFile>(
+                this._files.filter(f => this._filterCriteria.meetsCriteria(f))
+            );
+        }
+        this._filteredFilesSubject.next(filteredFiles);
     }
 }

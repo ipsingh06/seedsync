@@ -6,27 +6,44 @@
         </div>
     </div>
     <div id="filter-status">
-        <div class="button" click-stop-propagation>
+        <div class="button" click-stop-propagation
+             [class.selected]="(filter | async)?.allFilterSelected"
+             (click)="onFilterAll()">
             <span class="icon glyphicon glyphicon-align-justify"></span>
             <span class="text">All</span>
         </div>
-        <div class="button" click-stop-propagation>
+        <div class="button" click-stop-propagation
+             [class.selected]="(filter | async)?.downloadedFilterSelected"
+             [attr.disabled]="(filter | async)?.downloadedFilterEnabled ? null : true"
+             (click)="onFilterDownloaded()">
             <span class="icon glyphicon glyphicon-saved"></span>
             <span class="text">Downloaded</span>
         </div>
-        <div class="button" click-stop-propagation>
+        <div class="button" click-stop-propagation
+             [class.selected]="(filter | async)?.downloadingFilterSelected"
+             [attr.disabled]="(filter | async)?.downloadingFilterEnabled ? null : true"
+             (click)="onFilterDownloading()">
             <span class="icon glyphicon glyphicon-save"></span>
             <span class="text">Downloading</span>
         </div>
-        <div class="button" click-stop-propagation>
+        <div class="button" click-stop-propagation
+             [class.selected]="(filter | async)?.queuedFilterSelected"
+             [attr.disabled]="(filter | async)?.queuedFilterEnabled ? null : true"
+             (click)="onFilterQueued()">
             <span class="icon glyphicon glyphicon-list"></span>
             <span class="text">Queued</span>
         </div>
-        <div class="button" click-stop-propagation>
+        <div class="button" click-stop-propagation
+             [class.selected]="(filter | async)?.stoppedFilterSelected"
+             [attr.disabled]="(filter | async)?.stoppedFilterEnabled ? null : true"
+             (click)="onFilterStopped()">
             <span class="icon glyphicon glyphicon-stop"></span>
             <span class="text">Stopped</span>
         </div>
-        <div class="button" click-stop-propagation>
+        <div class="button" click-stop-propagation
+             [class.selected]="(filter | async)?.defaultFilterSelected"
+             [attr.disabled]="(filter | async)?.defaultFilterEnabled ? null : true"
+             (click)="onFilterDefault()">
             <span class="icon glyphicon glyphicon-unchecked"></span>
             <span class="text">Default</span>
         </div>

@@ -14,6 +14,7 @@ import {EtaPipe} from "./eta.pipe";
 import {CapitalizePipe} from "./capitalize.pipe";
 import {ClickStopPropagation} from "./click-stop-propagation.directive";
 import {FileListFilterComponent} from "./file-list-filter.component";
+import {ViewFileFilterService} from "./view-file-filter.service";
 
 @NgModule({
     declarations: [
@@ -32,7 +33,8 @@ import {FileListFilterComponent} from "./file-list-filter.component";
     ],
     providers: [LoggerService,
                 ModelFileService,
-                ViewFileService],
+                ViewFileService,
+                ViewFileFilterService],
     bootstrap: [AppComponent]
 })
 export class AppModule {

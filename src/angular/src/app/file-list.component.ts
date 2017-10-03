@@ -20,7 +20,7 @@ export class FileListComponent {
 
     constructor(private _logger: LoggerService,
                 private viewFileService: ViewFileService) {
-        this.files = viewFileService.files;
+        this.files = viewFileService.filteredFiles;
     }
 
     /**
