@@ -6,14 +6,12 @@ import os
 import tempfile
 import shutil
 import getpass
-import sys
-import copy
 import time
 from filecmp import dircmp, cmp
 
 import timeout_decorator
 
-from common import overrides, PylftpContext
+from common import overrides, PylftpContext, Patterns, PylftpConfig
 from controller import Controller
 from model import ModelFile, IModelListener
 
@@ -138,59 +136,38 @@ class TestController(unittest.TestCase):
         #       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
         current_dir_path = os.path.dirname(os.path.realpath(__file__))
         script_path = os.path.abspath(os.path.join(current_dir_path, "..", "..", ".."))
-        self.config_file = open(os.path.join(self.temp_dir, "config"), "w")
-        self.config_file.write("""
-        [Lftp]
-        remote_address=localhost
-        remote_username={username}
-        remote_path={remote_path}
-        local_path={local_path}
-        remote_path_to_scan_script={path_to_scan_script}
-        num_max_parallel_downloads=1
-        num_max_parallel_files_per_download=3
-        num_max_connections_per_file=4
-        
-        [Controller]
-        interval_ms_remote_scan=100
-        interval_ms_local_scan=100
-        interval_ms_downloading_scan=100
-
-        [Web]
-        port=8800
-        """.format(
-            username=getpass.getuser(),
-            remote_path=os.path.join(self.temp_dir, "remote"),
-            local_path=os.path.join(self.temp_dir, "local"),
-            path_to_scan_script=script_path,
-        ))
-        self.config_file.flush()
+        config_dict = {
+            "Lftp": {
+                "remote_address": "localhost",
+                "remote_username": getpass.getuser(),
+                "remote_path": os.path.join(self.temp_dir, "remote"),
+                "local_path": os.path.join(self.temp_dir, "local"),
+                "remote_path_to_scan_script": script_path,
+                "num_max_parallel_downloads": "1",
+                "num_max_parallel_files_per_download": "3",
+                "num_max_connections_per_file": "4",
+            },
+            "Controller": {
+                "interval_ms_remote_scan": "100",
+                "interval_ms_local_scan": "100",
+                "interval_ms_downloading_scan": "100",
+            },
+            "Web": {
+                "port": "8800",
+            }
+        }
 
         # patterns file
-        self.patterns_file = open(os.path.join(self.temp_dir, "patterns"), "w")
-        self.patterns_file.write("pattern1")
-        self.patterns_file.flush()
-
-        # backup sys.argv
-        self.sys_argv_orig = copy.deepcopy(sys.argv)
-
-        # Create context and controller
-        sys.argv.append("-p")
-        sys.argv.append(self.patterns_file.name)
-        sys.argv.append("-c")
-        sys.argv.append(self.config_file.name)
-        sys.argv.append("-d")
-        self.context = PylftpContext()
+        patterns_str = "pattern1"
+        self.context = PylftpContext(debug=True,
+                                     logdir=None,
+                                     config=PylftpConfig.from_dict(config_dict),
+                                     patterns=Patterns.from_str(patterns_str))
         self.controller = Controller(self.context)
 
     @overrides(unittest.TestCase)
     def tearDown(self):
         self.controller.exit()
-
-        self.config_file.close()
-        self.patterns_file.close()
-
-        # Restore the original sys argv
-        sys.argv = self.sys_argv_orig
 
         # Cleanup
         shutil.rmtree(self.temp_dir)

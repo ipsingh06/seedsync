@@ -3,9 +3,10 @@
 import signal
 import sys
 import time
+import argparse
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig, Patterns
 from controller import Controller, ControllerJob, AutoQueue
 from web import WebAppJob
 
@@ -16,8 +17,16 @@ class Pylftpd:
     It is run in the main thread (no daemonization)
     """
     def __init__(self):
+        # Parse the args
+        args = self._parse_args()
+
         # Create context
-        self.context = PylftpContext()
+        config = PylftpConfig.from_file(args.config)
+        patterns = Patterns.from_file(args.patterns)
+        self.context = PylftpContext(debug=args.debug,
+                                     logdir=args.logdir,
+                                     config=config,
+                                     patterns=patterns)
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, self.signal)
@@ -71,6 +80,15 @@ class Pylftpd:
         # Signals is a generated enum
         self.context.logger.info("Caught signal {}".format(signal.Signals(signum).name))
         raise ServiceExit()
+
+    @staticmethod
+    def _parse_args():
+        parser = argparse.ArgumentParser(description="PyLFTP daemon")
+        parser.add_argument("-c", "--config", required=True, help="Path to config file")
+        parser.add_argument("-p", "--patterns", required=True, help="Path to patterns file")
+        parser.add_argument("--logdir", help="Directory for log files")
+        parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logs")
+        return parser.parse_args()
 
 
 if __name__ == "__main__":

@@ -3,8 +3,8 @@
 import logging
 import sys
 import copy
-import argparse
 from logging.handlers import RotatingFileHandler
+from typing import Optional
 
 # my libs
 from .config import PylftpConfig
@@ -16,27 +16,28 @@ class PylftpContext:
     """
     Stores contextual information for the entire application
     """
-    def __init__(self):
+    def __init__(self,
+                 debug: bool,
+                 logdir: Optional[str],
+                 config: PylftpConfig,
+                 patterns: Patterns):
         """
         Primary constructor to construct the top-level context
         """
-        # Parse arguments
-        self.args = self._parse_args()
-
         # Logger setup
         # We separate the main log from the web-access log
         self.logger = self._create_logger(name=Constants.SERVICE_NAME,
-                                          debug=self.args.debug,
-                                          logdir=self.args.logdir)
+                                          debug=debug,
+                                          logdir=logdir)
         self.web_access_logger = self._create_logger(name=Constants.WEB_ACCESS_LOG_NAME,
-                                                     debug=self.args.debug,
-                                                     logdir=self.args.logdir)
+                                                     debug=debug,
+                                                     logdir=logdir)
 
         # Config
-        self.config = PylftpConfig.from_file(self.args.config)
+        self.config = config
 
         # Patterns
-        self.patterns = Patterns.from_file(self.args.patterns)
+        self.patterns = patterns
 
     def create_child_context(self, context_name: str) -> "PylftpContext":
         child_context = copy.copy(self)
@@ -44,16 +45,7 @@ class PylftpContext:
         return child_context
 
     @staticmethod
-    def _parse_args():
-        parser = argparse.ArgumentParser(description="PyLFTP daemon")
-        parser.add_argument("-c", "--config", required=True, help="Path to config file")
-        parser.add_argument("-p", "--patterns", required=True, help="Path to patterns file")
-        parser.add_argument("--logdir", help="Directory for log files")
-        parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logs")
-        return parser.parse_args()
-
-    @staticmethod
-    def _create_logger(name: str, debug: bool, logdir: str) -> logging.Logger:
+    def _create_logger(name: str, debug: bool, logdir: Optional[str]) -> logging.Logger:
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG if debug else logging.INFO)
         if logdir is not None:

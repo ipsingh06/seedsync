@@ -5,10 +5,10 @@ import sys
 import copy
 
 from common import overrides
-from common import PylftpContext
+from pylftpd import Pylftpd
 
 
-class TestPylftpContext(unittest.TestCase):
+class TestPylftpd(unittest.TestCase):
     @overrides(unittest.TestCase)
     def setUp(self):
         # Make a copy of the sys argv
@@ -24,7 +24,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("/path/to/patterns")
         sys.argv.append("-c")
         sys.argv.append("/path/to/config")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertEqual("/path/to/config", args.config)
 
@@ -33,7 +33,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("/path/to/patterns")
         sys.argv.append("--config")
         sys.argv.append("/path/to/config")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertEqual("/path/to/config", args.config)
 
@@ -41,14 +41,14 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("-p")
         sys.argv.append("/path/to/patterns")
         with self.assertRaises(SystemExit):
-            PylftpContext._parse_args()
+            Pylftpd._parse_args()
 
     def test_args_patterns(self):
         sys.argv.append("-c")
         sys.argv.append("/path/to/config")
         sys.argv.append("-p")
         sys.argv.append("/path/to/patterns")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertEqual("/path/to/config", args.config)
 
@@ -57,7 +57,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("/path/to/config")
         sys.argv.append("--patterns")
         sys.argv.append("/path/to/patterns")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertEqual("/path/to/config", args.config)
 
@@ -65,7 +65,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("-c")
         sys.argv.append("/path/to/config")
         with self.assertRaises(SystemExit):
-            PylftpContext._parse_args()
+            Pylftpd._parse_args()
 
     def test_args_logdir(self):
         sys.argv.append("-c")
@@ -74,7 +74,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("/path/to/patterns")
         sys.argv.append("--logdir")
         sys.argv.append("/path/to/logdir")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertEqual("/path/to/logdir", args.logdir)
 
@@ -83,7 +83,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("/path/to/config")
         sys.argv.append("-p")
         sys.argv.append("/path/to/patterns")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertIsNone(args.logdir)
 
@@ -93,7 +93,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("-p")
         sys.argv.append("/path/to/patterns")
         sys.argv.append("-d")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertTrue(args.debug)
 
@@ -103,7 +103,7 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("-p")
         sys.argv.append("/path/to/patterns")
         sys.argv.append("--debug")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertTrue(args.debug)
 
@@ -112,6 +112,6 @@ class TestPylftpContext(unittest.TestCase):
         sys.argv.append("/path/to/config")
         sys.argv.append("-p")
         sys.argv.append("/path/to/patterns")
-        args = PylftpContext._parse_args()
+        args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertFalse(args.debug)
