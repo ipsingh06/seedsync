@@ -7,3 +7,4 @@ from .error import PylftpError, ServiceExit
 from .constants import Constants
 from .config import PylftpConfig
 from .patterns import Patterns
+from .persist import Persist
