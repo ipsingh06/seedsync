@@ -41,12 +41,5 @@
             <span class="icon glyphicon glyphicon-stop"></span>
             <span class="text">Stopped</span>
         </div>
-        <div class="button" click-stop-propagation
-             [class.selected]="(filter | async)?.defaultFilterSelected"
-             [attr.disabled]="(filter | async)?.defaultFilterEnabled ? null : true"
-             (click)="onFilterDefault()">
-            <span class="icon glyphicon glyphicon-unchecked"></span>
-            <span class="text">Default</span>
-        </div>
     </div>
 </div>
