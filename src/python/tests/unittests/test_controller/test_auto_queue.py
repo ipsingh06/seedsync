@@ -173,6 +173,18 @@ class TestAutoQueue(unittest.TestCase):
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
 
+    def test_matching_deleted_files_are_not_queued(self):
+        self.context.patterns.lines = ["File.One"]
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, self.controller)
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        file_one.local_size = None
+        file_one.state = ModelFile.State.DELETED
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
     def test_matching_downloading_files_are_not_queued(self):
         self.context.patterns.lines = ["File.One"]
         # noinspection PyTypeChecker

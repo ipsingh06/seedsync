@@ -4,10 +4,11 @@ import signal
 import sys
 import time
 import argparse
+import os
 
 # my libs
 from common import ServiceExit, PylftpContext, Constants, PylftpConfig, Patterns
-from controller import Controller, ControllerJob, AutoQueue
+from controller import Controller, ControllerJob, ControllerPersist, AutoQueue
 from web import WebAppJob
 
 
@@ -16,13 +17,17 @@ class Pylftpd:
     Implements the service for pylftp
     It is run in the main thread (no daemonization)
     """
+    __FILE_CONFIG = "settings.cfg"
+    __FILE_PATTERNS = "patterns.txt"
+    __FILE_CONTROLLER_PERSIST = "controller.persist"
+
     def __init__(self):
         # Parse the args
         args = self._parse_args()
 
         # Create context
-        config = PylftpConfig.from_file(args.config)
-        patterns = Patterns.from_file(args.patterns)
+        config = PylftpConfig.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG))
+        patterns = Patterns.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_PATTERNS))
         self.context = PylftpContext(debug=args.debug,
                                      logdir=args.logdir,
                                      config=config,
@@ -35,11 +40,18 @@ class Pylftpd:
         # Print context to log
         self.context.print_to_log()
 
+        # Load the persists
+        self.controller_persist_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONTROLLER_PERSIST)
+        if os.path.isfile(self.controller_persist_path):
+            self.controller_persist = ControllerPersist.from_file(self.controller_persist_path)
+        else:
+            self.controller_persist = ControllerPersist()
+
     def run(self):
         self.context.logger.info("Starting pylftpd")
 
         # Create controller
-        controller = Controller(self.context)
+        controller = Controller(self.context, self.controller_persist)
 
         # Create auto queue
         auto_queue = AutoQueue(self.context, controller)
@@ -73,7 +85,12 @@ class Pylftpd:
             # Stop any threads/process in controller
             controller.exit()
 
+        self.cleanup()
         self.context.logger.info("Finished pylftpd")
+
+    def cleanup(self):
+        # Save the persists
+        self.controller_persist.to_file(self.controller_persist_path)
 
     def signal(self, signum: int, _):
         # noinspection PyUnresolvedReferences
@@ -84,8 +101,7 @@ class Pylftpd:
     @staticmethod
     def _parse_args():
         parser = argparse.ArgumentParser(description="PyLFTP daemon")
-        parser.add_argument("-c", "--config", required=True, help="Path to config file")
-        parser.add_argument("-p", "--patterns", required=True, help="Path to patterns file")
+        parser.add_argument("-c", "--config_dir", required=True, help="Path to config directory")
         parser.add_argument("--logdir", help="Directory for log files")
         parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logs")
         return parser.parse_args()

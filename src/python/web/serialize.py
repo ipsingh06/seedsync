@@ -46,7 +46,8 @@ class Serialize:
         ModelFile.State.DEFAULT: "default",
         ModelFile.State.QUEUED: "queued",
         ModelFile.State.DOWNLOADING: "downloading",
-        ModelFile.State.DOWNLOADED: "downloaded"
+        ModelFile.State.DOWNLOADED: "downloaded",
+        ModelFile.State.DELETED: "deleted"
     }
     __KEY_FILE_REMOTE_SIZE = "remote_size"
     __KEY_FILE_LOCAL_SIZE = "local_size"

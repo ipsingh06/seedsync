@@ -209,6 +209,41 @@ class TestModelBuilder(unittest.TestCase):
         model = self.model_builder.build_model()
         self.assertEqual(ModelFile.State.DOWNLOADED, model.get_file("a").state)
 
+        # Deleted
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_downloaded_files({"a"})
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DELETED, model.get_file("a").state)
+
+        # Deleted but Queued
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_downloaded_files({"a"})
+        self.model_builder.set_lftp_statuses([
+            LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.QUEUED, "a", "")
+        ])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.QUEUED, model.get_file("a").state)
+
+        # Deleted but Downloading
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_downloaded_files({"a"})
+        self.model_builder.set_lftp_statuses([
+            LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        ])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DOWNLOADING, model.get_file("a").state)
+
+        # Deleted, then partially Downloaded
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_local_files([SystemFile("a", 50, False)])
+        self.model_builder.set_downloaded_files({"a"})
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DEFAULT, model.get_file("a").state)
+
     def test_build_remote_size(self):
         self.model_builder.set_remote_files([SystemFile("a", 42, False)])
         model = self.model_builder.build_model()

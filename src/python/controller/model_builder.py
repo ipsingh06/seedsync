@@ -2,7 +2,7 @@
 
 import os
 import logging
-from typing import List, Optional
+from typing import List, Optional, Set
 
 # my libs
 from system import SystemFile
@@ -25,6 +25,7 @@ class ModelBuilder:
         self.__local_files = dict()
         self.__remote_files = dict()
         self.__lftp_statuses = dict()
+        self.__downloaded_files = set()
 
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("ModelBuilder")
@@ -40,6 +41,9 @@ class ModelBuilder:
 
     def set_lftp_statuses(self, lftp_statuses: List[LftpJobStatus]):
         self.__lftp_statuses = {file.name: file for file in lftp_statuses}
+
+    def set_downloaded_files(self, downloaded_files: Set[str]):
+        self.__downloaded_files = downloaded_files
 
     def clear(self):
         self.__local_files = dict()
@@ -195,5 +199,13 @@ class ModelBuilder:
                     if all_downloaded:
                         model_file.state = ModelFile.State.DOWNLOADED
 
+            # next we determine if root was Deleted
+            # root is Deleted if it does not exist locally, but was downloaded in the past
+            if model_file.state == ModelFile.State.DEFAULT and \
+                    model_file.local_size is None and \
+                    model_file.name in self.__downloaded_files:
+                model_file.state = ModelFile.State.DELETED
+
             model.add_file(model_file)
+
         return model

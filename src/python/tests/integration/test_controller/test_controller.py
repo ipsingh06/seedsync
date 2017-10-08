@@ -12,7 +12,7 @@ from filecmp import dircmp, cmp
 import timeout_decorator
 
 from common import overrides, PylftpContext, Patterns, PylftpConfig
-from controller import Controller
+from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
 
@@ -163,7 +163,8 @@ class TestController(unittest.TestCase):
                                      logdir=None,
                                      config=PylftpConfig.from_dict(config_dict),
                                      patterns=Patterns.from_str(patterns_str))
-        self.controller = Controller(self.context)
+        self.controller_persist = ControllerPersist()
+        self.controller = Controller(self.context, self.controller_persist)
 
     @overrides(unittest.TestCase)
     def tearDown(self):
@@ -840,7 +841,7 @@ class TestController(unittest.TestCase):
         self.controller.exit()
 
         self.context.config.lftp.num_max_parallel_downloads = 2
-        new_controller = Controller(self.context)
+        new_controller = Controller(self.context, ControllerPersist())
 
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
@@ -902,13 +903,107 @@ class TestController(unittest.TestCase):
 
         self.context.config.controller.interval_ms_downloading_scan = 200
         self.context.config.controller.interval_ms_local_scan = 10000
-        new_controller = Controller(self.context)
+        new_controller = Controller(self.context, ControllerPersist())
 
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
         new_controller._Controller__lftp.rate_limit = 100
 
         time.sleep(0.5)
+
+        # Ignore the initial state
+        listener = DummyListener()
+        new_controller.add_model_listener(listener)
+        new_controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        # Queue a download
+        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+
+        # Process until the downloads starts
+        ra_downloading = False
+
+        # noinspection PyUnusedLocal
+        def updated_side_effect(old_file: ModelFile, new_file: ModelFile):
+            nonlocal ra_downloading
+            if new_file.local_size and new_file.local_size > 0:
+                if new_file.name == "ra":
+                    ra_downloading = True
+            return
+        listener.file_updated.side_effect = updated_side_effect
+        while True:
+            new_controller.process()
+            if ra_downloading:
+                break
+
+        # Verify that ra is Downloading
+        files = new_controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
+
+        new_controller.exit()
+
+    @timeout_decorator.timeout(10)
+    def test_persist_downloaded(self):
+        time.sleep(0.5)
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        # Verify empty download state
+        self.assertEqual(0, len(self.controller_persist.downloaded_file_names))
+
+        # Download rc
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
+
+        # Process until the downloads starts
+        rc_downloaded = False
+
+        # noinspection PyUnusedLocal
+        def updated_side_effect(old_file: ModelFile, new_file: ModelFile):
+            nonlocal rc_downloaded
+            if new_file.state == ModelFile.State.DOWNLOADED and new_file.name == "rc":
+                    rc_downloaded = True
+            return
+        listener.file_updated.side_effect = updated_side_effect
+        while True:
+            self.controller.process()
+            if rc_downloaded:
+                break
+
+        self.assertTrue(rc_downloaded)
+        # Verify downloaded state was persisted
+        self.assertTrue("rc" in self.controller_persist.downloaded_file_names)
+
+    @timeout_decorator.timeout(5)
+    def test_redownload_deleted_file(self):
+        # Test that a previously downloaded then deleted file can be redownloaded
+        # We set the downloaded state in controller persist
+
+        # Exit the default controller and create a new one
+        self.controller.exit()
+
+        self.controller_persist.downloaded_file_names.add("ra")
+        new_controller = Controller(self.context, self.controller_persist)
+
+        time.sleep(0.5)
+
+        # Verify that ra is marked as Deleted
+        new_controller.process()
+        files = new_controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DELETED, files_dict["ra"].state)
 
         # Ignore the initial state
         listener = DummyListener()

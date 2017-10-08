@@ -18,6 +18,7 @@ from lftp import Lftp, LftpError, LftpJobStatus
 from .downloading_scanner import DownloadingScanner
 from .local_scanner import LocalScanner
 from .remote_scanner import RemoteScanner
+from .controller_persist import ControllerPersist
 
 
 class Controller:
@@ -55,8 +56,11 @@ class Controller:
         def add_callback(self, callback: ICallback):
             self.callbacks.append(callback)
 
-    def __init__(self, context: PylftpContext):
+    def __init__(self,
+                 context: PylftpContext,
+                 persist: ControllerPersist):
         self.__context = context
+        self.__persist = persist
         self.logger = context.logger.getChild("Controller")
 
         # The command queue
@@ -75,6 +79,7 @@ class Controller:
         # Model builder
         self.__model_builder = ModelBuilder()
         self.__model_builder.set_base_logger(self.logger)
+        self.__model_builder.set_downloaded_files(self.__persist.downloaded_file_names)
 
         # Lftp
         self.__lftp = Lftp(address=self.__context.config.lftp.remote_address,
@@ -270,6 +275,22 @@ class Controller:
                 self.__model.remove_file(diff.old_file.name)
             elif diff.change == ModelDiff.Change.UPDATED:
                 self.__model.update_file(diff.new_file)
+
+            # Detect if a file was just Downloaded
+            #   an Added file in Downloaded state
+            #   an Updated file transitioning to Downloaded state
+            # If so, update the persist state
+            downloaded = False
+            if diff.change == ModelDiff.Change.ADDED and \
+                    diff.new_file.state == ModelFile.State.DOWNLOADED:
+                downloaded = True
+            elif diff.change == ModelDiff.Change.UPDATED and \
+                    diff.new_file.state == ModelFile.State.DOWNLOADED and \
+                    diff.old_file.state != ModelFile.State.DOWNLOADED:
+                downloaded = True
+            if downloaded:
+                self.__persist.downloaded_file_names.add(diff.new_file.name)
+                self.__model_builder.set_downloaded_files(self.__persist.downloaded_file_names)
 
         # Release the model
         self.__model_lock.release()
