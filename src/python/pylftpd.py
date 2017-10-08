@@ -5,6 +5,7 @@ import sys
 import time
 import argparse
 import os
+from datetime import datetime
 
 # my libs
 from common import ServiceExit, PylftpContext, Constants, PylftpConfig
@@ -74,8 +75,20 @@ class Pylftpd:
             # Start child threads here
             controller_job.start()
             webapp_job.start()
+
+            prev_persist_timestamp = datetime.now()
+
+            # Thread loop
             while True:
+                # Persist to file occasionally
+                now = datetime.now()
+                if (now - prev_persist_timestamp).total_seconds() > Constants.MIN_PERSIST_TO_FILE_INTERVAL_IN_SECS:
+                    prev_persist_timestamp = now
+                    self.persist()
+
+                # Nothing else to do
                 time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
+
         except ServiceExit:
             # Join all the threads here
             controller_job.terminate()
@@ -88,11 +101,12 @@ class Pylftpd:
             # Stop any threads/process in controller
             controller.exit()
 
-        self.cleanup()
+        self.persist()
         self.context.logger.info("Finished pylftpd")
 
-    def cleanup(self):
+    def persist(self):
         # Save the persists
+        self.context.logger.debug("Persisting states to file")
         self.controller_persist.to_file(self.controller_persist_path)
         self.auto_queue_persist.to_file(self.auto_queue_persist_path)
 
