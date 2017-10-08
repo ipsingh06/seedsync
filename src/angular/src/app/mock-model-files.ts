@@ -86,4 +86,16 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         full_path: null,
         children: []
     }),
+
+    "Deleted Folder": new ModelFile({
+        name: "Deleted Folder",
+        is_dir: true,
+        local_size: null,
+        remote_size: 1024,
+        state: ModelFile.State.DELETED,
+        downloading_speed: null,
+        eta: null,
+        full_path: null,
+        children: []
+    }),
 });

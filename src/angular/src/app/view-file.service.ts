@@ -101,9 +101,12 @@ export class ViewFileService {
                 [ViewFile.Status.QUEUED]: 1,
                 [ViewFile.Status.DOWNLOADED]: 2,
                 [ViewFile.Status.STOPPED]: 3,
-                [ViewFile.Status.DEFAULT]: 4
+                [ViewFile.Status.DEFAULT]: 4,
+                [ViewFile.Status.DELETED]: 4  // intermix deleted and default
             };
-            return statusPriorities[a.status] - statusPriorities[b.status];
+            if(statusPriorities[a.status] != statusPriorities[b.status]) {
+                return statusPriorities[a.status] - statusPriorities[b.status];
+            }
         }
         return a.name.localeCompare(b.name);
     };
@@ -345,11 +348,18 @@ export class ViewFileService {
                 status = ViewFile.Status.DOWNLOADED;
                 break;
             }
+            case ModelFile.State.DELETED: {
+                status = ViewFile.Status.DELETED;
+                break;
+            }
         }
 
-        let isQueueable: boolean = [ViewFile.Status.DEFAULT, ViewFile.Status.STOPPED].includes(status)
+        let isQueueable: boolean = [ViewFile.Status.DEFAULT,
+                                    ViewFile.Status.STOPPED,
+                                    ViewFile.Status.DELETED].includes(status)
                                     && remoteSize > 0;
-        let isStoppable: boolean = [ViewFile.Status.QUEUED, ViewFile.Status.DOWNLOADING].includes(status);
+        let isStoppable: boolean = [ViewFile.Status.QUEUED,
+                                    ViewFile.Status.DOWNLOADING].includes(status);
 
         return new ViewFile({
             name: modelFile.name,

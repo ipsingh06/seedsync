@@ -68,6 +68,7 @@ export module ModelFile {
         DEFAULT         = <any> "default",
         QUEUED          = <any> "queued",
         DOWNLOADING     = <any> "downloading",
-        DOWNLOADED      = <any> "downloaded"
+        DOWNLOADED      = <any> "downloaded",
+        DELETED         = <any> "deleted",
     }
 }

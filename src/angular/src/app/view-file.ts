@@ -64,6 +64,7 @@ export module ViewFile {
         QUEUED          = <any> "queued",
         DOWNLOADING     = <any> "downloading",
         DOWNLOADED      = <any> "downloaded",
-        STOPPED         = <any> "stopped"
+        STOPPED         = <any> "stopped",
+        DELETED         = <any> "deleted"
     }
 }

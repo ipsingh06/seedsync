@@ -11,6 +11,8 @@
                   class="icon glyphicon glyphicon-saved"></span>
             <span *ngIf="file.status === ViewFile.Status.STOPPED"
                   class="icon glyphicon glyphicon glyphicon-stop"></span>
+            <span *ngIf="file.status === ViewFile.Status.DELETED"
+                  class="icon glyphicon glyphicon glyphicon-remove"></span>
             <!-- don't show text for default status -->
             <span *ngIf="file.status != ViewFile.Status.DEFAULT"
                   class="text">{{file.status | capitalize}}</span>
