@@ -4,9 +4,32 @@ import unittest
 from unittest.mock import MagicMock
 import logging
 import sys
+import json
 
-from controller import AutoQueue, Controller
+from controller import AutoQueue, AutoQueuePersist, Controller
 from model import IModelListener, ModelFile
+
+
+class TestAutoQueuePersist(unittest.TestCase):
+    def test_from_str(self):
+        content = """
+        {
+            "patterns": ["one", "two", "th ree", "fo.ur"]
+        }
+        """
+        persist = AutoQueuePersist.from_str(content)
+        golden_downloaded = {"one", "two", "th ree", "fo.ur"}
+        self.assertEqual(golden_downloaded, persist.patterns)
+
+    def test_to_str(self):
+        persist = AutoQueuePersist()
+        persist.patterns.add("one")
+        persist.patterns.add("two")
+        persist.patterns.add("th ree")
+        persist.patterns.add("fo.ur")
+        dct = json.loads(persist.to_str())
+        self.assertTrue("patterns" in dct)
+        self.assertEqual({"one", "two", "th ree", "fo.ur"}, set(dct["patterns"]))
 
 
 class TestAutoQueue(unittest.TestCase):
@@ -34,14 +57,15 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.get_model_files_and_add_listener.side_effect = capture_listener
 
     def test_matching_new_files_are_queued(self):
-        self.context.patterns.lines = [
+        persist = AutoQueuePersist()
+        persist.patterns = {
             "File.One",
             "File.Two",
             "File.Three"
-        ]
+        }
 
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
 
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
@@ -85,11 +109,12 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual("File.Three", command.filename)
 
     def test_matching_initial_files_are_queued(self):
-        self.context.patterns.lines = [
+        persist = AutoQueuePersist()
+        persist.patterns = {
             "File.One",
             "File.Two",
             "File.Three"
-        ]
+        }
 
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
@@ -105,7 +130,7 @@ class TestAutoQueue(unittest.TestCase):
         self.initial_model = [file_one, file_two, file_three, file_four, file_five]
 
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
 
         auto_queue.process()
 
@@ -122,11 +147,12 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual("File.Three", command.filename)
 
     def test_matching_is_case_insensitive(self):
-        self.context.patterns.lines = [
+        persist = AutoQueuePersist()
+        persist.patterns = {
             "FiLe.oNe"
-        ]
+        }
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
         self.model_listener.file_added(file_one)
@@ -135,11 +161,12 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual(Controller.Command.Action.QUEUE, command.action)
         self.assertEqual("File.One", command.filename)
 
-        self.context.patterns.lines = [
+        persist = AutoQueuePersist()
+        persist.patterns = {
             "File.One"
-        ]
+        }
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("FiLe.oNe", True)
         file_one.remote_size = 100
         self.model_listener.file_added(file_one)
@@ -149,11 +176,12 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual("FiLe.oNe", command.filename)
 
     def test_partial_matches(self):
-        self.context.patterns.lines = [
+        persist = AutoQueuePersist()
+        persist.patterns = {
             "One"
-        ]
+        }
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
         self.model_listener.file_added(file_one)
@@ -163,9 +191,10 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual("File.One", command.filename)
 
     def test_matching_local_files_are_not_queued(self):
-        self.context.patterns.lines = ["File.One"]
+        persist = AutoQueuePersist()
+        persist.patterns = {"File.One"}
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = None
         file_one.local_size = 100
@@ -174,9 +203,10 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.queue_command.assert_not_called()
 
     def test_matching_deleted_files_are_not_queued(self):
-        self.context.patterns.lines = ["File.One"]
+        persist = AutoQueuePersist()
+        persist.patterns = {"File.One"}
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
         file_one.local_size = None
@@ -186,9 +216,10 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.queue_command.assert_not_called()
 
     def test_matching_downloading_files_are_not_queued(self):
-        self.context.patterns.lines = ["File.One"]
+        persist = AutoQueuePersist()
+        persist.patterns = {"File.One"}
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
         file_one.state = ModelFile.State.DOWNLOADING
@@ -197,9 +228,10 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.queue_command.assert_not_called()
 
     def test_matching_queued_files_are_not_queued(self):
-        self.context.patterns.lines = ["File.One"]
+        persist = AutoQueuePersist()
+        persist.patterns = {"File.One"}
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
         file_one.state = ModelFile.State.QUEUED
@@ -208,9 +240,10 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.queue_command.assert_not_called()
 
     def test_matching_downloaded_files_are_not_queued(self):
-        self.context.patterns.lines = ["File.One"]
+        persist = AutoQueuePersist()
+        persist.patterns = {"File.One"}
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
         file_one.state = ModelFile.State.DOWNLOADED
@@ -219,9 +252,10 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.queue_command.assert_not_called()
 
     def test_auto_queued_file_not_re_queued_after_stopping(self):
-        self.context.patterns.lines = ["File.One"]
+        persist = AutoQueuePersist()
+        persist.patterns = {"File.One"}
         # noinspection PyTypeChecker
-        auto_queue = AutoQueue(self.context, self.controller)
+        auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
         self.model_listener.file_added(file_one)

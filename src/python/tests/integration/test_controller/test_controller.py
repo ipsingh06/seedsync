@@ -11,7 +11,7 @@ from filecmp import dircmp, cmp
 
 import timeout_decorator
 
-from common import overrides, PylftpContext, Patterns, PylftpConfig
+from common import overrides, PylftpContext, PylftpConfig
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
@@ -157,12 +157,9 @@ class TestController(unittest.TestCase):
             }
         }
 
-        # patterns file
-        patterns_str = "pattern1"
         self.context = PylftpContext(debug=True,
                                      logdir=None,
-                                     config=PylftpConfig.from_dict(config_dict),
-                                     patterns=Patterns.from_str(patterns_str))
+                                     config=PylftpConfig.from_dict(config_dict))
         self.controller_persist = ControllerPersist()
         self.controller = Controller(self.context, self.controller_persist)
 

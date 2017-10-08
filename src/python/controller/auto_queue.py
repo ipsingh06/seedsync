@@ -1,8 +1,36 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-from common import overrides, PylftpContext
+import json
+
+from common import overrides, PylftpContext, Persist
 from model import IModelListener, ModelFile
 from .controller import Controller
+
+
+class AutoQueuePersist(Persist):
+    """
+    Persisting state for auto-queue
+    """
+
+    # Keys
+    __KEY_PATTERNS = "patterns"
+
+    def __init__(self):
+        self.patterns = set()
+
+    @classmethod
+    @overrides(Persist)
+    def from_str(cls: "AutoQueuePersist", content: str) -> "AutoQueuePersist":
+        persist = AutoQueuePersist()
+        dct = json.loads(content)
+        persist.patterns = set(dct[AutoQueuePersist.__KEY_PATTERNS])
+        return persist
+
+    @overrides(Persist)
+    def to_str(self) -> str:
+        dct = dict()
+        dct[AutoQueuePersist.__KEY_PATTERNS] = list(self.patterns)
+        return json.dumps(dct)
 
 
 class AutoQueueModelListener(IModelListener):
@@ -29,9 +57,12 @@ class AutoQueue:
     AutoQueue is in the same thread as Controller, so no synchronization is
     needed for now
     """
-    def __init__(self, context: PylftpContext, controller: Controller):
+    def __init__(self,
+                 context: PylftpContext,
+                 persist: AutoQueuePersist,
+                 controller: Controller):
         self.logger = context.logger.getChild("AutoQueue")
-        self.__patterns = context.patterns
+        self.__persist = persist
         self.__controller = controller
         self.__model_listener = AutoQueueModelListener()
 
@@ -39,6 +70,11 @@ class AutoQueue:
         # pass the initial model files through to our listener
         for file in initial_model_files:
             self.__model_listener.file_added(file)
+
+        # Print the initial persist state
+        self.logger.debug("Auto-Queue Patterns:")
+        for pattern in self.__persist.patterns:
+            self.logger.debug("    {}".format(pattern))
 
     def process(self):
         """
@@ -53,7 +89,7 @@ class AutoQueue:
             # File must be in Default state
             if not file.state == ModelFile.State.DEFAULT:
                 continue
-            for pattern in self.__patterns.lines:
+            for pattern in self.__persist.patterns:
                 if pattern.lower() in file.name.lower():
                     self.logger.info("Auto queueing '{}' for pattern '{}'".format(file.name, pattern))
                     command = Controller.Command(Controller.Command.Action.QUEUE, file.name)

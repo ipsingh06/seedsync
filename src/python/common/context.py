@@ -8,7 +8,6 @@ from typing import Optional
 
 # my libs
 from .config import PylftpConfig
-from .patterns import Patterns
 from .constants import Constants
 
 
@@ -19,8 +18,7 @@ class PylftpContext:
     def __init__(self,
                  debug: bool,
                  logdir: Optional[str],
-                 config: PylftpConfig,
-                 patterns: Patterns):
+                 config: PylftpConfig):
         """
         Primary constructor to construct the top-level context
         """
@@ -35,9 +33,6 @@ class PylftpContext:
 
         # Config
         self.config = config
-
-        # Patterns
-        self.patterns = patterns
 
     def create_child_context(self, context_name: str) -> "PylftpContext":
         child_context = copy.copy(self)
@@ -70,8 +65,3 @@ class PylftpContext:
             for option in config_dict[section].keys():
                 value = config_dict[section][option]
                 self.logger.debug("  {}.{}: {}".format(section, option, value))
-
-        # Print the patterns
-        self.logger.debug("Patterns:")
-        for pattern in self.patterns.lines:
-            self.logger.debug("  {}".format(pattern))

@@ -7,8 +7,8 @@ import argparse
 import os
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig, Patterns
-from controller import Controller, ControllerJob, ControllerPersist, AutoQueue
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig
+from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
 from web import WebAppJob
 
 
@@ -18,7 +18,7 @@ class Pylftpd:
     It is run in the main thread (no daemonization)
     """
     __FILE_CONFIG = "settings.cfg"
-    __FILE_PATTERNS = "patterns.txt"
+    __FILE_AUTO_QUEUE_PERSIST = "autoqueue.persist"
     __FILE_CONTROLLER_PERSIST = "controller.persist"
 
     def __init__(self):
@@ -27,11 +27,9 @@ class Pylftpd:
 
         # Create context
         config = PylftpConfig.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG))
-        patterns = Patterns.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_PATTERNS))
         self.context = PylftpContext(debug=args.debug,
                                      logdir=args.logdir,
-                                     config=config,
-                                     patterns=patterns)
+                                     config=config)
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, self.signal)
@@ -46,6 +44,11 @@ class Pylftpd:
             self.controller_persist = ControllerPersist.from_file(self.controller_persist_path)
         else:
             self.controller_persist = ControllerPersist()
+        self.auto_queue_persist_path = os.path.join(args.config_dir, Pylftpd.__FILE_AUTO_QUEUE_PERSIST)
+        if os.path.isfile(self.auto_queue_persist_path):
+            self.auto_queue_persist = AutoQueuePersist.from_file(self.auto_queue_persist_path)
+        else:
+            self.auto_queue_persist = AutoQueuePersist()
 
     def run(self):
         self.context.logger.info("Starting pylftpd")
@@ -54,7 +57,7 @@ class Pylftpd:
         controller = Controller(self.context, self.controller_persist)
 
         # Create auto queue
-        auto_queue = AutoQueue(self.context, controller)
+        auto_queue = AutoQueue(self.context, self.auto_queue_persist, controller)
 
         # Define child threads
         controller_job = ControllerJob(
@@ -91,6 +94,7 @@ class Pylftpd:
     def cleanup(self):
         # Save the persists
         self.controller_persist.to_file(self.controller_persist_path)
+        self.auto_queue_persist.to_file(self.auto_queue_persist_path)
 
     def signal(self, signum: int, _):
         # noinspection PyUnresolvedReferences
