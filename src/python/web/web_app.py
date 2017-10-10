@@ -19,15 +19,12 @@ from .serialize import Serialize
 from model import IModelListener, ModelFile
 
 
-_DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-
-
 class WebAppJob(PylftpJob):
     """
     Web interface service 
     :return: 
     """
-    def __init__(self, context: PylftpContext, controller: Controller):
+    def __init__(self, context: PylftpContext, controller: Controller, html_path: str):
         super().__init__(name=self.__class__.__name__, context=context)
         self.web_access_logger = context.web_access_logger
         self.__context = context
@@ -35,10 +32,12 @@ class WebAppJob(PylftpJob):
         self.__app = None
         self.__server = None
         self.__server_thread = None
+        self.__html_path = html_path
+        self.logger.info("Html path set to: {}".format(self.__html_path))
 
     @overrides(PylftpJob)
     def setup(self):
-        self.__app = WebApp(self.__context, self.__controller)
+        self.__app = WebApp(self.__context, self.__controller, self.__html_path)
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
         self.__server = MyWSGIRefServer(self.web_access_logger,
                                         host="localhost",
@@ -136,10 +135,11 @@ class WebApp(bottle.Bottle):
     """
     _EVENT_BLOCK_INTERVAL_IN_MS = 500
 
-    def __init__(self, context: PylftpContext, controller: Controller):
+    def __init__(self, context: PylftpContext, controller: Controller, html_path: str):
         super().__init__()
         self.logger = context.logger.getChild("WebApp")
         self.__controller = controller
+        self.__html_path = html_path
         self.__stop = False
 
         # Routes
@@ -161,7 +161,7 @@ class WebApp(bottle.Bottle):
 
     # noinspection PyMethodMayBeStatic
     def static(self, file_path: str):
-        return static_file(file_path, root=os.path.join(_DIR_PATH, "..", "..", "html"))
+        return static_file(file_path, root=self.__html_path)
 
     def action_queue(self, file_name: str):
         command = Controller.Command(Controller.Command.Action.QUEUE, file_name)

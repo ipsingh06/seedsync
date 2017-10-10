@@ -26,6 +26,9 @@ class Pylftpd:
         # Parse the args
         args = self._parse_args()
 
+        # Path to html resources
+        self.html_path = args.html
+
         # Create context
         config = PylftpConfig.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG))
         self.context = PylftpContext(debug=args.debug,
@@ -68,7 +71,8 @@ class Pylftpd:
         )
         webapp_job = WebAppJob(
             context=self.context.create_child_context(WebAppJob.__name__),
-            controller=controller
+            controller=controller,
+            html_path=self.html_path
         )
 
         try:
@@ -122,6 +126,18 @@ class Pylftpd:
         parser.add_argument("-c", "--config_dir", required=True, help="Path to config directory")
         parser.add_argument("--logdir", help="Directory for log files")
         parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logs")
+
+        # Html path is only required if not running a frozen package
+        # For a frozen package, set default to root/html
+        is_frozen = getattr(sys, 'frozen', False)
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
+        default_path = os.path.join(sys._MEIPASS, "html") if is_frozen else None
+        parser.add_argument("--html",
+                            required=not is_frozen,
+                            default=default_path,
+                            help="Path to directory containing html resources")
+
         return parser.parse_args()
 
 
