@@ -27,7 +27,7 @@ export class FileListFilterComponent {
         this.viewFileFilterService.filterStatus(null);
     }
 
-    onFilterDownloaded(e) {
+    onFilterDownloaded() {
         this.viewFileFilterService.filterStatus(ViewFile.Status.DOWNLOADED);
     }
 
