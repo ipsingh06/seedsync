@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+export DESTROOT=$(CURDIR)/debian/pylftp
+
+%:
+	dh $@ --with=systemd
+
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p $(DESTROOT)/usr/lib
+	cp -rf pylftp $(DESTROOT)/usr/lib/

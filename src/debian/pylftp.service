@@ -1,0 +1,17 @@
+# Service unit for pylftp
+# Note: User should be overridden in
+#       /etc/systemd/system/pylftp.service.d/override.conf
+
+[Unit]
+Description=Job that runs the pylftp daemon
+
+[Service]
+Type=simple
+User=root
+Environment="HOME=/root"
+ExecStartPre=/bin/mkdir -p ${HOME}/.pylftp
+ExecStartPre=/bin/mkdir -p ${HOME}/.pylftp/log
+ExecStart=/usr/lib/pylftp/pylftpd --logdir ${HOME}/.pylftp/log -c ${HOME}/.pylftp
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+OVERRIDE_DIR=/etc/systemd/system/pylftp.service.d
+OVERRIDE_FILE=override.conf
+
+USER=`logname`
+
+if [ -z "${USER}" ]; then
+    echo "Skip override, no user set"
+else
+    echo "Setting user to ${USER}"
+
+    mkdir -p ${OVERRIDE_DIR}
+    echo [Service]\\nUser=${USER}\\nEnvironment=\"HOME=/home/${USER}\" > ${OVERRIDE_DIR}/${OVERRIDE_FILE}
+fi
+
+#DEBHELPER#

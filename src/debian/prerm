@@ -1,0 +1,4 @@
+#!/bin/sh
+rm -rf /etc/systemd/system/pylftp.service.d
+
+#DEBHELPER#

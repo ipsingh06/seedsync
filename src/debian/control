@@ -1,0 +1,12 @@
+
+Source: pylftp
+Section: utils
+Priority: extra
+Maintainer: Inderpreet Singh <ipsingh06@gmail.com>
+Build-Depends: debhelper (>= 8.0.0), dh-systemd (>= 1.5)
+Standards-Version: 4.0.0
+
+Package: pylftp
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Pylftp keeps your local PC sync'ed with your remote seedbox.
