@@ -49,5 +49,5 @@ class DownloadingScanner(IScanner):
             self.__scanner.add_root_filter(file_name)
 
         # Do the scan
-        self.logger.debug("Scanning files: {}".format(str(self.__downloading_files)))
+        # self.logger.debug("Scanning files: {}".format(str(self.__downloading_files)))
         return self.__scanner.scan()

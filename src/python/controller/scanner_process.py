@@ -36,7 +36,10 @@ class ScannerProcess(Process):
     """
     Process to scan a file system and publish the result
     """
-    def __init__(self, queue: Queue, scanner: IScanner, interval_in_ms: int):
+    def __init__(self,
+                 queue: Queue,
+                 scanner: IScanner, interval_in_ms: int,
+                 verbose: bool = True):
         """
         Create a scanner process
         :param queue: multiprocessing.Queue in which to push results
@@ -48,6 +51,7 @@ class ScannerProcess(Process):
         self.__queue = queue
         self.__scanner = scanner
         self.__interval_in_ms = interval_in_ms
+        self.verbose = verbose
 
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("ScannerProcess")
@@ -57,7 +61,8 @@ class ScannerProcess(Process):
         try:
             while True:
                 timestamp_start = datetime.now()
-                self.logger.debug("Running a scan")
+                if self.verbose:
+                    self.logger.debug("Running a scan")
                 files = self.__scanner.scan()
                 result = ScannerResult(timestamp=timestamp_start,
                                        files=files)

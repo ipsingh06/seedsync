@@ -113,7 +113,8 @@ class Controller:
         self.__downloading_scan_process = ScannerProcess(
             queue=self.__downloading_scan_queue,
             scanner=self.__downloading_scanner,
-            interval_in_ms=self.__context.config.controller.interval_ms_downloading_scan
+            interval_in_ms=self.__context.config.controller.interval_ms_downloading_scan,
+            verbose=False
         )
         self.__local_scan_process = ScannerProcess(
             queue=self.__local_scan_queue,
