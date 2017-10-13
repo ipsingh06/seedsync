@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+# Ask for username
+db_input high pylftp/username || true
+db_go || true

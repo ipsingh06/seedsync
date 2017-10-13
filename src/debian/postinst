@@ -3,15 +3,26 @@
 OVERRIDE_DIR=/etc/systemd/system/pylftp.service.d
 OVERRIDE_FILE=override.conf
 
-USER=`logname`
+
+#!/bin/sh -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_get pylftp/username
+USER=$RET
 
 if [ -z "${USER}" ]; then
-    echo "Skip override, no user set"
+    echo "Skipping user override"
 else
     echo "Setting user to ${USER}"
 
-    mkdir -p ${OVERRIDE_DIR}
-    echo [Service]\\nUser=${USER}\\nEnvironment=\"HOME=/home/${USER}\" > ${OVERRIDE_DIR}/${OVERRIDE_FILE}
+    if [ "$RET" = "root" ]; then
+        rm -rf ${OVERRIDE_DIR}/${OVERRIDE_FILE}
+    else
+        mkdir -p ${OVERRIDE_DIR}
+        echo [Service]\\nUser=${USER}\\nEnvironment=\"HOME=/home/${USER}\" > ${OVERRIDE_DIR}/${OVERRIDE_FILE}
+    fi
 fi
 
 #DEBHELPER#
