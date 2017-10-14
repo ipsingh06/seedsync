@@ -5,7 +5,10 @@ import sys
 import time
 import argparse
 import os
+import logging
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from typing import Optional
 
 # my libs
 from common import ServiceExit, PylftpContext, Constants, PylftpConfig
@@ -29,10 +32,19 @@ class Pylftpd:
         # Path to html resources
         self.html_path = args.html
 
+        # Logger setup
+        # We separate the main log from the web-access log
+        logger = self._create_logger(name=Constants.SERVICE_NAME,
+                                     debug=args.debug,
+                                     logdir=args.logdir)
+        web_access_logger = self._create_logger(name=Constants.WEB_ACCESS_LOG_NAME,
+                                                debug=args.debug,
+                                                logdir=args.logdir)
+
         # Create context
         config = PylftpConfig.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG))
-        self.context = PylftpContext(debug=args.debug,
-                                     logdir=args.logdir,
+        self.context = PylftpContext(logger=logger,
+                                     web_access_logger=web_access_logger,
                                      config=config)
 
         # Register the signal handlers
@@ -139,6 +151,24 @@ class Pylftpd:
                             help="Path to directory containing html resources")
 
         return parser.parse_args()
+
+    @staticmethod
+    def _create_logger(name: str, debug: bool, logdir: Optional[str]) -> logging.Logger:
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG if debug else logging.INFO)
+        if logdir is not None:
+            # Output logs to a file in the given directory
+            handler = RotatingFileHandler(
+                        "{}/{}.log".format(logdir, name),
+                        maxBytes=Constants.MAX_LOG_SIZE_IN_BYTES,
+                        backupCount=Constants.LOG_BACKUP_COUNT
+                      )
+        else:
+            handler = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
 
 
 if __name__ == "__main__":

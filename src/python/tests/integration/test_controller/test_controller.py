@@ -8,6 +8,8 @@ import shutil
 import getpass
 import time
 from filecmp import dircmp, cmp
+import logging
+import sys
 
 import timeout_decorator
 
@@ -157,8 +159,14 @@ class TestController(unittest.TestCase):
             }
         }
 
-        self.context = PylftpContext(debug=True,
-                                     logdir=None,
+        logger = logging.getLogger(TestController.__name__)
+        handler = logging.StreamHandler(sys.stdout)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+        handler.setFormatter(formatter)
+        self.context = PylftpContext(logger=logger,
+                                     web_access_logger=logger,
                                      config=PylftpConfig.from_dict(config_dict))
         self.controller_persist = ControllerPersist()
         self.controller = Controller(self.context, self.controller_persist)
