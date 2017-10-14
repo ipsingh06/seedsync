@@ -4,7 +4,7 @@ import unittest
 import os
 import tempfile
 
-from common import PylftpConfig, PylftpError, overrides
+from common import PylftpConfig, ConfigError, overrides
 
 
 class TestPylftpConfig(unittest.TestCase):
@@ -29,7 +29,7 @@ class TestPylftpConfig(unittest.TestCase):
         """
         bad_dict = dict(good_dict)
         bad_dict["unknown"] = "how did this get here"
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(ConfigError) as error:
             cls.from_dict(bad_dict)
         self.assertTrue(str(error.exception).startswith("Unknown config"))
 
@@ -44,9 +44,24 @@ class TestPylftpConfig(unittest.TestCase):
         """
         bad_dict = dict(good_dict)
         del bad_dict[key]
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(ConfigError) as error:
             cls.from_dict(bad_dict)
         self.assertTrue(str(error.exception).startswith("Missing config"))
+
+    def __check_empty_error(self, cls, good_dict, key):
+        """
+        Helper method to check that a config class raises an error on
+        a empty value
+        :param cls:
+        :param good_dict:
+        :param key:
+        :return:
+        """
+        bad_dict = dict(good_dict)
+        bad_dict[key] = ""
+        with self.assertRaises(ConfigError) as error:
+            cls.from_dict(bad_dict)
+        self.assertTrue(str(error.exception).startswith("Bad config"))
 
     def __check_bad_value_error(self, cls, good_dict, key, value):
         """
@@ -60,7 +75,7 @@ class TestPylftpConfig(unittest.TestCase):
         """
         bad_dict = dict(good_dict)
         bad_dict[key] = value
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(ConfigError) as error:
             cls.from_dict(bad_dict)
         self.assertTrue(str(error.exception).startswith("Bad config"))
 
@@ -98,6 +113,16 @@ class TestPylftpConfig(unittest.TestCase):
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_file")
 
+        # empty values
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_address")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_username")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_path")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "local_path")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_path_to_scan_script")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_file")
+
         # bad values
         self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads", "-1")
         self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download", "-1")
@@ -122,6 +147,11 @@ class TestPylftpConfig(unittest.TestCase):
         self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan")
         self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan")
 
+        # empty values
+        self.__check_empty_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan")
+        self.__check_empty_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan")
+        self.__check_empty_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan")
+
         # bad values
         self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "-1")
         self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "-1")
@@ -139,6 +169,9 @@ class TestPylftpConfig(unittest.TestCase):
 
         # missing keys
         self.__check_missing_error(PylftpConfig.Web, good_dict, "port")
+
+        # empty values
+        self.__check_empty_error(PylftpConfig.Web, good_dict, "port")
 
         # bad values
         self.__check_bad_value_error(PylftpConfig.Web, good_dict, "port", "-1")
@@ -187,6 +220,6 @@ class TestPylftpConfig(unittest.TestCase):
         key=value
         """)
         self.config_file.flush()
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(ConfigError) as error:
             PylftpConfig.from_file(self.config_file.name)
         self.assertTrue(str(error.exception).startswith("Unknown section"))

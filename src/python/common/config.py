@@ -7,13 +7,20 @@ import os
 from .error import PylftpError
 
 
+class ConfigError(PylftpError):
+    """
+    Exception indicating a bad config value
+    """
+    pass
+
+
 InnerConfig = Dict[str, str]
 OuterConfig = Dict[str, InnerConfig]
 
 
 def check_section(dct: OuterConfig, name: str) -> InnerConfig:
     if name not in dct:
-        raise PylftpError("Missing config section: {}".format(name))
+        raise ConfigError("Missing config section: {}".format(name))
     val = dct[name]
     del dct[name]
     return val
@@ -22,23 +29,32 @@ def check_section(dct: OuterConfig, name: str) -> InnerConfig:
 def check_empty_outer_dict(dct: OuterConfig):
     extra_keys = dct.keys()
     if extra_keys:
-        raise PylftpError("Unknown section: {}".format(next(iter(extra_keys))))
+        raise ConfigError("Unknown section: {}".format(next(iter(extra_keys))))
 
 
 def check_string(cls, dct: InnerConfig, name: str) -> str:
     if name not in dct:
-        raise PylftpError("Missing config: {}.{}".format(cls.__name__, name))
+        raise ConfigError("Missing config: {}.{}".format(cls.__name__, name))
     val = dct[name]
     del dct[name]
     return val
 
 
 def check_int_positive(cls, dct: InnerConfig, name: str) -> int:
-    val_str = check_string(cls, dct, name)
+    val_str = check_string_nonempty(cls, dct, name)
     val = int(val_str)
     if val < 0:
-        raise PylftpError("Bad config: {}.{} ({}) must be greater than 0".format(
+        raise ConfigError("Bad config: {}.{} ({}) must be greater than 0".format(
             cls.__name__, name, val
+        ))
+    return val
+
+
+def check_string_nonempty(cls, dct: InnerConfig, name: str) -> str:
+    val = check_string(cls, dct, name)
+    if not val:
+        raise ConfigError("Bad config: {}.{} is empty".format(
+            cls.__name__, name
         ))
     return val
 
@@ -46,7 +62,7 @@ def check_int_positive(cls, dct: InnerConfig, name: str) -> int:
 def check_empty_inner_dict(cls, dct: InnerConfig):
     extra_keys = dct.keys()
     if extra_keys:
-        raise PylftpError("Unknown config: {}.{}".format(cls.__name__, next(iter(extra_keys))))
+        raise ConfigError("Unknown config: {}.{}".format(cls.__name__, next(iter(extra_keys))))
 
 
 class PylftpConfig:
@@ -69,11 +85,11 @@ class PylftpConfig:
             config_dict = dict(config_dict)  # copy that we can modify
             config = PylftpConfig.Lftp()
 
-            config.remote_address = check_string(PylftpConfig.Lftp, config_dict, "remote_address")
-            config.remote_username = check_string(PylftpConfig.Lftp, config_dict, "remote_username")
-            config.remote_path = check_string(PylftpConfig.Lftp, config_dict, "remote_path")
-            config.local_path = check_string(PylftpConfig.Lftp, config_dict, "local_path")
-            config.remote_path_to_scan_script = check_string(
+            config.remote_address = check_string_nonempty(PylftpConfig.Lftp, config_dict, "remote_address")
+            config.remote_username = check_string_nonempty(PylftpConfig.Lftp, config_dict, "remote_username")
+            config.remote_path = check_string_nonempty(PylftpConfig.Lftp, config_dict, "remote_path")
+            config.local_path = check_string_nonempty(PylftpConfig.Lftp, config_dict, "local_path")
+            config.remote_path_to_scan_script = check_string_nonempty(
                 PylftpConfig.Lftp, config_dict, "remote_path_to_scan_script")
 
             config.num_max_parallel_downloads = check_int_positive(
@@ -135,7 +151,7 @@ class PylftpConfig:
     def from_file(config_file_path: str) -> "PylftpConfig":
         # Load dict from the file
         if not os.path.isfile(config_file_path):
-            raise PylftpError("Config file not found: {}".format(config_file_path))
+            raise ConfigError("Config file not found: {}".format(config_file_path))
         config_parser = ConfigParser()
         config_parser.read(config_file_path)
         config_dict = {}
