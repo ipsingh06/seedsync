@@ -25,6 +25,9 @@ class Pylftpd:
     __FILE_AUTO_QUEUE_PERSIST = "autoqueue.persist"
     __FILE_CONTROLLER_PERSIST = "controller.persist"
 
+    # This logger is used to print any exceptions caught at top module
+    logger = None
+
     def __init__(self):
         # Parse the args
         args = self._parse_args()
@@ -37,6 +40,7 @@ class Pylftpd:
         logger = self._create_logger(name=Constants.SERVICE_NAME,
                                      debug=args.debug,
                                      logdir=args.logdir)
+        Pylftpd.logger = logger
         web_access_logger = self._create_logger(name=Constants.WEB_ACCESS_LOG_NAME,
                                                 debug=args.debug,
                                                 logdir=args.logdir)
@@ -175,5 +179,10 @@ if __name__ == "__main__":
     if sys.hexversion < 0x03050000:
         sys.exit("Python 3.5 or newer is required to run this program.")
 
-    pylftpd = Pylftpd()
-    pylftpd.run()
+    try:
+        pylftpd = Pylftpd()
+        pylftpd.run()
+    except Exception as e:
+        if Pylftpd.logger is not None:
+            Pylftpd.logger.exception("Caught exception")
+        raise
