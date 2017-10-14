@@ -5,7 +5,15 @@ import re
 from typing import List
 
 # my libs
+from common import PylftpError
 from .file import SystemFile
+
+
+class SystemScannerError(PylftpError):
+    """
+    Exception indicating a bad config value
+    """
+    pass
 
 
 class SystemScanner:
@@ -15,8 +23,6 @@ class SystemScanner:
     __LFTP_STATUS_FILE_SUFFIX = ".lftp-pget-status"
 
     def __init__(self, path_to_scan: str):
-        if not os.path.isdir(path_to_scan):
-            raise ValueError("Path to scan is not a directory: {}".format(path_to_scan))
         self.path_to_scan = path_to_scan
         self.exclude_prefixes = []
         self.exclude_suffixes = [SystemScanner.__LFTP_STATUS_FILE_SUFFIX]
@@ -63,6 +69,9 @@ class SystemScanner:
         The files and its children are inserted in alphabetical order
         :return:
         """
+        if not os.path.isdir(self.path_to_scan):
+            raise SystemScannerError("Path to scan is not a directory: {}".format(self.path_to_scan))
+
         def create_children(path: str):
             children = []
             for entry in os.scandir(path):
