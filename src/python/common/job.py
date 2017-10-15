@@ -1,5 +1,6 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
+import sys
 import threading
 import time
 from abc import ABC, abstractmethod
@@ -24,6 +25,9 @@ class PylftpJob(threading.Thread, ABC):
         # indicates whether the thread should be terminated.
         self.shutdown_flag = threading.Event()
 
+        # For exception propagation
+        self.exc_info = None
+
     @overrides(threading.Thread)
     def run(self):
         self.logger.debug("Thread {} started".format(self.name))
@@ -35,7 +39,11 @@ class PylftpJob(threading.Thread, ABC):
 
         while not self.shutdown_flag.is_set():
             # ... Job code here ...
-            self.execute()
+            try:
+                self.execute()
+            except Exception as e:
+                self.exc_info = sys.exc_info()
+                raise
             time.sleep(PylftpJob._DEFAULT_SLEEP_INTERVAL_IN_SECS)
 
         # ... Clean shutdown code here ...
@@ -51,6 +59,15 @@ class PylftpJob(threading.Thread, ABC):
         :return:
         """
         self.shutdown_flag.set()
+
+    def propagate_exception(self):
+        """
+        Raises any exception captured by this job in whatever thread calls this method
+        Source: https://stackoverflow.com/a/1854263/8571324
+        :return:
+        """
+        if self.exc_info:
+            raise self.exc_info[1].with_traceback(self.exc_info[2])
 
     @abstractmethod
     def setup(self):

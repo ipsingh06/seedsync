@@ -13,7 +13,7 @@ import sys
 
 import timeout_decorator
 
-from common import overrides, PylftpContext, PylftpConfig
+from common import overrides, PylftpContext, PylftpConfig, PylftpError
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
@@ -190,6 +190,41 @@ class TestController(unittest.TestCase):
             self.controller = Controller(self.context, self.controller_persist)
         except Exception:
             self.fail("Controller ctor raised exception unexpectedly")
+
+    def test_bad_config_remote_address_raises_exception(self):
+        self.context.config.lftp.remote_address = "<bad>"
+        self.controller = Controller(self.context, self.controller_persist)
+        time.sleep(0.5)
+        with self.assertRaises(PylftpError):
+            self.controller.process()
+
+    def test_bad_config_remote_username_raises_exception(self):
+        self.context.config.lftp.remote_username = "<bad>"
+        self.controller = Controller(self.context, self.controller_persist)
+        time.sleep(0.5)
+        with self.assertRaises(PylftpError):
+            self.controller.process()
+
+    def test_bad_config_remote_path_raises_exception(self):
+        self.context.config.lftp.remote_path = "<bad>"
+        self.controller = Controller(self.context, self.controller_persist)
+        time.sleep(0.5)
+        with self.assertRaises(PylftpError):
+            self.controller.process()
+
+    def test_bad_config_local_path_raises_exception(self):
+        self.context.config.lftp.local_path = "<bad>"
+        self.controller = Controller(self.context, self.controller_persist)
+        time.sleep(0.5)
+        with self.assertRaises(PylftpError):
+            self.controller.process()
+
+    def test_bad_config_remote_path_to_scan_script_raises_exception(self):
+        self.context.config.lftp.remote_path_to_scan_script = "<bad>"
+        self.controller = Controller(self.context, self.controller_persist)
+        time.sleep(0.5)
+        with self.assertRaises(PylftpError):
+            self.controller.process()
 
     def test_initial_model(self):
         self.controller = Controller(self.context, self.controller_persist)

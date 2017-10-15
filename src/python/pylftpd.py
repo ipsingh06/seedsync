@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 from typing import Optional
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpError
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
 from web import WebAppJob
 
@@ -106,10 +106,22 @@ class Pylftpd:
                     prev_persist_timestamp = now
                     self.persist()
 
+                # Propagate exceptions
+                controller_job.propagate_exception()
+                webapp_job.propagate_exception()
+
                 # Nothing else to do
                 time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
 
-        except ServiceExit:
+        except Exception as e:
+            self.context.logger.info("Exiting pylftp")
+
+            # This sleep is important to allow the jobs to finish setup before we terminate them
+            # If we kill too early, the jobs may leave lingering threads around
+            # Note: There might be a better way to ensure that job setup has completed, but this
+            #       will do for now
+            time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
+
             # Join all the threads here
             controller_job.terminate()
             webapp_job.terminate()
@@ -120,6 +132,10 @@ class Pylftpd:
 
             # Stop any threads/process in controller
             controller.exit()
+
+            # Raise any exceptions so they can be logged properly
+            if not isinstance(e, ServiceExit):
+                raise
 
         self.persist()
         self.context.logger.info("Finished pylftpd")

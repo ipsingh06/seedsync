@@ -111,20 +111,20 @@ class Controller:
         self.__remote_scan_queue = multiprocessing.Queue()
 
         self.__downloading_scan_process = ScannerProcess(
-            queue=self.__downloading_scan_queue,
+            queue_=self.__downloading_scan_queue,
             scanner=self.__downloading_scanner,
             interval_in_ms=self.__context.config.controller.interval_ms_downloading_scan,
             verbose=False
         )
         self.__local_scan_process = ScannerProcess(
-            queue=self.__local_scan_queue,
+            queue_=self.__local_scan_queue,
             scanner=self.__local_scanner,
-            interval_in_ms=self.__context.config.controller.interval_ms_local_scan
+            interval_in_ms=self.__context.config.controller.interval_ms_local_scan,
         )
         self.__remote_scan_process = ScannerProcess(
-            queue=self.__remote_scan_queue,
+            queue_=self.__remote_scan_queue,
             scanner=self.__remote_scanner,
-            interval_in_ms=self.__context.config.controller.interval_ms_remote_scan
+            interval_in_ms=self.__context.config.controller.interval_ms_remote_scan,
         )
         self.__downloading_scan_process.set_base_logger(self.logger.getChild("Downloading"))  # to differentiate scanner
         self.__local_scan_process.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
@@ -139,6 +139,7 @@ class Controller:
         This method should return relatively quickly as the heavy lifting is done by concurrent tasks
         :return:
         """
+        self.__propagate_exceptions()
         self.__process_commands()
         self.__update_model()
 
@@ -344,3 +345,12 @@ class Controller:
             # If we get here, it was a success
             for callback in command.callbacks:
                 callback.on_success()
+
+    def __propagate_exceptions(self):
+        """
+        Propagate any exceptions from child processes/threads to this thread
+        :return:
+        """
+        self.__downloading_scan_process.propagate_exception()
+        self.__local_scan_process.propagate_exception()
+        self.__remote_scan_process.propagate_exception()

@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import logging
 import sys
 from multiprocessing import Queue
+import time
 
 import timeout_decorator
 
@@ -15,6 +16,15 @@ from system import SystemFile
 class DummyScanner(IScanner):
     def scan(self):
         return []
+
+
+class DummyException(Exception):
+    pass
+
+
+class DummyFailingScanner(IScanner):
+    def scan(self):
+        raise DummyException("")
 
 
 class TestScannerProcess(unittest.TestCase):
@@ -33,6 +43,15 @@ class TestScannerProcess(unittest.TestCase):
     def tearDown(self):
         if self.process:
             self.process.terminate()
+
+    def test_exception_propagates(self):
+        queue = Queue()
+        scanner = DummyFailingScanner()
+        self.process = ScannerProcess(queue, scanner, 100)
+        self.process.start()
+        time.sleep(0.2)
+        with self.assertRaises(DummyException):
+            self.process.propagate_exception()
 
     @timeout_decorator.timeout(5)
     def test_process_terminates(self):
