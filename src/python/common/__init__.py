@@ -2,7 +2,7 @@
 
 from .types import overrides
 from .job import PylftpJob
-from .context import PylftpContext
+from .context import PylftpContext, PylftpArgs
 from .error import PylftpError, ServiceExit
 from .constants import Constants
 from .config import PylftpConfig, ConfigError

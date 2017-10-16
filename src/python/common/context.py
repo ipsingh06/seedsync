@@ -7,6 +7,16 @@ import copy
 from .config import PylftpConfig
 
 
+class PylftpArgs:
+    """
+    Container for args
+    These are settings that aren't part of config but still needed by
+    sub-components
+    """
+    def __init__(self):
+        self.local_path_to_scanfs = None
+
+
 class PylftpContext:
     """
     Stores contextual information for the entire application
@@ -14,7 +24,8 @@ class PylftpContext:
     def __init__(self,
                  logger: logging.Logger,
                  web_access_logger: logging.Logger,
-                 config: PylftpConfig):
+                 config: PylftpConfig,
+                 args: PylftpArgs):
         """
         Primary constructor to construct the top-level context
         """
@@ -22,6 +33,7 @@ class PylftpContext:
         self.logger = logger
         self.web_access_logger = web_access_logger
         self.config = config
+        self.args = args
 
     def create_child_context(self, context_name: str) -> "PylftpContext":
         child_context = copy.copy(self)
@@ -36,3 +48,6 @@ class PylftpContext:
             for option in config_dict[section].keys():
                 value = config_dict[section][option]
                 self.logger.debug("  {}.{}: {}".format(section, option, value))
+
+        self.logger.debug("Args:")
+        self.logger.debug("  {}: {}".format("local_path_to_scanfs", self.args.local_path_to_scanfs))

@@ -100,6 +100,7 @@ class Controller:
             remote_address=self.__context.config.lftp.remote_address,
             remote_username=self.__context.config.lftp.remote_username,
             remote_path_to_scan=self.__context.config.lftp.remote_path,
+            local_path_to_scan_script=self.__context.args.local_path_to_scanfs,
             remote_path_to_scan_script=self.__context.config.lftp.remote_path_to_scan_script
         )
         self.__downloading_scanner.set_base_logger(self.logger.getChild("Downloading"))  # to differentiate scanner

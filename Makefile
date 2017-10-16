@@ -3,9 +3,9 @@
 SOURCEDIR:=$(shell realpath ./src)
 BUILDDIR:=$(shell realpath ./build)
 
-.PHONY: py ng artifacts deb builddir clean
+.PHONY: py scanfs ng artifacts deb builddir clean
 
-all: py ng artifacts deb
+all: py scanfs ng artifacts deb
 
 builddir:
 	mkdir -p build
@@ -18,6 +18,16 @@ py: builddir
 		--workpath ${BUILDDIR}/py-work \
 		--specpath ${BUILDDIR}
 
+scanfs: builddir
+	pyinstaller ${SOURCEDIR}/python/scan_fs.py \
+		-y \
+		--onefile \
+		-p ${SOURCEDIR}/python \
+		--distpath ${BUILDDIR}/scanfs-dist \
+		--workpath ${BUILDDIR}/scanfs-work \
+		--specpath ${BUILDDIR} \
+		--name scanfs
+
 ng: builddir
 	cd ${SOURCEDIR}/angular && \
 	ng build -prod --output-path ${BUILDDIR}/ng-dist
@@ -27,6 +37,7 @@ artifacts:
 	mkdir -p ${BUILDDIR}/artifacts
 	cp -rf ${BUILDDIR}/py-dist/pylftpd/* ${BUILDDIR}/artifacts/
 	cp -rf ${BUILDDIR}/ng-dist ${BUILDDIR}/artifacts/html
+	cp -f ${BUILDDIR}/scanfs-dist/scanfs ${BUILDDIR}/artifacts/
 
 deb:
 	rm -rf ${BUILDDIR}/deb

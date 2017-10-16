@@ -13,7 +13,7 @@ import sys
 
 import timeout_decorator
 
-from common import overrides, PylftpContext, PylftpConfig, PylftpError
+from common import overrides, PylftpContext, PylftpConfig, PylftpArgs, PylftpError
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
@@ -136,15 +136,28 @@ class TestController(unittest.TestCase):
         # Note: password-less ssh needs to be setup
         #       i.e. user's public key needs to be in authorized_keys
         #       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+        # We also need to create an executable that the controller can install on remote
+        # Since we don't have a packaged scanfs executable here, we simply
+        # create an sh script that points to the python script
         current_dir_path = os.path.dirname(os.path.realpath(__file__))
-        script_path = os.path.abspath(os.path.join(current_dir_path, "..", "..", ".."))
+        local_script_path = os.path.abspath(os.path.join(current_dir_path, "..", "..", "..", "scan_fs.py"))
+        local_exe_path = os.path.join(TestController.temp_dir, "scanfs_local")
+        remote_exe_path = os.path.join(TestController.temp_dir, "scanfs")
+        with open(local_exe_path, "w") as f:
+            f.write("#!/bin/sh\n")
+            f.write("python3 {} $*".format(local_script_path))
+        os.chmod(local_exe_path, 0o775)
+        ctx_args = PylftpArgs()
+        ctx_args.local_path_to_scanfs = local_exe_path
+
         config_dict = {
             "Lftp": {
                 "remote_address": "localhost",
                 "remote_username": getpass.getuser(),
                 "remote_path": os.path.join(self.temp_dir, "remote"),
                 "local_path": os.path.join(self.temp_dir, "local"),
-                "remote_path_to_scan_script": script_path,
+                "remote_path_to_scan_script": remote_exe_path,
                 "num_max_parallel_downloads": "1",
                 "num_max_parallel_files_per_download": "3",
                 "num_max_connections_per_file": "4",
@@ -167,7 +180,8 @@ class TestController(unittest.TestCase):
         handler.setFormatter(formatter)
         self.context = PylftpContext(logger=logger,
                                      web_access_logger=logger,
-                                     config=PylftpConfig.from_dict(config_dict))
+                                     config=PylftpConfig.from_dict(config_dict),
+                                     args=ctx_args)
         self.controller_persist = ControllerPersist()
         self.controller = None
 
@@ -228,7 +242,7 @@ class TestController(unittest.TestCase):
 
     def test_initial_model(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
         self.controller.process()
 
         model_files = self.controller.get_model_files()
@@ -242,7 +256,7 @@ class TestController(unittest.TestCase):
 
     def test_local_file_added(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -268,7 +282,7 @@ class TestController(unittest.TestCase):
 
     def test_local_file_updated(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -296,7 +310,7 @@ class TestController(unittest.TestCase):
 
     def test_local_file_removed(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -322,7 +336,7 @@ class TestController(unittest.TestCase):
 
     def test_remote_file_added(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -348,7 +362,7 @@ class TestController(unittest.TestCase):
 
     def test_remote_file_updated(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -376,7 +390,7 @@ class TestController(unittest.TestCase):
 
     def test_remote_file_removed(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -403,7 +417,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(5)
     def test_command_queue_directory(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -447,7 +461,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(5)
     def test_command_queue_file(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -489,7 +503,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(5)
     def test_command_queue_invalid(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -524,7 +538,7 @@ class TestController(unittest.TestCase):
 
     def test_command_queue_local_directory(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -557,7 +571,7 @@ class TestController(unittest.TestCase):
 
     def test_command_queue_local_file(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -596,7 +610,7 @@ class TestController(unittest.TestCase):
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -651,7 +665,7 @@ class TestController(unittest.TestCase):
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -701,7 +715,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(10)
     def test_command_stop_default(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -744,7 +758,7 @@ class TestController(unittest.TestCase):
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -806,7 +820,7 @@ class TestController(unittest.TestCase):
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -863,7 +877,7 @@ class TestController(unittest.TestCase):
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -913,10 +927,6 @@ class TestController(unittest.TestCase):
 
     @timeout_decorator.timeout(5)
     def test_config_num_max_parallel_downloads(self):
-        self.controller = Controller(self.context, self.controller_persist)
-        # Exit the default controller and create a new one
-        self.controller.exit()
-
         self.context.config.lftp.num_max_parallel_downloads = 2
         new_controller = Controller(self.context, ControllerPersist())
 
@@ -924,7 +934,7 @@ class TestController(unittest.TestCase):
         # noinspection PyUnresolvedReferences
         new_controller._Controller__lftp.rate_limit = 100
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -982,7 +992,7 @@ class TestController(unittest.TestCase):
         # noinspection PyUnresolvedReferences
         new_controller._Controller__lftp.rate_limit = 100
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -1023,7 +1033,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(10)
     def test_persist_downloaded(self):
         self.controller = Controller(self.context, self.controller_persist)
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Ignore the initial state
         listener = DummyListener()
@@ -1067,7 +1077,7 @@ class TestController(unittest.TestCase):
         self.controller_persist.downloaded_file_names.add("ra")
         new_controller = Controller(self.context, self.controller_persist)
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Verify that ra is marked as Deleted
         new_controller.process()

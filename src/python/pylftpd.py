@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 from typing import Optional
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpError
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
 from web import WebAppJob
 
@@ -45,11 +45,16 @@ class Pylftpd:
                                                 debug=args.debug,
                                                 logdir=args.logdir)
 
+        # Create context args
+        ctx_args = PylftpArgs()
+        ctx_args.local_path_to_scanfs = args.scanfs
+
         # Create context
         config = PylftpConfig.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG))
         self.context = PylftpContext(logger=logger,
                                      web_access_logger=web_access_logger,
-                                     config=config)
+                                     config=config,
+                                     args=ctx_args)
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, self.signal)
@@ -113,7 +118,7 @@ class Pylftpd:
                 # Nothing else to do
                 time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
 
-        except Exception as e:
+        except Exception as exc:
             self.context.logger.info("Exiting pylftp")
 
             # This sleep is important to allow the jobs to finish setup before we terminate them
@@ -134,7 +139,7 @@ class Pylftpd:
             controller.exit()
 
             # Raise any exceptions so they can be logged properly
-            if not isinstance(e, ServiceExit):
+            if not isinstance(exc, ServiceExit):
                 raise
 
         self.persist()
@@ -159,16 +164,28 @@ class Pylftpd:
         parser.add_argument("--logdir", help="Directory for log files")
         parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logs")
 
+        # Whether package is frozen
+        is_frozen = getattr(sys, 'frozen', False)
+
         # Html path is only required if not running a frozen package
         # For a frozen package, set default to root/html
-        is_frozen = getattr(sys, 'frozen', False)
         # noinspection PyUnresolvedReferences
         # noinspection PyProtectedMember
-        default_path = os.path.join(sys._MEIPASS, "html") if is_frozen else None
+        default_html_path = os.path.join(sys._MEIPASS, "html") if is_frozen else None
         parser.add_argument("--html",
                             required=not is_frozen,
-                            default=default_path,
+                            default=default_html_path,
                             help="Path to directory containing html resources")
+
+        # Scanfs path is only required if not running a frozen package
+        # For a frozen package, set default to root/scanfs
+        # noinspection PyUnresolvedReferences
+        # noinspection PyProtectedMember
+        default_scanfs_path = os.path.join(sys._MEIPASS, "scanfs") if is_frozen else None
+        parser.add_argument("--scanfs",
+                            required=not is_frozen,
+                            default=default_scanfs_path,
+                            help="Path to scanfs executable")
 
         return parser.parse_args()
 

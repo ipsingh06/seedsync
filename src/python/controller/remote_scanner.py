@@ -3,11 +3,16 @@
 import logging
 import pickle
 from typing import List
+import os
 
 from .scanner_process import IScanner
-from common import overrides
-from ssh import Ssh
+from common import overrides, PylftpError
+from ssh import Ssh, Scp
 from system import SystemFile
+
+
+class RemoteScannerError(PylftpError):
+    pass
 
 
 class RemoteScanner(IScanner):
@@ -18,17 +23,40 @@ class RemoteScanner(IScanner):
                  remote_address: str,
                  remote_username: str,
                  remote_path_to_scan: str,
+                 local_path_to_scan_script: str,
                  remote_path_to_scan_script: str):
+        self.logger = logging.getLogger("RemoteScanner")
         self.__remote_path_to_scan = remote_path_to_scan
+        self.__local_path_to_scan_script = local_path_to_scan_script
+        self.__remote_path_to_scan_script = remote_path_to_scan_script
         self.__ssh = Ssh(host=remote_address,
-                         user=remote_username,
-                         target_dir=remote_path_to_scan_script)
+                         user=remote_username)
+        self.__scp = Scp(host=remote_address,
+                         user=remote_username)
+        self.__first_run = True
 
     def set_base_logger(self, base_logger: logging.Logger):
-        self.__ssh.set_base_logger(base_logger)
+        self.logger = base_logger.getChild("RemoteScanner")
+        self.__ssh.set_base_logger(self.logger)
+        self.__scp.set_base_logger(self.logger)
 
     @overrides(IScanner)
     def scan(self) -> List[SystemFile]:
-        out = self.__ssh.run_command("python3 scan_fs.py {}".format(self.__remote_path_to_scan))
+        if self.__first_run:
+            self._install_scanfs()
+            self.__first_run = False
+        out = self.__ssh.run_command("{} {}".format(self.__remote_path_to_scan_script, self.__remote_path_to_scan))
         remote_files = pickle.loads(out)
         return remote_files
+
+    def _install_scanfs(self):
+        self.logger.info("Installing local:{} to remote:{}".format(
+            self.__local_path_to_scan_script,
+            self.__remote_path_to_scan_script
+        ))
+        if not os.path.isfile(self.__local_path_to_scan_script):
+            raise RemoteScannerError("Failed to find scanfs executable at {}".format(
+                self.__local_path_to_scan_script
+            ))
+        self.__scp.copy(local_path=self.__local_path_to_scan_script,
+                        remote_path=self.__remote_path_to_scan_script)
