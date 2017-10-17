@@ -226,8 +226,10 @@ class Pylftpd:
         config.lftp.local_path = "<replace me>"
         config.lftp.remote_path_to_scan_script = "/tmp/scanfs"
         config.lftp.num_max_parallel_downloads = 2
-        config.lftp.num_max_parallel_files_per_download = 3
-        config.lftp.num_max_connections_per_file = 4
+        config.lftp.num_max_parallel_files_per_download = 4
+        config.lftp.num_max_connections_per_root_file = 4
+        config.lftp.num_max_connections_per_dir_file = 4
+        config.lftp.num_max_total_connections = 16
 
         config.controller.interval_ms_remote_scan = 30000
         config.controller.interval_ms_local_scan = 10000

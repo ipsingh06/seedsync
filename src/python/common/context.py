@@ -52,3 +52,4 @@ class PylftpContext:
 
         self.logger.debug("Args:")
         self.logger.debug("  {}: {}".format("local_path_to_scanfs", self.args.local_path_to_scanfs))
+        self.logger.debug("  {}: {}".format("html_path", self.args.html_path))

@@ -77,7 +77,9 @@ class TestPylftpConfig(unittest.TestCase):
             "remote_path_to_scan_script": "/path/on/remote/server/to/scan/script",
             "num_max_parallel_downloads": "2",
             "num_max_parallel_files_per_download": "3",
-            "num_max_connections_per_file": "4",
+            "num_max_connections_per_root_file": "4",
+            "num_max_connections_per_dir_file": "6",
+            "num_max_total_connections": "7"
         }
         lftp = PylftpConfig.Lftp.from_dict(good_dict)
         self.assertEqual("remote.server.com", lftp.remote_address)
@@ -87,7 +89,9 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual("/path/on/remote/server/to/scan/script", lftp.remote_path_to_scan_script)
         self.assertEqual(2, lftp.num_max_parallel_downloads)
         self.assertEqual(3, lftp.num_max_parallel_files_per_download)
-        self.assertEqual(4, lftp.num_max_connections_per_file)
+        self.assertEqual(4, lftp.num_max_connections_per_root_file)
+        self.assertEqual(6, lftp.num_max_connections_per_dir_file)
+        self.assertEqual(7, lftp.num_max_total_connections)
 
         # unknown
         self.__check_unknown_error(PylftpConfig.Lftp, good_dict)
@@ -100,7 +104,9 @@ class TestPylftpConfig(unittest.TestCase):
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_path_to_scan_script")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads")
         self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_file")
+        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file")
+        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file")
+        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections")
 
         # empty values
         self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_address")
@@ -110,12 +116,16 @@ class TestPylftpConfig(unittest.TestCase):
         self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_path_to_scan_script")
         self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads")
         self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_file")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file")
+        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections")
 
         # bad values
         self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads", "-1")
         self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download", "-1")
-        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_file", "-1")
+        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file", "-1")
+        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file", "-1")
+        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections", "-1")
 
     def test_controller(self):
         good_dict = {
@@ -178,7 +188,9 @@ class TestPylftpConfig(unittest.TestCase):
         remote_path_to_scan_script=/path/on/remote/server/to/scan/script
         num_max_parallel_downloads=2
         num_max_parallel_files_per_download=3
-        num_max_connections_per_file=4
+        num_max_connections_per_root_file=4
+        num_max_connections_per_dir_file=5
+        num_max_total_connections=7
 
         [Controller]
         interval_ms_remote_scan=30000
@@ -198,7 +210,9 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual("/path/on/remote/server/to/scan/script", config.lftp.remote_path_to_scan_script)
         self.assertEqual(2, config.lftp.num_max_parallel_downloads)
         self.assertEqual(3, config.lftp.num_max_parallel_files_per_download)
-        self.assertEqual(4, config.lftp.num_max_connections_per_file)
+        self.assertEqual(4, config.lftp.num_max_connections_per_root_file)
+        self.assertEqual(5, config.lftp.num_max_connections_per_dir_file)
+        self.assertEqual(7, config.lftp.num_max_total_connections)
 
         self.assertEqual(30000, config.controller.interval_ms_remote_scan)
         self.assertEqual(10000, config.controller.interval_ms_local_scan)
@@ -231,7 +245,9 @@ class TestPylftpConfig(unittest.TestCase):
         config.lftp.remote_path_to_scan_script = "/remote/server/path/to/script"
         config.lftp.num_max_parallel_downloads = 6
         config.lftp.num_max_parallel_files_per_download = 7
-        config.lftp.num_max_connections_per_file = 8
+        config.lftp.num_max_connections_per_root_file = 2
+        config.lftp.num_max_connections_per_dir_file = 3
+        config.lftp.num_max_total_connections = 4
         config.controller.interval_ms_remote_scan = 1234
         config.controller.interval_ms_local_scan = 5678
         config.controller.interval_ms_downloading_scan = 9012
@@ -249,7 +265,9 @@ class TestPylftpConfig(unittest.TestCase):
         remote_path_to_scan_script = /remote/server/path/to/script
         num_max_parallel_downloads = 6
         num_max_parallel_files_per_download = 7
-        num_max_connections_per_file = 8
+        num_max_connections_per_root_file = 2
+        num_max_connections_per_dir_file = 3
+        num_max_total_connections = 4
 
         [Controller]
         interval_ms_remote_scan = 1234

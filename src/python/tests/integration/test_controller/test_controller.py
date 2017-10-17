@@ -160,7 +160,9 @@ class TestController(unittest.TestCase):
                 "remote_path_to_scan_script": remote_exe_path,
                 "num_max_parallel_downloads": "1",
                 "num_max_parallel_files_per_download": "3",
-                "num_max_connections_per_file": "4",
+                "num_max_connections_per_root_file": "4",
+                "num_max_connections_per_dir_file": "4",
+                "num_max_total_connections": "12",
             },
             "Controller": {
                 "interval_ms_remote_scan": "100",

@@ -43,10 +43,20 @@ def check_string(cls, dct: InnerConfig, name: str) -> str:
     return val
 
 
-def check_int_positive(cls, dct: InnerConfig, name: str) -> int:
+def check_int_non_negative(cls, dct: InnerConfig, name: str) -> int:
     val_str = check_string_nonempty(cls, dct, name)
     val = int(val_str)
     if val < 0:
+        raise ConfigError("Bad config: {}.{} ({}) must be zero or greater".format(
+            cls.__name__, name, val
+        ))
+    return val
+
+
+def check_int_positive(cls, dct: InnerConfig, name: str) -> int:
+    val_str = check_string_nonempty(cls, dct, name)
+    val = int(val_str)
+    if val < 1:
         raise ConfigError("Bad config: {}.{} ({}) must be greater than 0".format(
             cls.__name__, name, val
         ))
@@ -81,7 +91,9 @@ class PylftpConfig(Persist):
             self.remote_path_to_scan_script = None
             self.num_max_parallel_downloads = None
             self.num_max_parallel_files_per_download = None
-            self.num_max_connections_per_file = None
+            self.num_max_connections_per_root_file = None
+            self.num_max_connections_per_dir_file = None
+            self.num_max_total_connections = None
 
         @staticmethod
         def from_dict(config_dict: InnerConfig) -> "PylftpConfig.Lftp":
@@ -99,8 +111,12 @@ class PylftpConfig(Persist):
                 PylftpConfig.Lftp, config_dict, "num_max_parallel_downloads")
             config.num_max_parallel_files_per_download = check_int_positive(
                 PylftpConfig.Lftp, config_dict, "num_max_parallel_files_per_download")
-            config.num_max_connections_per_file = check_int_positive(
-                PylftpConfig.Lftp, config_dict, "num_max_connections_per_file")
+            config.num_max_connections_per_root_file = check_int_positive(
+                PylftpConfig.Lftp, config_dict, "num_max_connections_per_root_file")
+            config.num_max_connections_per_dir_file = check_int_positive(
+                PylftpConfig.Lftp, config_dict, "num_max_connections_per_dir_file")
+            config.num_max_total_connections = check_int_non_negative(
+                PylftpConfig.Lftp, config_dict, "num_max_total_connections")
 
             check_empty_inner_dict(PylftpConfig.Lftp, config_dict)
             return config
@@ -114,7 +130,9 @@ class PylftpConfig(Persist):
             config_dict["remote_path_to_scan_script"] = self.remote_path_to_scan_script
             config_dict["num_max_parallel_downloads"] = str(self.num_max_parallel_downloads)
             config_dict["num_max_parallel_files_per_download"] = str(self.num_max_parallel_files_per_download)
-            config_dict["num_max_connections_per_file"] = str(self.num_max_connections_per_file)
+            config_dict["num_max_connections_per_root_file"] = str(self.num_max_connections_per_root_file)
+            config_dict["num_max_connections_per_dir_file"] = str(self.num_max_connections_per_dir_file)
+            config_dict["num_max_total_connections"] = str(self.num_max_total_connections)
             return config_dict
 
     class Controller:
