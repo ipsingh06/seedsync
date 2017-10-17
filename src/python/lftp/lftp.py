@@ -79,6 +79,7 @@ class Lftp:
 
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("Lftp")
+        self.__job_status_parser.set_base_logger(self.logger)
 
     def set_base_remote_dir_path(self, base_remote_dir_path: str):
         self.__base_remote_dir_path = base_remote_dir_path

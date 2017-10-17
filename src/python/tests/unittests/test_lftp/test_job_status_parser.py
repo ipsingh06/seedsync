@@ -2,7 +2,7 @@
 
 import unittest
 
-from lftp import LftpJobStatusParser, LftpJobStatus
+from lftp import LftpJobStatusParser, LftpJobStatus, LftpJobStatusParserError
 
 
 class TestLftpJobStatusParser(unittest.TestCase):
@@ -785,3 +785,17 @@ class TestLftpJobStatusParser(unittest.TestCase):
         self.assertEqual(len(golden_jobs), len(statuses))
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
+
+    def test_raises_error_on_bad_status(self):
+        output = """
+        [0] queue (sftp://someone:@localhost) 
+        sftp://someone:@localhost/home/someone
+        Now executing: [1] mirror -c /tmp/test_controllerw0sbqxe_/remote/ra /tmp/test_controllerw0sbqxe_/local/ -- 0/1.1k (0%)
+        -[2] mirror -c /tmp/test_controllerw0sbqxe_/remote/rb /tmp/test_controllerw0sbqxe_/local/ -- 49/9.3k (0%)
+        Commands queued:
+        1.  pget -c "/tmp/test_controllerw0sbqxe_/remote/rc" -o "/tmp/test_controllerw0sbqxe_/local/" 
+        bad string uh oh
+        """
+        parser = LftpJobStatusParser()
+        with self.assertRaises(LftpJobStatusParserError):
+            parser.parse(output)

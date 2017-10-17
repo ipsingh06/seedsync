@@ -3,8 +3,14 @@
 import os
 import re
 from typing import List
+import logging
 
+from common import PylftpError
 from .job_status import LftpJobStatus
+
+
+class LftpJobStatusParserError(PylftpError):
+    pass
 
 
 class LftpJobStatusParser:
@@ -20,7 +26,10 @@ class LftpJobStatusParser:
     __TIME_UNITS_REGEX = "(?P<eta_d>\d*d)?(?P<eta_h>\d*h)?(?P<eta_m>\d*m)?(?P<eta_s>\d*s)?"
 
     def __init__(self):
-        pass
+        self.logger = logging.getLogger("LftpJobStatusParser")
+
+    def set_base_logger(self, base_logger: logging.Logger):
+        self.logger = base_logger.getChild("LftpJobStatusParser")
 
     @staticmethod
     def _size_to_bytes(size: str) -> int:
@@ -64,8 +73,13 @@ class LftpJobStatusParser:
         statuses = list()
         lines = [s.strip() for s in output.splitlines()]
         lines = list(filter(None, lines))  # remove blank lines
-        statuses += self.__parse_queue(lines)
-        statuses += self.__parse_jobs(lines)
+        try:
+            statuses += self.__parse_queue(lines)
+            statuses += self.__parse_jobs(lines)
+        except ValueError as e:
+            self.logger.error("LftpJobStateParser error: {}".format(str(e)))
+            self.logger.error("Status:\n{}".format(output))
+            raise LftpJobStatusParserError("Error parsing lftp job status")
         return statuses
 
     @staticmethod
@@ -423,11 +437,11 @@ class LftpJobStatusParser:
                         result = m.search(line)
                         if not result:
                             raise ValueError("Failed to parse queue line: {}".format(line))
-                        id = int(result.group("id"))
+                        id_ = int(result.group("id"))
                         name = os.path.basename(os.path.normpath(result.group("remote")))
                         flags = result.group("flags")
                         type_ = LftpJobStatus.Type(result.group("type"))
-                        status = LftpJobStatus(job_id=id,
+                        status = LftpJobStatus(job_id=id_,
                                                job_type=type_,
                                                state=LftpJobStatus.State.QUEUED,
                                                name=name,
