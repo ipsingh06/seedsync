@@ -4,7 +4,7 @@ import unittest
 import os
 import tempfile
 
-from common import PylftpConfig, ConfigError, overrides
+from common import PylftpConfig, ConfigError
 
 
 class TestPylftpConfig(unittest.TestCase):
@@ -266,5 +266,5 @@ class TestPylftpConfig(unittest.TestCase):
         actual_lines = list(filter(None, actual_lines))  # remove blank lines
 
         self.assertEqual(len(golden_lines), len(actual_lines))
-        for i,_ in enumerate(golden_lines):
+        for i, _ in enumerate(golden_lines):
             self.assertEqual(golden_lines[i], actual_lines[i])

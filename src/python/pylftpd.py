@@ -49,8 +49,16 @@ class Pylftpd:
         ctx_args = PylftpArgs()
         ctx_args.local_path_to_scanfs = args.scanfs
 
+        # Create/load config
+        config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)
+        if os.path.isfile(config_path):
+            config = PylftpConfig.from_file(config_path)
+        else:
+            # Create default config
+            config = Pylftpd._create_default_config()
+            config.to_file(config_path)
+
         # Create context
-        config = PylftpConfig.from_file(os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG))
         self.context = PylftpContext(logger=logger,
                                      web_access_logger=web_access_logger,
                                      config=config,
@@ -206,6 +214,31 @@ class Pylftpd:
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
+
+    @staticmethod
+    def _create_default_config() -> PylftpConfig:
+        """
+        Create a config with default values
+        :return:
+        """
+        config = PylftpConfig()
+
+        config.lftp.remote_address = "<replace me>"
+        config.lftp.remote_username = "<replace me>"
+        config.lftp.remote_path = "<replace me>"
+        config.lftp.local_path = "<replace me>"
+        config.lftp.remote_path_to_scan_script = "/tmp/scanfs"
+        config.lftp.num_max_parallel_downloads = 2
+        config.lftp.num_max_parallel_files_per_download = 3
+        config.lftp.num_max_connections_per_file = 4
+
+        config.controller.interval_ms_remote_scan = 30000
+        config.controller.interval_ms_local_scan = 10000
+        config.controller.interval_ms_downloading_scan = 1000
+
+        config.web.port = 88
+
+        return config
 
 
 if __name__ == "__main__":

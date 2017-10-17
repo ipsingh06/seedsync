@@ -4,7 +4,7 @@ import unittest
 import sys
 import copy
 
-from common import overrides
+from common import overrides, PylftpConfig
 from pylftpd import Pylftpd
 
 
@@ -125,3 +125,11 @@ class TestPylftpd(unittest.TestCase):
         args = Pylftpd._parse_args()
         self.assertIsNotNone(args)
         self.assertFalse(args.debug)
+
+    def test_default_config(self):
+        # Test that default config is a valid config
+        config = Pylftpd._create_default_config()
+        config_dict = config.as_dict()
+        config2 = PylftpConfig.from_dict(config_dict)
+        config2_dict = config2.as_dict()
+        self.assertEqual(config_dict, config2_dict)
