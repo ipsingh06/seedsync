@@ -84,17 +84,31 @@ class TestLftp(unittest.TestCase):
         logger.addHandler(handler)
         self.lftp.set_base_logger(logger)
 
-    def test_num_connections(self):
-        self.lftp.num_connections = 5
-        self.assertEqual(5, self.lftp.num_connections)
+    def test_num_connections_per_dir_file(self):
+        self.lftp.num_connections_per_dir_file = 5
+        self.assertEqual(5, self.lftp.num_connections_per_dir_file)
         with self.assertRaises(ValueError):
-            self.lftp.num_connections = -1
+            self.lftp.num_connections_per_dir_file = -1
+
+    def test_num_connections_per_root_file(self):
+        self.lftp.num_connections_per_root_file = 5
+        self.assertEqual(5, self.lftp.num_connections_per_root_file)
+        with self.assertRaises(ValueError):
+            self.lftp.num_connections_per_root_file = -1
 
     def test_num_parallel_files(self):
         self.lftp.num_parallel_files = 5
         self.assertEqual(5, self.lftp.num_parallel_files)
         with self.assertRaises(ValueError):
             self.lftp.num_parallel_files = -1
+
+    def test_num_max_total_connections(self):
+        self.lftp.num_max_total_connections = 5
+        self.assertEqual(5, self.lftp.num_max_total_connections)
+        self.lftp.num_max_total_connections = 0
+        self.assertEqual(0, self.lftp.num_max_total_connections)
+        with self.assertRaises(ValueError):
+            self.lftp.num_max_total_connections = -1
 
     def test_rate_limit(self):
         self.lftp.rate_limit = 500

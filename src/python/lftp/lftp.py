@@ -27,6 +27,7 @@ class Lftp:
     __SET_NUM_PARALLEL_FILES = "mirror:parallel-transfer-count"
     __SET_NUM_CONNECTIONS_PGET = "pget:default-n"
     __SET_NUM_CONNECTIONS_MIRROR = "mirror:use-pget-n"
+    __SET_NUM_MAX_TOTAL_CONNECTIONS = "net:connection-limit"
     __SET_RATE_LIMIT = "net:limit-rate"
     __SET_MIN_CHUNK_SIZE = "pget:min-chunk-size"
     __SET_NUM_PARALLEL_JOBS = "cmd:queue-parallel"
@@ -156,15 +157,34 @@ class Lftp:
             raise LftpError("Cannot convert value '{}' to boolean".format(value))
 
     @property
-    def num_connections(self) -> int:
+    def num_connections_per_dir_file(self) -> int:
         return int(self.__get(Lftp.__SET_NUM_CONNECTIONS_MIRROR))
 
-    @num_connections.setter
-    def num_connections(self, num_connections: int):
+    @num_connections_per_dir_file.setter
+    def num_connections_per_dir_file(self, num_connections: int):
+        if num_connections < 1:
+            raise ValueError("Number of connections must be positive")
+        self.__set(Lftp.__SET_NUM_CONNECTIONS_MIRROR, str(num_connections))
+
+    @property
+    def num_connections_per_root_file(self) -> int:
+        return int(self.__get(Lftp.__SET_NUM_CONNECTIONS_PGET))
+
+    @num_connections_per_root_file.setter
+    def num_connections_per_root_file(self, num_connections: int):
         if num_connections < 1:
             raise ValueError("Number of connections must be positive")
         self.__set(Lftp.__SET_NUM_CONNECTIONS_PGET, str(num_connections))
-        self.__set(Lftp.__SET_NUM_CONNECTIONS_MIRROR, str(num_connections))
+
+    @property
+    def num_max_total_connections(self) -> int:
+        return int(self.__get(Lftp.__SET_NUM_MAX_TOTAL_CONNECTIONS))
+
+    @num_max_total_connections.setter
+    def num_max_total_connections(self, num_connections: int):
+        if num_connections < 0:
+            raise ValueError("Number of connections must be zero or greater")
+        self.__set(Lftp.__SET_NUM_MAX_TOTAL_CONNECTIONS, str(num_connections))
 
     @property
     def num_parallel_files(self) -> int:
