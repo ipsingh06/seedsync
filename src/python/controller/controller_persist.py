@@ -2,7 +2,7 @@
 
 import json
 
-from common import overrides, Persist
+from common import overrides, Constants, Persist
 
 
 class ControllerPersist(Persist):
@@ -28,4 +28,4 @@ class ControllerPersist(Persist):
     def to_str(self) -> str:
         dct = dict()
         dct[ControllerPersist.__KEY_DOWNLOADED_FILE_NAMES] = list(self.downloaded_file_names)
-        return json.dumps(dct)
+        return json.dumps(dct, indent=Constants.JSON_PRETTY_PRINT_INDENT)

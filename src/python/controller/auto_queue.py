@@ -2,7 +2,7 @@
 
 import json
 
-from common import overrides, PylftpContext, Persist
+from common import overrides, Constants, PylftpContext, Persist
 from model import IModelListener, ModelFile
 from .controller import Controller
 
@@ -30,7 +30,7 @@ class AutoQueuePersist(Persist):
     def to_str(self) -> str:
         dct = dict()
         dct[AutoQueuePersist.__KEY_PATTERNS] = list(self.patterns)
-        return json.dumps(dct)
+        return json.dumps(dct, indent=Constants.JSON_PRETTY_PRINT_INDENT)
 
 
 class AutoQueueModelListener(IModelListener):
