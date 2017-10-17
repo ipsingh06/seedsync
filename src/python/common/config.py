@@ -2,9 +2,12 @@
 
 from configparser import ConfigParser
 from typing import Dict
-import os
+from io import StringIO
+import collections
 
 from .error import PylftpError
+from .persist import Persist
+from .types import overrides
 
 
 class ConfigError(PylftpError):
@@ -65,7 +68,7 @@ def check_empty_inner_dict(cls, dct: InnerConfig):
         raise ConfigError("Unknown config: {}.{}".format(cls.__name__, next(iter(extra_keys))))
 
 
-class PylftpConfig:
+class PylftpConfig(Persist):
     """
     Configuration registry
     """
@@ -102,6 +105,18 @@ class PylftpConfig:
             check_empty_inner_dict(PylftpConfig.Lftp, config_dict)
             return config
 
+        def as_dict(self) -> InnerConfig:
+            config_dict = collections.OrderedDict()
+            config_dict["remote_address"] = self.remote_address
+            config_dict["remote_username"] = self.remote_username
+            config_dict["remote_path"] = self.remote_path
+            config_dict["local_path"] = self.local_path
+            config_dict["remote_path_to_scan_script"] = self.remote_path_to_scan_script
+            config_dict["num_max_parallel_downloads"] = str(self.num_max_parallel_downloads)
+            config_dict["num_max_parallel_files_per_download"] = str(self.num_max_parallel_files_per_download)
+            config_dict["num_max_connections_per_file"] = str(self.num_max_connections_per_file)
+            return config_dict
+
     class Controller:
         def __init__(self):
             self.interval_ms_remote_scan = None
@@ -126,6 +141,13 @@ class PylftpConfig:
             check_empty_inner_dict(PylftpConfig.Controller, config_dict)
             return config
 
+        def as_dict(self) -> InnerConfig:
+            config_dict = collections.OrderedDict()
+            config_dict["interval_ms_remote_scan"] = str(self.interval_ms_remote_scan)
+            config_dict["interval_ms_local_scan"] = str(self.interval_ms_local_scan)
+            config_dict["interval_ms_downloading_scan"] = str(self.interval_ms_downloading_scan)
+            return config_dict
+
     class Web:
         def __init__(self):
             self.port = None
@@ -142,24 +164,40 @@ class PylftpConfig:
             check_empty_inner_dict(PylftpConfig.Web, config_dict)
             return config
 
+        def as_dict(self) -> InnerConfig:
+            config_dict = collections.OrderedDict()
+            config_dict["port"] = str(self.port)
+            return config_dict
+
     def __init__(self):
         self.lftp = PylftpConfig.Lftp()
         self.controller = PylftpConfig.Controller()
         self.web = PylftpConfig.Web()
 
-    @staticmethod
-    def from_file(config_file_path: str) -> "PylftpConfig":
-        # Load dict from the file
-        if not os.path.isfile(config_file_path):
-            raise ConfigError("Config file not found: {}".format(config_file_path))
+    @classmethod
+    @overrides(Persist)
+    def from_str(cls: "PylftpConfig", content: str) -> "PylftpConfig":
         config_parser = ConfigParser()
-        config_parser.read(config_file_path)
+        config_parser.read_string(content)
         config_dict = {}
         for section in config_parser.sections():
             config_dict[section] = {}
             for option in config_parser.options(section):
                 config_dict[section][option] = config_parser.get(section, option)
         return PylftpConfig.from_dict(config_dict)
+
+    @overrides(Persist)
+    def to_str(self) -> str:
+        config_parser = ConfigParser()
+        config_dict = self.as_dict()
+        for section in config_dict:
+            config_parser.add_section(section)
+            section_dict = config_dict[section]
+            for key in section_dict:
+                config_parser.set(section, key, section_dict[key])
+        str_io = StringIO()
+        config_parser.write(str_io)
+        return str_io.getvalue()
 
     @staticmethod
     def from_dict(config_dict: OuterConfig) -> "PylftpConfig":
@@ -175,7 +213,9 @@ class PylftpConfig:
 
     def as_dict(self) -> OuterConfig:
         # We convert all values back to strings
-        config_dict = dict()
-        config_dict["Lftp"] = {k: str(v) for k, v in self.lftp.__dict__.items()}
-        config_dict["Controller"] = {k: str(v) for k, v in self.controller.__dict__.items()}
+        # Use an ordered dict to main section order
+        config_dict = collections.OrderedDict()
+        config_dict["Lftp"] = self.lftp.as_dict()
+        config_dict["Controller"] = self.controller.as_dict()
+        config_dict["Web"] = self.web.as_dict()
         return config_dict

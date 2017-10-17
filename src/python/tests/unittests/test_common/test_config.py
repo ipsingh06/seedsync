@@ -8,17 +8,6 @@ from common import PylftpConfig, ConfigError, overrides
 
 
 class TestPylftpConfig(unittest.TestCase):
-    @overrides(unittest.TestCase)
-    def setUp(self):
-        # Create empty config file
-        self.config_file = open(tempfile.mktemp(suffix="test_config"), "w")
-
-    @overrides(unittest.TestCase)
-    def tearDown(self):
-        # Remove config file
-        self.config_file.close()
-        os.remove(self.config_file.name)
-
     def __check_unknown_error(self, cls, good_dict):
         """
         Helper method to check that a config class raises an error on
@@ -177,7 +166,10 @@ class TestPylftpConfig(unittest.TestCase):
         self.__check_bad_value_error(PylftpConfig.Web, good_dict, "port", "-1")
 
     def test_from_file(self):
-        self.config_file.write("""
+        # Create empty config file
+        config_file = open(tempfile.mktemp(suffix="test_config"), "w")
+
+        config_file.write("""
         [Lftp]
         remote_address=remote.server.com
         remote_username=remote-user
@@ -196,8 +188,8 @@ class TestPylftpConfig(unittest.TestCase):
         [Web]
         port=88
         """)
-        self.config_file.flush()
-        config = PylftpConfig.from_file(self.config_file.name)
+        config_file.flush()
+        config = PylftpConfig.from_file(config_file.name)
 
         self.assertEqual("remote.server.com", config.lftp.remote_address)
         self.assertEqual("remote-user", config.lftp.remote_username)
@@ -215,11 +207,64 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual(88, config.web.port)
 
         # unknown section error
-        self.config_file.write("""
+        config_file.write("""
         [Unknown]
         key=value
         """)
-        self.config_file.flush()
+        config_file.flush()
         with self.assertRaises(ConfigError) as error:
-            PylftpConfig.from_file(self.config_file.name)
+            PylftpConfig.from_file(config_file.name)
         self.assertTrue(str(error.exception).startswith("Unknown section"))
+
+        # Remove config file
+        config_file.close()
+        os.remove(config_file.name)
+
+    def test_to_file(self):
+        config_file_path = tempfile.mktemp(suffix="test_config")
+
+        config = PylftpConfig()
+        config.lftp.remote_address = "server.remote.com"
+        config.lftp.remote_username = "user-on-remote-server"
+        config.lftp.remote_path = "/remote/server/path"
+        config.lftp.local_path = "/local/server/path"
+        config.lftp.remote_path_to_scan_script = "/remote/server/path/to/script"
+        config.lftp.num_max_parallel_downloads = 6
+        config.lftp.num_max_parallel_files_per_download = 7
+        config.lftp.num_max_connections_per_file = 8
+        config.controller.interval_ms_remote_scan = 1234
+        config.controller.interval_ms_local_scan = 5678
+        config.controller.interval_ms_downloading_scan = 9012
+        config.web.port = 13
+        config.to_file(config_file_path)
+        with open(config_file_path, "r") as f:
+            actual_str = f.read()
+
+        golden_str = """
+        [Lftp]
+        remote_address = server.remote.com
+        remote_username = user-on-remote-server
+        remote_path = /remote/server/path
+        local_path = /local/server/path
+        remote_path_to_scan_script = /remote/server/path/to/script
+        num_max_parallel_downloads = 6
+        num_max_parallel_files_per_download = 7
+        num_max_connections_per_file = 8
+
+        [Controller]
+        interval_ms_remote_scan = 1234
+        interval_ms_local_scan = 5678
+        interval_ms_downloading_scan = 9012
+
+        [Web]
+        port = 13
+        """
+
+        golden_lines = [s.strip() for s in golden_str.splitlines()]
+        golden_lines = list(filter(None, golden_lines))  # remove blank lines
+        actual_lines = [s.strip() for s in actual_str.splitlines()]
+        actual_lines = list(filter(None, actual_lines))  # remove blank lines
+
+        self.assertEqual(len(golden_lines), len(actual_lines))
+        for i,_ in enumerate(golden_lines):
+            self.assertEqual(golden_lines[i], actual_lines[i])
