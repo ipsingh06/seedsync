@@ -43,7 +43,7 @@ class TestWebApp(unittest.TestCase):
 
         # Note: web test's get() only returns after a request is fully complete
         #       To get around this, we stop the server after a short duration
-        self.web_app = WebApp(self.context, self.controller, "")
+        self.web_app = WebApp(self.context, self.controller)
         self.test_app = TestApp(self.web_app)
 
     def test_stream_fetches_model_and_adds_listener(self):

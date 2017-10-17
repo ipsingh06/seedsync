@@ -3,7 +3,6 @@
 import logging
 from threading import Thread, Event
 from queue import Queue, Empty
-import os
 from typing import Optional
 
 # 3rd party libs
@@ -24,7 +23,7 @@ class WebAppJob(PylftpJob):
     Web interface service 
     :return: 
     """
-    def __init__(self, context: PylftpContext, controller: Controller, html_path: str):
+    def __init__(self, context: PylftpContext, controller: Controller):
         super().__init__(name=self.__class__.__name__, context=context)
         self.web_access_logger = context.web_access_logger
         self.__context = context
@@ -32,12 +31,10 @@ class WebAppJob(PylftpJob):
         self.__app = None
         self.__server = None
         self.__server_thread = None
-        self.__html_path = html_path
-        self.logger.info("Html path set to: {}".format(self.__html_path))
 
     @overrides(PylftpJob)
     def setup(self):
-        self.__app = WebApp(self.__context, self.__controller, self.__html_path)
+        self.__app = WebApp(self.__context, self.__controller)
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
         self.__server = MyWSGIRefServer(self.web_access_logger,
                                         host="localhost",
@@ -135,11 +132,12 @@ class WebApp(bottle.Bottle):
     """
     _EVENT_BLOCK_INTERVAL_IN_MS = 500
 
-    def __init__(self, context: PylftpContext, controller: Controller, html_path: str):
+    def __init__(self, context: PylftpContext, controller: Controller):
         super().__init__()
         self.logger = context.logger.getChild("WebApp")
         self.__controller = controller
-        self.__html_path = html_path
+        self.__html_path = context.args.html_path
+        self.logger.info("Html path set to: {}".format(self.__html_path))
         self.__stop = False
 
         # Routes

@@ -15,6 +15,7 @@ class PylftpArgs:
     """
     def __init__(self):
         self.local_path_to_scanfs = None
+        self.html_path = None
 
 
 class PylftpContext:

@@ -32,9 +32,6 @@ class Pylftpd:
         # Parse the args
         args = self._parse_args()
 
-        # Path to html resources
-        self.html_path = args.html
-
         # Logger setup
         # We separate the main log from the web-access log
         logger = self._create_logger(name=Constants.SERVICE_NAME,
@@ -48,6 +45,7 @@ class Pylftpd:
         # Create context args
         ctx_args = PylftpArgs()
         ctx_args.local_path_to_scanfs = args.scanfs
+        ctx_args.html_path = args.html
 
         # Create/load config
         config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)
@@ -100,8 +98,7 @@ class Pylftpd:
         )
         webapp_job = WebAppJob(
             context=self.context.create_child_context(WebAppJob.__name__),
-            controller=controller,
-            html_path=self.html_path
+            controller=controller
         )
 
         try:
