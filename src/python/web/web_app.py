@@ -37,7 +37,7 @@ class WebAppJob(PylftpJob):
         self.__app = WebApp(self.__context, self.__controller)
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
         self.__server = MyWSGIRefServer(self.web_access_logger,
-                                        host="localhost",
+                                        host="0.0.0.0",
                                         port=self.__context.config.web.port)
         self.__server_thread = Thread(target=bottle.run,
                                       kwargs={

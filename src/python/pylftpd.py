@@ -235,7 +235,7 @@ class Pylftpd:
         config.controller.interval_ms_local_scan = 10000
         config.controller.interval_ms_downloading_scan = 1000
 
-        config.web.port = 88
+        config.web.port = 8800
 
         return config
 
