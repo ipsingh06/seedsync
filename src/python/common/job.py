@@ -67,7 +67,9 @@ class PylftpJob(threading.Thread, ABC):
         :return:
         """
         if self.exc_info:
-            raise self.exc_info[1].with_traceback(self.exc_info[2])
+            exc_info = self.exc_info
+            self.exc_info = None
+            raise exc_info[1].with_traceback(exc_info[2])
 
     @abstractmethod
     def setup(self):

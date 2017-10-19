@@ -11,9 +11,9 @@ from logging.handlers import RotatingFileHandler
 from typing import Optional
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
-from web import WebAppJob
+from web import WebAppJob, WebApp, BackendStatus
 
 
 class Pylftpd:
@@ -90,6 +90,9 @@ class Pylftpd:
         # Create auto queue
         auto_queue = AutoQueue(self.context, self.auto_queue_persist, controller)
 
+        # Create web app
+        web_app = WebApp(self.context, controller)
+
         # Define child threads
         controller_job = ControllerJob(
             context=self.context.create_child_context(ControllerJob.__name__),
@@ -98,7 +101,7 @@ class Pylftpd:
         )
         webapp_job = WebAppJob(
             context=self.context.create_child_context(WebAppJob.__name__),
-            controller=controller
+            web_app=web_app
         )
 
         try:
@@ -117,8 +120,13 @@ class Pylftpd:
                     self.persist()
 
                 # Propagate exceptions
-                controller_job.propagate_exception()
                 webapp_job.propagate_exception()
+                # Catch controller exceptions and keep running, but notify the web server of the error
+                try:
+                    controller_job.propagate_exception()
+                except PylftpError as exc:
+                    web_app.set_backend_status(BackendStatus(up=False, error_msg=str(exc)))
+                    Pylftpd.logger.exception("Caught exception")
 
                 # Nothing else to do
                 time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
