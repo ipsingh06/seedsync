@@ -46,6 +46,7 @@ class Pylftpd:
         ctx_args = PylftpArgs()
         ctx_args.local_path_to_scanfs = args.scanfs
         ctx_args.html_path = args.html
+        ctx_args.debug = args.debug
 
         # Create/load config
         config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)

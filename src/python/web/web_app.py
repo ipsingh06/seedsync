@@ -1,55 +1,18 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
+import functools
 from threading import Event
+from typing import Type
 
 import bottle
 from bottle import static_file, HTTPResponse
 
-from .status import BackendStatus
-from .serialize import SerializeModel, SerializeBackendStatus
-from .utils import StreamQueue
 from common import overrides, PylftpContext
 from controller import Controller
-from model import IModelListener, ModelFile
-
-
-class BackendStatusListener(StreamQueue[BackendStatus]):
-    """
-    Status listener used by status streams to listen to status updates
-    One listener should be created for each new request
-    """
-    def __init__(self):
-        super().__init__()
-
-    def notify(self, status: BackendStatus):
-        self.put(status)
-
-
-class WebResponseModelListener(IModelListener, StreamQueue[SerializeModel.UpdateEvent]):
-    """
-    Model listener used by streams to listen to model updates
-    One listener should be created for each new request
-    """
-    def __init__(self):
-        super().__init__()
-
-    @overrides(IModelListener)
-    def file_added(self, file: ModelFile):
-        self.put(SerializeModel.UpdateEvent(change=SerializeModel.UpdateEvent.Change.ADDED,
-                                            old_file=None,
-                                            new_file=file))
-
-    @overrides(IModelListener)
-    def file_removed(self, file: ModelFile):
-        self.put(SerializeModel.UpdateEvent(change=SerializeModel.UpdateEvent.Change.REMOVED,
-                                            old_file=file,
-                                            new_file=None))
-
-    @overrides(IModelListener)
-    def file_updated(self, old_file: ModelFile, new_file: ModelFile):
-        self.put(SerializeModel.UpdateEvent(change=SerializeModel.UpdateEvent.Change.UPDATED,
-                                            old_file=old_file,
-                                            new_file=new_file))
+from .web_app_stream import WebAppStream
+from .status import BackendStatus, IBackendStatusProvider, IBackendStatusListener
+from .stream_model import StreamModel
+from .stream_status import StreamStatus
 
 
 class WebResponseActionCallback(Controller.Command.ICallback):
@@ -80,12 +43,33 @@ class WebResponseActionCallback(Controller.Command.ICallback):
         self.__event.wait()
 
 
+class WebStatusProvider(IBackendStatusProvider):
+    def __init__(self):
+        self.listeners = []
+        self.status = BackendStatus(up=True, error_msg=None)
+
+    @overrides(IBackendStatusProvider)
+    def add_listener(self, listener: IBackendStatusListener):
+        self.listeners.append(listener)
+
+    @overrides(IBackendStatusProvider)
+    def remove_listener(self, listener: IBackendStatusListener):
+        self.listeners.remove(listener)
+
+    @overrides(IBackendStatusProvider)
+    def get_status(self) -> BackendStatus:
+        return self.status
+
+    def set_status(self, status: BackendStatus):
+        self.status = status
+        for listener in self.listeners:
+            listener.notify(status)
+
+
 class WebApp(bottle.Bottle):
     """
     Web app implementation
     """
-    _EVENT_BLOCK_INTERVAL_IN_MS = 500
-
     def __init__(self, context: PylftpContext, controller: Controller):
         super().__init__()
         self.logger = context.logger.getChild("WebApp")
@@ -93,12 +77,21 @@ class WebApp(bottle.Bottle):
         self.__html_path = context.args.html_path
         self.logger.info("Html path set to: {}".format(self.__html_path))
         self.__stop = False
-        self.__status = BackendStatus(up=True, error_msg=None)
-        self.__status_listeners = []
+        self.__status_provider = WebStatusProvider()
 
-        # Routes
-        self.get("/stream")(self.stream)
-        self.get("/status")(self.status)
+        # Streaming routes
+        self.get("/status")(functools.partial(
+            self.web_stream,
+            cls=StreamStatus,
+            status_provider=self.__status_provider
+        ))
+        self.get("/stream")(functools.partial(
+            self.web_stream,
+            cls=StreamModel,
+            controller=controller
+        ))
+
+        # Regular routes
         self.get("/queue/<file_name>")(self.action_queue)
         self.get("/stop/<file_name>")(self.action_stop)
         self.route("/")(self.index)
@@ -110,9 +103,7 @@ class WebApp(bottle.Bottle):
         :param status:
         :return:
         """
-        self.__status = status
-        for listener in self.__status_listeners:
-            listener.notify(status)
+        self.__status_provider.set_status(status)
 
     def stop(self):
         """
@@ -169,80 +160,31 @@ class WebApp(bottle.Bottle):
         else:
             return HTTPResponse(body=callback.error, status=400)
 
-    # TODO: can we make the stream methods generic?? they both have a setup, loop and cleanup
-    def status(self) -> str:
-        """
-        Streams backend status updates to client
-        :return:
-        """
-        status_listener = None
+    def web_stream(self, cls: Type[WebAppStream], **kwargs):
+        stream = cls(**kwargs)
         try:
             # Setup the response header
             bottle.response.content_type = "text/event-stream"
             bottle.response.cache_control = "no-cache"
 
-            serialize = SerializeBackendStatus()
-            status_listener = BackendStatusListener()
-            self.__status_listeners.append(status_listener)
+            # Setup the stream
+            stream.setup()
 
-            yield serialize.status(self.__status)
-
-            # Send the model update event until the connection closes
+            # Get streaming values until the connection closes
             while not self.__stop:
-                status = status_listener.get_next_event(timeout_in_ms=WebApp._EVENT_BLOCK_INTERVAL_IN_MS)
-                if status:
-                    yield serialize.status(status)
+                value = stream.get_value()
+                if value:
+                    yield value
                 else:
                     # need to yield a newline, otherwise the finally block
                     # is not called upon connection exit
                     yield "\n"
 
         finally:
-            if self.__stop:
-                self.logger.debug("Status stream connection stopped by server")
-            else:
-                self.logger.debug("status stream connection stopped by client")
+            self.logger.debug("Stream '{}' connection stopped by {}".format(
+                cls.__name__,
+                "server" if self.__stop else "client"
+            ))
 
             # Cleanup
-            if status_listener:
-                self.__status_listeners.remove(status_listener)
-
-    def stream(self) -> str:
-        """
-        Streams model updates to client
-        See the Serialize class for api
-        :return:
-        """
-        model_listener = None
-        try:
-            # Setup the response header
-            bottle.response.content_type = "text/event-stream"
-            bottle.response.cache_control = "no-cache"
-
-            serialize = SerializeModel()
-            model_listener = WebResponseModelListener()
-
-            initial_model_files = self.__controller.get_model_files_and_add_listener(model_listener)
-
-            # Send the initial model
-            yield serialize.model(initial_model_files)
-
-            # Send the model update event until the connection closes
-            while not self.__stop:
-                event = model_listener.get_next_event(timeout_in_ms=WebApp._EVENT_BLOCK_INTERVAL_IN_MS)
-                if event:
-                    yield serialize.update_event(event)
-                else:
-                    # need to yield a newline, otherwise the finally block
-                    # is not called upon connection exit
-                    yield "\n"
-
-        finally:
-            if self.__stop:
-                self.logger.debug("Model stream connection stopped by server")
-            else:
-                self.logger.debug("Model stream connection stopped by client")
-
-            # Cleanup
-            if model_listener:
-                self.__controller.remove_model_listener(model_listener)
+            stream.cleanup()

@@ -33,7 +33,8 @@ class WebAppJob(PylftpJob):
         self.__server_thread = Thread(target=bottle.run,
                                       kwargs={
                                           'app': self.__app,
-                                          'server': self.__server
+                                          'server': self.__server,
+                                          'debug': self.__context.args.debug
                                       })
         self.__server_thread.start()
 
