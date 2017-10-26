@@ -7,7 +7,7 @@ import os
 
 from .scanner_process import IScanner
 from common import overrides, PylftpError
-from ssh import Ssh, Scp
+from ssh import Ssh, Scp, ScpError, SshError
 from system import SystemFile
 
 
@@ -45,7 +45,11 @@ class RemoteScanner(IScanner):
         if self.__first_run:
             self._install_scanfs()
             self.__first_run = False
-        out = self.__ssh.run_command("{} {}".format(self.__remote_path_to_scan_script, self.__remote_path_to_scan))
+        try:
+            out = self.__ssh.run_command("{} {}".format(self.__remote_path_to_scan_script, self.__remote_path_to_scan))
+        except SshError:
+            self.logger.exception("Caught an SshError")
+            raise PylftpError("An error occurred while scanning the remote server.")
         remote_files = pickle.loads(out)
         return remote_files
 
@@ -58,5 +62,9 @@ class RemoteScanner(IScanner):
             raise RemoteScannerError("Failed to find scanfs executable at {}".format(
                 self.__local_path_to_scan_script
             ))
-        self.__scp.copy(local_path=self.__local_path_to_scan_script,
-                        remote_path=self.__remote_path_to_scan_script)
+        try:
+            self.__scp.copy(local_path=self.__local_path_to_scan_script,
+                            remote_path=self.__remote_path_to_scan_script)
+        except ScpError:
+            self.logger.exception("Caught scp exception")
+            raise PylftpError("An error occurred while installing scanner script to remote server.")

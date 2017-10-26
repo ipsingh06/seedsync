@@ -133,3 +133,37 @@ class TestPylftpd(unittest.TestCase):
         config2 = PylftpConfig.from_dict(config_dict)
         config2_dict = config2.as_dict()
         self.assertEqual(config_dict, config2_dict)
+
+    def test_detect_incomplete_config(self):
+        incomplete_value = None
+
+        # Test a complete config
+        config = Pylftpd._create_default_config()
+        incomplete_value = config.lftp.remote_address
+        config.lftp.remote_address = "value"
+        config.lftp.remote_username = "value"
+        config.lftp.remote_path = "value"
+        config.lftp.local_path = "value"
+        config.lftp.remote_path_to_scan_script = "value"
+        self.assertFalse(Pylftpd._detect_incomplete_config(config))
+
+        # Test incomplete configs
+        config.lftp.remote_address = incomplete_value
+        self.assertTrue(Pylftpd._detect_incomplete_config(config))
+        config.lftp.remote_address = "value"
+
+        config.lftp.remote_username = incomplete_value
+        self.assertTrue(Pylftpd._detect_incomplete_config(config))
+        config.lftp.remote_username = "value"
+
+        config.lftp.remote_path = incomplete_value
+        self.assertTrue(Pylftpd._detect_incomplete_config(config))
+        config.lftp.remote_path = "value"
+
+        config.lftp.local_path = incomplete_value
+        self.assertTrue(Pylftpd._detect_incomplete_config(config))
+        config.lftp.local_path = "value"
+
+        config.lftp.remote_path_to_scan_script = incomplete_value
+        self.assertTrue(Pylftpd._detect_incomplete_config(config))
+        config.lftp.remote_path_to_scan_script = "value"

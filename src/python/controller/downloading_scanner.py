@@ -6,8 +6,8 @@ import multiprocessing
 import queue
 
 from .scanner_process import IScanner
-from common import overrides
-from system import SystemScanner, SystemFile
+from common import overrides, PylftpError
+from system import SystemScanner, SystemScannerError, SystemFile
 
 
 class DownloadingScanner(IScanner):
@@ -50,4 +50,9 @@ class DownloadingScanner(IScanner):
 
         # Do the scan
         # self.logger.debug("Scanning files: {}".format(str(self.__downloading_files)))
-        return self.__scanner.scan()
+        try:
+            result = self.__scanner.scan()
+        except SystemScannerError:
+            self.logger.exception("Caught SystemScannerError")
+            raise PylftpError("An error occurred while scanning the local system.")
+        return result

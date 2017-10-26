@@ -103,6 +103,7 @@ class WebApp(bottle.Bottle):
         :param status:
         :return:
         """
+        self.logger.info("Setting backend status: up={} msg={}".format(status.up, status.error_msg))
         self.__status_provider.set_status(status)
 
     def stop(self):

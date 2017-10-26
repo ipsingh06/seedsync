@@ -24,6 +24,7 @@ class Pylftpd:
     __FILE_CONFIG = "settings.cfg"
     __FILE_AUTO_QUEUE_PERSIST = "autoqueue.persist"
     __FILE_CONTROLLER_PERSIST = "controller.persist"
+    __CONFIG_DUMMY_VALUE = "<replace me>"
 
     # This logger is used to print any exceptions caught at top module
     logger = None
@@ -105,11 +106,23 @@ class Pylftpd:
             web_app=web_app
         )
 
-        try:
-            # Start child threads here
-            controller_job.start()
-            webapp_job.start()
+        do_start_controller = True
 
+        # Initial checks to see if we should bother starting the controller
+        if Pylftpd._detect_incomplete_config(self.context.config):
+            do_start_controller = False
+            self.context.logger.error("Config is incomplete")
+            web_app.set_backend_status(BackendStatus(
+                up=False,
+                error_msg="Settings are incomplete"
+            ))
+
+        # Start child threads here
+        if do_start_controller:
+            controller_job.start()
+        webapp_job.start()
+
+        try:
             prev_persist_timestamp = datetime.now()
 
             # Thread loop
@@ -229,11 +242,11 @@ class Pylftpd:
         """
         config = PylftpConfig()
 
-        config.lftp.remote_address = "<replace me>"
-        config.lftp.remote_username = "<replace me>"
-        config.lftp.remote_path = "<replace me>"
-        config.lftp.local_path = "<replace me>"
-        config.lftp.remote_path_to_scan_script = "/tmp/scanfs"
+        config.lftp.remote_address = Pylftpd.__CONFIG_DUMMY_VALUE
+        config.lftp.remote_username = Pylftpd.__CONFIG_DUMMY_VALUE
+        config.lftp.remote_path = Pylftpd.__CONFIG_DUMMY_VALUE
+        config.lftp.local_path = Pylftpd.__CONFIG_DUMMY_VALUE
+        config.lftp.remote_path_to_scan_script = Pylftpd.__CONFIG_DUMMY_VALUE
         config.lftp.num_max_parallel_downloads = 2
         config.lftp.num_max_parallel_files_per_download = 4
         config.lftp.num_max_connections_per_root_file = 4
@@ -247,6 +260,15 @@ class Pylftpd:
         config.web.port = 8800
 
         return config
+
+    @staticmethod
+    def _detect_incomplete_config(config: PylftpConfig) -> bool:
+        config_dict = config.as_dict()
+        for sec_name in config_dict:
+            for key in config_dict[sec_name]:
+                if Pylftpd.__CONFIG_DUMMY_VALUE == str(config_dict[sec_name][key]):
+                    return True
+        return False
 
 
 if __name__ == "__main__":
