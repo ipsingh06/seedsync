@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Type, TypeVar
 
 from .error import PylftpError
+from .localization import Localization
 
 
 # Source: https://stackoverflow.com/a/39205612/8571324
@@ -21,7 +22,7 @@ class Persist(ABC):
     @classmethod
     def from_file(cls: Type[T], file_path: str) -> T:
         if not os.path.isfile(file_path):
-            raise PylftpError("File not found: {}".format(file_path))
+            raise PylftpError(Localization.Error.MISSING_FILE.format(file_path))
         with open(file_path, "r") as f:
             return cls.from_str(f.read())
 

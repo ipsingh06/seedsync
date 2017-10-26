@@ -4,8 +4,8 @@ import logging
 from typing import List
 
 from .scanner_process import IScanner
-from common import overrides
-from system import SystemScanner, SystemFile
+from common import overrides, PylftpError, Localization
+from system import SystemScanner, SystemFile, SystemScannerError
 
 
 class LocalScanner(IScanner):
@@ -14,10 +14,16 @@ class LocalScanner(IScanner):
     """
     def __init__(self, local_path: str):
         self.__scanner = SystemScanner(local_path)
+        self.logger = logging.getLogger("LocalScanner")
 
     def set_base_logger(self, base_logger: logging.Logger):
-        pass
+        self.logger = base_logger.getChild("LocalScanner")
 
     @overrides(IScanner)
     def scan(self) -> List[SystemFile]:
-        return self.__scanner.scan()
+        try:
+            result = self.__scanner.scan()
+        except SystemScannerError:
+            self.logger.exception("Caught SystemScannerError")
+            raise PylftpError(Localization.Error.LOCAL_SERVER_SCAN)
+        return result

@@ -7,3 +7,4 @@ from .error import PylftpError, ServiceExit
 from .constants import Constants
 from .config import PylftpConfig, ConfigError
 from .persist import Persist
+from .localization import Localization
