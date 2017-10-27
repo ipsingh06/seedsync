@@ -1,0 +1,43 @@
+#file-list #header {
+    display: none;
+}
+
+/* striped rows */
+#file-list > div:nth-child(even){
+    background-color: #f6f6f6;
+}
+
+/* list separator */
+#file-list > div {border-bottom: 1px solid #ddd;}
+#file-list > div:last-child{border-bottom: none;}
+
+
+/* Desktop */
+@media only screen and (min-width: 601px) {
+    #file-list #header {
+        display: flex;
+    }
+
+    /* width */
+    /* NOTE: make sure this is in-sync with ".file .content" */
+    #header .status     {width: 100px; min-width: 100px;}
+    #header .name       {flex-grow: 1;}
+    #header .speed      {width: 100px; min-width: 100px;}
+    #header .eta        {width: 100px; min-width: 100px;}
+    #header .size       {width: 30%; min-width: 30%;}
+
+    /* header and content elements */
+    #header > div, .content > div {
+        padding: 8px 8px;
+        text-align: center;
+        vertical-align: top;
+    }
+    #header .name, .content .name {text-align: left;}
+
+    /* header color */
+    #header div {
+        font-weight: bold;
+        color: #fff;
+        background-color: #000;
+    }
+}

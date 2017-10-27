@@ -6,6 +6,7 @@ import {ViewFile} from "../../view/view-file";
     selector: '[file]',
     providers: [],
     templateUrl: './file.component.html',
+    styleUrls: ['./file.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 

@@ -1,0 +1,167 @@
+
+.file {
+    padding: 10px;
+}
+
+/* selected file */
+.file.selected {
+    background-color: #79DFB6;
+}
+
+/* content */
+.content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 8px 0;
+}
+
+.content div {
+    /* break up long text */
+    overflow-wrap: normal;
+    hyphens: auto;
+    word-break: break-all;
+}
+
+/* width */
+.content .status   {width: 100px; min-width: 100px;}
+.content .name     {flex-grow: 1; flex-basis: calc(100% - 100px);}
+.content .speed    {width: 100px; min-width: 100px;}
+/* .content .eta is hidden on mobile */
+.content .size     {flex-grow: 1;}
+
+/* content elements */
+.content > div {
+    padding: 4px 4px;
+    text-align: center;
+    vertical-align: top;
+}
+.content .name {text-align: left;}
+
+/* Name */
+.content .name {
+    display: flex;
+    flex-direction: row;
+}
+.content .name .icon {
+    padding-right: 8px;
+    padding-top: 3px;
+}
+
+/* Status */
+.content .status {
+    display: flex;
+    flex-direction: column;
+}
+.content .status .icon {
+    font-size: 32px;
+}
+.content .status .text {
+    margin-top: 3px;
+    font-size: 70%;
+}
+
+/* Speed */
+.content .speed {
+    font-size: 90%;
+}
+
+/* Progress bar */
+.content .progress-bar {
+    min-width: 2em;
+}
+.content .progress {
+    margin-bottom: 5px;
+}
+.content .size_info {
+    font-size: 80%;
+}
+
+/* Hide the outer eta */
+.content .eta {display: none;}
+.content .speed .speed-eta {font-size: 90%;}
+
+/* actions */
+.actions {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    /* offsets the button's margin-bottom */
+    margin-bottom: -10px;
+}
+.actions .button {
+    /* bottom margin for when buttons get wrapped to multiple rows */
+    margin-bottom: 10px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background-color: #337BB7;
+    border: 1px solid #2e6da4;
+    border-radius: 4px;
+    width: 50px;
+    min-width: 50px;
+    height: 50px;
+    cursor: default;
+    user-select: none;
+}
+.actions .button:active {
+    background-color: #286090;
+}
+.actions .button[disabled] {
+    opacity: .65;
+    background-color: #337BB7;
+}
+.actions .button .icon {
+    font-size: 26px;
+}
+.actions .button .text {
+    font-size: 12px;
+}
+
+/* action toolbar show and hide */
+.actions {
+    display: none;
+}
+.file.selected .actions {
+    display: flex;
+}
+
+
+/* Desktop */
+@media only screen and (min-width: 601px) {
+    /* enable row hover */
+    .file:not(.selected):hover {
+        background-color: rgba(122, 222, 180, 0.43);
+    }
+
+    /* width */
+    /* NOTE: make sure this is in-sync with "#file-list #header" */
+    .content .status    {width: 100px; min-width: 100px;}
+    .content .name      {flex-grow: 1;}
+    .content .speed     {width: 100px; min-width: 100px;}
+    .content .eta       {width: 100px; min-width: 100px;}
+    .content .size      {width: 30%; min-width: 30%;}
+
+    .content {
+        /* single row */
+        flex-wrap: nowrap;
+        /* no top/bottom padding */
+        padding: 0 0;
+    }
+
+    /* Re-order columns */
+    .content .status {order: 2;}
+    .content .name {order: 1;}
+    .content .speed {order: 3;}
+    .content .eta {order: 4;}
+    .content .size {order: 5;}
+
+    /* Hide the inner eta, show outer eta */
+    .content .eta {display: inline;}
+    .content .speed .speed-eta {display: none;}
+}

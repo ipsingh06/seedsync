@@ -1,0 +1,11 @@
+/*
+ * SIDE-BAR
+ * NOTE: Make sure this is in-sync with the #top-content
+ */
+#sidebar {
+    border: 5px solid black;
+    width: 200px;
+    height: 100%;
+    position: fixed;
+    display: none;
+}
