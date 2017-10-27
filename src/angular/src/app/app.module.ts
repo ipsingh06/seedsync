@@ -17,6 +17,8 @@ import {ClickStopPropagation} from "./common/click-stop-propagation.directive";
 import {FileListFilterComponent} from "./pages/files/file-list-filter.component";
 import {ViewFileFilterService} from "./view/view-file-filter.service";
 import {FilesPageComponent} from "./pages/files/files-page.component";
+import {HeaderComponent} from "./header.component";
+import {SidebarComponent} from "./sidebar.component";
 
 @NgModule({
     declarations: [
@@ -28,7 +30,9 @@ import {FilesPageComponent} from "./pages/files/files-page.component";
         FileListComponent,
         FileComponent,
         FileListFilterComponent,
-        FilesPageComponent
+        FilesPageComponent,
+        HeaderComponent,
+        SidebarComponent
     ],
     imports: [
         BrowserModule,

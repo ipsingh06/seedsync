@@ -21,6 +21,30 @@ input[type=search]::-webkit-search-cancel-button {
 }
 
 /*
+ * SIDE-BAR
+ */
+#sidebar {
+    border: 5px solid black;
+    width: 200px;
+    height: 100%;
+    position: fixed;
+}
+
+/*
+ * CONTENT
+ */
+#content {
+    margin-left: 200px;
+}
+
+/*
+ * TOP-HEADER
+ */
+#top-header {
+    border: 5px solid black;
+}
+
+/*
  * FILE-LIST
  */
 
