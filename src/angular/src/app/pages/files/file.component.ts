@@ -1,6 +1,6 @@
 import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from '@angular/core';
 
-import {ViewFile} from "./view/view-file";
+import {ViewFile} from "../../view/view-file";
 
 @Component({
     selector: '[file]',

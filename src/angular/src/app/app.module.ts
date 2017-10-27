@@ -6,16 +6,17 @@ import {FormsModule}   from '@angular/forms';
 import {AppComponent} from './app.component';
 import {environment}    from '../environments/environment';
 import {LoggerService} from "./common/logger.service"
-import {FileListComponent} from "./file-list.component"
-import {FileComponent} from "./file.component"
+import {FileListComponent} from "./pages/files/file-list.component"
+import {FileComponent} from "./pages/files/file.component"
 import {ModelFileService} from "./model/model-file.service"
 import {ViewFileService} from "./view/view-file.service";
 import {FileSizePipe} from "./common/file-size.pipe";
 import {EtaPipe} from "./common/eta.pipe";
 import {CapitalizePipe} from "./common/capitalize.pipe";
 import {ClickStopPropagation} from "./common/click-stop-propagation.directive";
-import {FileListFilterComponent} from "./file-list-filter.component";
+import {FileListFilterComponent} from "./pages/files/file-list-filter.component";
 import {ViewFileFilterService} from "./view/view-file-filter.service";
+import {FilesPageComponent} from "./pages/files/files-page.component";
 
 @NgModule({
     declarations: [
@@ -26,7 +27,8 @@ import {ViewFileFilterService} from "./view/view-file-filter.service";
         AppComponent,
         FileListComponent,
         FileComponent,
-        FileListFilterComponent
+        FileListFilterComponent,
+        FilesPageComponent
     ],
     imports: [
         BrowserModule,
