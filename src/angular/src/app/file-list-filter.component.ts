@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 
-import {LoggerService} from "./logger.service"
-import {ViewFileFilterService} from "./view-file-filter.service";
-import {ViewFileFilter} from "./view-file-filter";
-import {ViewFile} from "./view-file";
+import {LoggerService} from "./common/logger.service"
+import {ViewFileFilterService} from "./view/view-file-filter.service";
+import {ViewFileFilter} from "./view/view-file-filter";
+import {ViewFile} from "./view/view-file";
 
 @Component({
     selector: 'file-list-filter',

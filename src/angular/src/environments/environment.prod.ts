@@ -1,4 +1,4 @@
-import {LoggerService} from "../app/logger.service"
+import {LoggerService} from "../app/common/logger.service"
 
 export const environment = {
     production: true,

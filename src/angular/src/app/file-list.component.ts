@@ -3,9 +3,9 @@ import {Observable} from "rxjs/Observable";
 
 import {List} from "immutable";
 
-import {ViewFileService} from "./view-file.service";
-import {ViewFile} from "./view-file";
-import {LoggerService} from "./logger.service";
+import {ViewFileService} from "./view/view-file.service";
+import {ViewFile} from "./view/view-file";
+import {LoggerService} from "./common/logger.service";
 
 @Component({
     selector: 'file-list',

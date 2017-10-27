@@ -4,11 +4,11 @@ import {BehaviorSubject} from "rxjs/Rx";
 
 import * as Immutable from 'immutable';
 
-import {LoggerService} from "./logger.service";
-import {ModelFile} from './model-file'
-import {ModelFileReaction, ModelFileService} from "./model-file.service";
+import {LoggerService} from "../common/logger.service";
+import {ModelFile} from '../model/model-file'
+import {ModelFileReaction, ModelFileService} from "../model/model-file.service";
 import {ViewFile} from "./view-file"
-import {MOCK_MODEL_FILES} from "./mock-model-files"
+import {MOCK_MODEL_FILES} from "../model/mock-model-files"
 
 
 /**

@@ -5,7 +5,7 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 
 import * as Immutable from 'immutable';
 
-import {LoggerService} from "./logger.service";
+import {LoggerService} from "../common/logger.service";
 import {ModelFile} from './model-file'
 
 

@@ -4,7 +4,7 @@ import {BehaviorSubject} from "rxjs/Rx";
 
 import * as Immutable from 'immutable';
 
-import {LoggerService} from "./logger.service";
+import {LoggerService} from "../common/logger.service";
 import {ViewFile} from "./view-file"
 import {ViewFileFilterCriteria, ViewFileService} from "./view-file.service";
 import {ViewFileFilter} from "./view-file-filter";
