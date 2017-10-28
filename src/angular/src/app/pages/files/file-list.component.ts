@@ -11,7 +11,7 @@ import {LoggerService} from "../../common/logger.service";
     selector: 'file-list',
     providers: [],
     templateUrl: './file-list.component.html',
-    styleUrls: ['./file-list.component.css'],
+    styleUrls: ['./file-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 

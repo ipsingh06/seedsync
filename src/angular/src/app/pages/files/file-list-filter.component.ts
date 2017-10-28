@@ -10,7 +10,7 @@ import {ViewFile} from "../../view/view-file";
     selector: 'file-list-filter',
     providers: [],
     templateUrl: './file-list-filter.component.html',
-    styleUrls: ['./file-list-filter.component.css'],
+    styleUrls: ['./file-list-filter.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
