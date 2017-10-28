@@ -1,0 +1,35 @@
+$primary-color: #337BB7;
+$secondary-color: #79DFB6;
+$secondary-light-color: #C5F0DE;
+
+$small-max-width: 600px;
+$medium-min-width: 601px;
+$medium-max-width: 992px;
+$large-min-width: 993px;
+
+%button {
+    background-color: $primary-color;
+    color: white;
+    border: 1px solid #2e6da4;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    user-select: none;
+
+    &:active {
+        background-color: #286090;
+    }
+
+    &[disabled] {
+        opacity: .65;
+        background-color: $primary-color;
+    }
+
+    &.selected {
+        background-color: $secondary-color;
+        border-color: #6ac19e;
+    }
+}

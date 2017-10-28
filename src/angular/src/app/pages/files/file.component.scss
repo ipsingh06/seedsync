@@ -1,10 +1,12 @@
+@import '../../common/common';
+
 .file {
     padding: 10px;
 }
 
 /* selected file */
 .file.selected {
-    background-color: #79DFB6;
+    background-color: $secondary-color;
 }
 
 /* content */
@@ -91,29 +93,14 @@
     margin-bottom: -10px;
 }
 .actions .button {
+    @extend %button;
+
     /* bottom margin for when buttons get wrapped to multiple rows */
     margin-bottom: 10px;
     margin-right: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    background-color: #337BB7;
-    border: 1px solid #2e6da4;
-    border-radius: 4px;
     width: 50px;
     min-width: 50px;
     height: 50px;
-    cursor: default;
-    user-select: none;
-}
-.actions .button:active {
-    background-color: #286090;
-}
-.actions .button[disabled] {
-    opacity: .65;
-    background-color: #337BB7;
 }
 .actions .button .icon {
     font-size: 26px;
@@ -131,11 +118,11 @@
 }
 
 
-/* Desktop */
-@media only screen and (min-width: 601px) {
+/* Medium and large screens */
+@media only screen and (min-width: $medium-min-width) {
     /* enable row hover */
     .file:not(.selected):hover {
-        background-color: rgba(122, 222, 180, 0.43);
+        background-color: $secondary-light-color;
     }
 
     /* width */
