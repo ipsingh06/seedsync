@@ -23,12 +23,12 @@
 }
 
 #top-sidebar {
+    background-color: $primary-light-color;
     width: $sidebar-width;
     height: 100%;
     position: fixed;
     z-index: 200;
     overflow: auto;
-    background-color: white;
     box-shadow:0 2px 5px 0 rgba(0,0,0,0.16), 0 2px 10px 0 rgba(0,0,0,0.12);
     animation: animateleft 0.4s;
 }
@@ -51,24 +51,33 @@
 }
 
 .sidebar-btn {
-    background-color: $bg-color;
+    background-color: inherit;
     display: block;
     padding: 8px 16px;
-    text-align: left;
     border: none;
     outline: none;
     white-space: normal;
     float: none;
     cursor: default;
     user-select: none;
-
-    &:active {
-        background-color: $bg-dark-color;
-    }
 }
 
 #sidebar-btn-close {
     width: 100%;
+    text-align: right;
+
+    &:active {
+        color: red;
+        background-color: inherit;
+    }
+}
+
+#sidebar-btn-open {
+    text-align: left;
+
+    &:active {
+        background-color: $bg-dark-color;
+    }
 }
 
 // Small and medium screens
