@@ -1,6 +1,4 @@
-/*
- * COMMON
- */
+@import 'app/common/common';
 
 html {
     -ms-text-size-adjust: 100%;
@@ -24,12 +22,4 @@ div {
     /*border: 1px solid black;*/
     /* make padding and border inside box */
     box-sizing: border-box;
-}
-
-/*
- * Content
- * NOTE: Make sure this is in-sync with the sidebar
- */
-#top-content {
-    /*margin-left: 200px;*/
 }

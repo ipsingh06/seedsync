@@ -1,5 +1,18 @@
-<sidebar></sidebar>
+<div id="top-sidebar"
+     [class.top-sidebar-open]="showSidebar"
+     [class.top-sidebar-closed]="!showSidebar">
+    <button id="sidebar-btn-close" class="sidebar-btn" (click)="showSidebar=false">
+        Close &times;
+    </button>
+    <sidebar></sidebar>
+</div>
 <div id="top-content">
+    <div id="top-header">
+        <button id="sidebar-btn-open" class="sidebar-btn" (click)="showSidebar=!showSidebar">
+            &#9776;
+        </button>
+        <span id="top-title">A Really Really Long Title</span>
+    </div>
     <header></header>
     <files-page></files-page>
 </div>
