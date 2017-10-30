@@ -1,8 +1,8 @@
 <div id="sidebar">
-    <a class="button" routerLink="/dashboard" routerLinkActive="selected">
-        Dashboard
-    </a>
-    <a class="button" routerLink="/settings" routerLinkActive="selected">
-        Settings
+    <a *ngFor="let routeInfo of routeInfos"
+       class="button"
+       routerLink="{{routeInfo.path}}"
+       routerLinkActive="selected">
+        {{routeInfo.name}}
     </a>
 </div>

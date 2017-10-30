@@ -3,7 +3,7 @@
 
 #file-list-filter {
     background-color: $header-color;
-    padding: 8px;
+    padding: 0 8px 8px 8px;
 }
 
 #filter-search, #filter-status {
@@ -72,5 +72,13 @@
     }
     #filter-status .button .text {
         display: inline;
+    }
+}
+
+// Large screens
+@media only screen and (min-width: $large-min-width) {
+    // Bit of extra padding at top when title disappears
+    #file-list-filter {
+        padding-top: 8px;
     }
 }

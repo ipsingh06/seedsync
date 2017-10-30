@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
+import {ROUTE_INFOS, RouteInfo} from "./routes";
 
 @Component({
     selector: 'app-root',
@@ -8,10 +9,16 @@ import {Router} from '@angular/router';
 })
 export class AppComponent {
     showSidebar: boolean = false;
+    activeRoute: RouteInfo;
 
     constructor(router:Router) {
-        // Close the sidebar on navigation
-        router.events.subscribe(() => {this.showSidebar=false});
+        // Navigation listener
+        //    Close the sidebar
+        //    Store the active route
+        router.events.subscribe(() => {
+            this.showSidebar = false;
+            this.activeRoute = ROUTE_INFOS.find(value => value.path == router.url);
+        });
     }
 
     title = 'app';

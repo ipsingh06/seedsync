@@ -1,4 +1,5 @@
 import {Component} from '@angular/core';
+import {ROUTE_INFOS} from "./routes";
 
 @Component({
     selector: 'sidebar',
@@ -7,4 +8,5 @@ import {Component} from '@angular/core';
 })
 
 export class SidebarComponent {
+    routeInfos = ROUTE_INFOS;
 }
