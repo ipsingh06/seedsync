@@ -90,11 +90,15 @@ class WebApp(bottle.Bottle):
             cls=StreamModel,
             controller=controller
         ))
-
-        # Regular routes
+        # Backend routes
         self.get("/queue/<file_name>")(self.action_queue)
         self.get("/stop/<file_name>")(self.action_stop)
+
+        # Front-end routes
         self.route("/")(self.index)
+        self.route("/dashboard")(self.index)
+        self.route("/settings")(self.index)
+        # For static files
         self.route("/<file_path:path>")(self.static)
 
     def set_backend_status(self, status: BackendStatus):
