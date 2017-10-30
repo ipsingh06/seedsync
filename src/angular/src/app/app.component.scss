@@ -7,7 +7,7 @@
 }
 
 #top-header {
-    background-color: $bg-color;
+    background-color: $header-color;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -76,7 +76,7 @@
     text-align: left;
 
     &:active {
-        background-color: $bg-dark-color;
+        background-color: $header-dark-color;
     }
 }
 

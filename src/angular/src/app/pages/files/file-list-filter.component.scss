@@ -2,7 +2,7 @@
 
 
 #file-list-filter {
-    background-color: $bg-color;
+    background-color: $header-color;
     padding: 8px;
 }
 
@@ -23,7 +23,7 @@
     top: 7px;
     font-size: 20px;
     z-index: 100;
-    color: $bg-color;
+    color: $header-color;
 }
 
 #filter-search .input-group{

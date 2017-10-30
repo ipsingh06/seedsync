@@ -1,7 +1,8 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {HttpClientModule} from '@angular/common/http';
-import {FormsModule}   from '@angular/forms';
+import {FormsModule} from '@angular/forms';
+import {RouterModule} from '@angular/router';
 
 import {AppComponent} from './app.component';
 import {environment}    from '../environments/environment';
@@ -19,6 +20,7 @@ import {ViewFileFilterService} from "./view/view-file-filter.service";
 import {FilesPageComponent} from "./pages/files/files-page.component";
 import {HeaderComponent} from "./header.component";
 import {SidebarComponent} from "./sidebar.component";
+import {SettingsPageComponent} from "./pages/settings/settings-page.component";
 
 @NgModule({
     declarations: [
@@ -32,12 +34,28 @@ import {SidebarComponent} from "./sidebar.component";
         FileListFilterComponent,
         FilesPageComponent,
         HeaderComponent,
-        SidebarComponent
+        SidebarComponent,
+        SettingsPageComponent
     ],
     imports: [
         BrowserModule,
         HttpClientModule,
-        FormsModule
+        FormsModule,
+        RouterModule.forRoot([
+            {
+                path: '',
+                redirectTo: '/dashboard',
+                pathMatch: 'full'
+            },
+            {
+                path: 'dashboard',
+                component: FilesPageComponent
+            },
+            {
+                path: 'settings',
+                component: SettingsPageComponent
+            }
+        ])
     ],
     providers: [LoggerService,
                 ModelFileService,
