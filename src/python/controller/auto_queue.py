@@ -35,7 +35,8 @@ class AutoQueuePersist(Persist):
 
 class AutoQueueModelListener(IModelListener):
     def __init__(self):
-        self.new_files = []
+        self.new_files = []  # list of new files
+        self.modified_files = []  # list of pairs (old_file, new_file)
 
     @overrides(IModelListener)
     def file_added(self, file: ModelFile):
@@ -43,7 +44,7 @@ class AutoQueueModelListener(IModelListener):
 
     @overrides(IModelListener)
     def file_updated(self, old_file: ModelFile, new_file: ModelFile):
-        pass
+        self.modified_files.append((old_file, new_file))
 
     @overrides(IModelListener)
     def file_removed(self, file: ModelFile):
@@ -81,7 +82,10 @@ class AutoQueue:
         Advance the auto queue state
         :return:
         """
-        # Discover any matching new files and queue them
+        # Build a list of candidate file
+        candidate_file = []
+
+        # Accept new files that exist remotely
         for file in self.__model_listener.new_files:
             # Files must exist remotely
             if not file.remote_size:
@@ -89,6 +93,23 @@ class AutoQueue:
             # File must be in Default state
             if not file.state == ModelFile.State.DEFAULT:
                 continue
+            candidate_file.append(file)
+
+        # Accept modified files that were just discovered on remote
+        for old_file, new_file in self.__model_listener.modified_files:
+            # Files must exist remotely
+            if not new_file.remote_size:
+                continue
+            # File was just discovered
+            if old_file.remote_size is not None:
+                continue
+            # File must be in Default state
+            if not new_file.state == ModelFile.State.DEFAULT:
+                continue
+            candidate_file.append(new_file)
+
+        # Filter candidate files with those matching a pattern
+        for file in candidate_file:
             for pattern in self.__persist.patterns:
                 if pattern.lower() in file.name.lower():
                     self.logger.info("Auto queueing '{}' for pattern '{}'".format(file.name, pattern))
@@ -98,3 +119,4 @@ class AutoQueue:
 
         # Clear the processed files
         self.__model_listener.new_files.clear()
+        self.__model_listener.modified_files.clear()

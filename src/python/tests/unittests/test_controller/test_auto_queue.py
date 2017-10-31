@@ -222,8 +222,16 @@ class TestAutoQueue(unittest.TestCase):
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
+        file_one.local_size = 0
         file_one.state = ModelFile.State.DOWNLOADING
         self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+        file_one_new = ModelFile("File.One", True)
+        file_one_new.remote_size = 100
+        file_one_new.local_size = 50
+        file_one_new.state = ModelFile.State.DOWNLOADING
+        self.model_listener.file_updated(file_one, file_one_new)
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
 
@@ -260,6 +268,7 @@ class TestAutoQueue(unittest.TestCase):
         file_one.remote_size = 100
         self.model_listener.file_added(file_one)
         auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
         command = self.controller.queue_command.call_args[0][0]
         self.assertEqual(Controller.Command.Action.QUEUE, command.action)
         self.assertEqual("File.One", command.filename)
@@ -268,4 +277,30 @@ class TestAutoQueue(unittest.TestCase):
         file_one_updated.remote_size = 100
         file_one_updated.local_size = 50
         self.model_listener.file_updated(file_one, file_one_updated)
-        self.controller.queue_command.called_one_with(any)
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+
+    def test_partial_file_is_auto_queued_after_remote_discovery(self):
+        # Test that a partial local file is auto-queued when discovered on remote some time later
+        persist = AutoQueuePersist()
+        persist.patterns = {"File.One"}
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        # Local discovery
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        # Remote discovery
+        file_one_new = ModelFile("File.One", True)
+        file_one_new.local_size = 100
+        file_one_new.remote_size = 200
+        self.model_listener.file_updated(file_one, file_one_new)
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("File.One", command.filename)
