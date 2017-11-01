@@ -35,7 +35,7 @@ class Lftp:
     __SET_COMMAND_AT_EXIT = "cmd:at-exit"
 
     # Set this to True to enable verbose command logging
-    __LOG_COMMAND_OUTPUT = False
+    _LOG_COMMAND_OUTPUT = False
 
     def __init__(self, address: str, user: str, password: str):
         self.__user = user
@@ -89,14 +89,14 @@ class Lftp:
 
     @with_check_process
     def __run_command(self, command: str):
-        if Lftp.__LOG_COMMAND_OUTPUT:
+        if Lftp._LOG_COMMAND_OUTPUT:
             self.logger.debug("command: {}".format(command))
         self.__process.sendline(command)
         self.__process.expect(self.__expect_pattern)
         out = self.__process.before.decode()
         out = out.strip()  # remove any CRs
 
-        if Lftp.__LOG_COMMAND_OUTPUT:
+        if Lftp._LOG_COMMAND_OUTPUT:
             self.logger.debug("out:")
             for line in out.split("\n"):
                 self.logger.debug("  {}".format(line))
@@ -109,7 +109,7 @@ class Lftp:
             self.__process.expect(self.__expect_pattern)
             out = self.__process.before.decode()
             out = out.strip()  # remove any CRs
-            if Lftp.__LOG_COMMAND_OUTPUT:
+            if Lftp._LOG_COMMAND_OUTPUT:
                 self.logger.debug("retry out:")
                 for line in out.split("\n"):
                     self.logger.debug("  {}".format(line))
@@ -252,15 +252,19 @@ class Lftp:
         :param is_dir: true if folder, false if file
         :return:
         """
+        # Escape single and double quotes in any string used in queue command
+        def escape(s: str) -> str:
+            return s.replace("'", "\\'").replace("\"", "\\\"")
+
         command = " ".join([
             "queue",
             "'",
             "pget" if not is_dir else "mirror",
             "-c",
-            "\"{remote_dir}/{filename}\"".format(remote_dir=self.__base_remote_dir_path,
-                                                 filename=name),
+            "\"{remote_dir}/{filename}\"".format(remote_dir=escape(self.__base_remote_dir_path),
+                                                 filename=escape(name)),
             "-o" if not is_dir else "",
-            "\"{local_dir}/\"".format(local_dir=self.__base_local_dir_path),
+            "\"{local_dir}/\"".format(local_dir=escape(self.__base_local_dir_path)),
             "'"
         ])
         self.__run_command(command)
