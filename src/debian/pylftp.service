@@ -4,6 +4,8 @@
 
 [Unit]
 Description=Job that runs the pylftp daemon
+Requires=local-fs.target network-online.target
+After=local-fs.target network-online.target
 
 [Service]
 Type=simple
