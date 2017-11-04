@@ -79,20 +79,21 @@ class WebApp(bottle.Bottle):
         self.__stop = False
         self.__status_provider = WebStatusProvider()
 
+        # Backend routes
         # Streaming routes
-        self.get("/status")(functools.partial(
+        self.get("/server/status-stream")(functools.partial(
             self.web_stream,
             cls=StreamStatus,
             status_provider=self.__status_provider
         ))
-        self.get("/stream")(functools.partial(
+        self.get("/server/model-stream")(functools.partial(
             self.web_stream,
             cls=StreamModel,
             controller=controller
         ))
-        # Backend routes
-        self.get("/queue/<file_name>")(self.action_queue)
-        self.get("/stop/<file_name>")(self.action_stop)
+        # Non-streaming routes
+        self.get("/server/command/queue/<file_name>")(self.action_queue)
+        self.get("/server/command/stop/<file_name>")(self.action_stop)
 
         # Front-end routes
         self.route("/")(self.index)

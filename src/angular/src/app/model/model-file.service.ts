@@ -37,7 +37,7 @@ export class ModelFileReaction {
 @Injectable()
 export class ModelFileService {
 
-    private readonly EVENT_URL = "/stream";
+    private readonly EVENT_URL = "/server/model-stream";
 
     private _files: BehaviorSubject<Immutable.Map<string, ModelFile>> =
         new BehaviorSubject(Immutable.Map<string, ModelFile>());
@@ -152,7 +152,7 @@ export class ModelFileService {
      */
     public queue(file: ModelFile): Observable<ModelFileReaction> {
         this._logger.debug("Queue model file: " + file.name);
-        let url: string = "/queue/" + file.name;
+        let url: string = "/server/command/queue/" + file.name;
         return this.sendRequest(url);
     }
 
@@ -163,7 +163,7 @@ export class ModelFileService {
      */
     public stop(file: ModelFile): Observable<ModelFileReaction> {
         this._logger.debug("Stop model file: " + file.name);
-        let url: string = "/stop/" + file.name;
+        let url: string = "/server/command/stop/" + file.name;
         return this.sendRequest(url);
     }
 
