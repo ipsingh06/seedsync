@@ -1,3 +1,6 @@
 <div id="header">
-    This is a header
+    <div class="alert alert-danger"
+         [class.show]="(serverStatus | async)?.up == false">
+        {{(serverStatus | async)?.errorMessage}}
+    </div>
 </div>

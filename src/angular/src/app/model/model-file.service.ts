@@ -7,6 +7,7 @@ import * as Immutable from 'immutable';
 
 import {LoggerService} from "../common/logger.service";
 import {ModelFile} from './model-file'
+import {SseUtil} from "../common/sse.util";
 
 
 /**
@@ -48,32 +49,14 @@ export class ModelFileService {
     }
 
     private init() {
-        // Add a EventSource observable to receive file list and updates
-        // from the backend
-        // Observable-SSE code from https://stackoverflow.com/a/36827897/8571324
         let _modelFileService = this;
 
-        /**
-         * Helper function to add an event listener to an event source
-         * Forwards the event and its data to the observer's next method
-         * @param {string} eventName
-         * @param eventSource
-         * @param observer
-         */
-        function addEventListener(eventName: string, eventSource, observer) {
-            eventSource.addEventListener(eventName, event => observer.next(
-                {
-                    "event": eventName,
-                    "data": event.data
-                }
-            ));
-        }
         const observable = Observable.create(observer => {
             const eventSource = new EventSource(this.EVENT_URL);
-            addEventListener("init", eventSource, observer);
-            addEventListener("added", eventSource, observer);
-            addEventListener("removed", eventSource, observer);
-            addEventListener("updated", eventSource, observer);
+            SseUtil.addSseListener("init", eventSource, observer);
+            SseUtil.addSseListener("added", eventSource, observer);
+            SseUtil.addSseListener("removed", eventSource, observer);
+            SseUtil.addSseListener("updated", eventSource, observer);
 
             eventSource.onerror = x => observer.error(x);
 

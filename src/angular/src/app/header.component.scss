@@ -1,4 +1,11 @@
 #header {
-    border: 5px solid black;
-    display: none;
+    .alert {
+        padding: 5px;
+        margin-bottom: 0;
+        border-radius: 0;
+        display: none;
+    }
+    .alert.show {
+        display: inline;
+    }
 }

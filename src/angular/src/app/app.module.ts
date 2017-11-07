@@ -21,6 +21,7 @@ import {FilesPageComponent} from "./pages/files/files-page.component";
 import {HeaderComponent} from "./header.component";
 import {SidebarComponent} from "./sidebar.component";
 import {SettingsPageComponent} from "./pages/settings/settings-page.component";
+import {ServerStatusService} from "./other/server-status.service";
 
 @NgModule({
     declarations: [
@@ -60,7 +61,8 @@ import {SettingsPageComponent} from "./pages/settings/settings-page.component";
     providers: [LoggerService,
                 ModelFileService,
                 ViewFileService,
-                ViewFileFilterService],
+                ViewFileFilterService,
+                ServerStatusService],
     bootstrap: [AppComponent]
 })
 export class AppModule {
