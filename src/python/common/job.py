@@ -39,11 +39,16 @@ class PylftpJob(threading.Thread, ABC):
 
         while not self.shutdown_flag.is_set():
             # ... Job code here ...
+            # noinspection PyBroadException
             try:
                 self.execute()
             except Exception as e:
                 self.exc_info = sys.exc_info()
-                raise
+                self.logger.exception("Caught exception in job {}".format(self.name))
+                # break out of run loop and proceed to cleanup
+                self.shutdown_flag.set()
+                break
+
             time.sleep(PylftpJob._DEFAULT_SLEEP_INTERVAL_IN_SECS)
 
         # ... Clean shutdown code here ...

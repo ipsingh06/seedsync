@@ -14,13 +14,15 @@ class DummyError(Exception):
 
 class DummyFailingJob(PylftpJob):
     def setup(self):
-        pass
+        # noinspection PyAttributeOutsideInit
+        self.cleanup_run = False
 
     def execute(self):
         raise DummyError()
 
     def cleanup(self):
-        pass
+        # noinspection PyAttributeOutsideInit
+        self.cleanup_run = True
 
 
 class TestJob(unittest.TestCase):
@@ -34,3 +36,13 @@ class TestJob(unittest.TestCase):
             job.propagate_exception()
         job.terminate()
         job.join()
+
+    def test_cleanup_executes_on_execute_error(self):
+        context = MagicMock()
+        # noinspection PyTypeChecker
+        job = DummyFailingJob("DummyFailingJob", context)
+        job.start()
+        time.sleep(0.2)
+        job.terminate()
+        job.join()
+        self.assertTrue(job.cleanup_run)
