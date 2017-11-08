@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
@@ -38,35 +38,48 @@ export class ModelFileReaction {
 @Injectable()
 export class ModelFileService {
 
-    private readonly EVENT_URL = "/server/model-stream";
+    private readonly MODEL_STREAM_URL = "/server/model-stream";
+    private readonly MODEL_STREAM_RETRY_INTERVAL_MS = 3000;
 
     private _files: BehaviorSubject<Immutable.Map<string, ModelFile>> =
         new BehaviorSubject(Immutable.Map<string, ModelFile>());
 
     constructor(private _logger: LoggerService,
-                private _http: HttpClient) {
+                private _http: HttpClient,
+                private _zone: NgZone) {
         this.init();
     }
 
     private init() {
-        let _modelFileService = this;
+        this.createSseObserver();
+    }
 
+    private createSseObserver(){
         const observable = Observable.create(observer => {
-            const eventSource = new EventSource(this.EVENT_URL);
+            const eventSource = new EventSource(this.MODEL_STREAM_URL);
             SseUtil.addSseListener("init", eventSource, observer);
             SseUtil.addSseListener("added", eventSource, observer);
             SseUtil.addSseListener("removed", eventSource, observer);
             SseUtil.addSseListener("updated", eventSource, observer);
 
-            eventSource.onerror = x => observer.error(x);
+            eventSource.onerror = x => this._zone.run(() => observer.error(x));
 
             return () => {
                 eventSource.close();
             };
         });
         observable.subscribe({
-            next: (x) => _modelFileService.parseEvent(x["event"], x["data"]),
-            error: err => this._logger.error("SSE Error: " + err)
+            next: (x) => this.parseEvent(x["event"], x["data"]),
+            error: err => {
+                // Log the error
+                this._logger.error("SSE Error: %O", err);
+
+                // Update clients by clearing the model
+                this._files.next(this._files.getValue().clear());
+
+                // Retry after a delay
+                setTimeout(() => {this.createSseObserver()}, this.MODEL_STREAM_RETRY_INTERVAL_MS);
+            }
         });
     }
 
