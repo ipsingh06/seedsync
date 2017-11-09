@@ -78,6 +78,7 @@ class WebApp(bottle.Bottle):
         self.logger.info("Html path set to: {}".format(self.__html_path))
         self.__stop = False
         self.__status_provider = WebStatusProvider()
+        self.__request_restart = False
 
         # Backend routes
         # Streaming routes
@@ -92,6 +93,7 @@ class WebApp(bottle.Bottle):
             controller=controller
         ))
         # Non-streaming routes
+        self.get("/server/command/restart")(self.action_restart)
         self.get("/server/command/queue/<file_name>")(self.action_queue)
         self.get("/server/command/stop/<file_name>")(self.action_stop)
 
@@ -102,6 +104,13 @@ class WebApp(bottle.Bottle):
         # For static files
         self.route("/<file_path:path>")(self.static)
 
+    def process(self):
+        """
+        Advance the web app state
+        :return:
+        """
+        pass
+
     def set_backend_status(self, status: BackendStatus):
         """
         Notify the web app about the backend status
@@ -110,6 +119,13 @@ class WebApp(bottle.Bottle):
         """
         self.logger.info("Setting backend status: up={} msg={}".format(status.up, status.error_msg))
         self.__status_provider.set_status(status)
+
+    def is_restart_requested(self):
+        """
+        Returns true is a restart is requested
+        :return:
+        """
+        return self.__request_restart
 
     def stop(self):
         """
@@ -133,6 +149,15 @@ class WebApp(bottle.Bottle):
         :return:
         """
         return static_file(file_path, root=self.__html_path)
+
+    def action_restart(self):
+        """
+        Request a server restart
+        :return:
+        """
+        self.logger.info("Received a restart action")
+        self.__request_restart = True
+        return HTTPResponse(body="Requested restart")
 
     def action_queue(self, file_name: str):
         """

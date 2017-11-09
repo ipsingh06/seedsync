@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 from typing import Optional
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError, ServiceRestart
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
 from web import WebAppJob, WebApp, BackendStatus
 
@@ -142,10 +142,14 @@ class Pylftpd:
                     web_app.set_backend_status(BackendStatus(up=False, error_msg=str(exc)))
                     Pylftpd.logger.exception("Caught exception")
 
+                # Check if a restart is requested
+                if web_app.is_restart_requested():
+                    raise ServiceRestart()
+
                 # Nothing else to do
                 time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
 
-        except Exception as exc:
+        except Exception:
             self.context.logger.info("Exiting pylftp")
 
             # This sleep is important to allow the jobs to finish setup before we terminate them
@@ -165,12 +169,13 @@ class Pylftpd:
             # Stop any threads/process in controller
             controller.exit()
 
-            # Raise any exceptions so they can be logged properly
-            if not isinstance(exc, ServiceExit):
-                raise
+            # Last persist
+            self.persist()
 
-        self.persist()
-        self.context.logger.info("Finished pylftpd")
+            # Raise any exceptions so they can be logged properly
+            # Note: ServiceRestart and ServiceExit will be caught and handled
+            #       by outer code
+            raise
 
     def persist(self):
         # Save the persists
@@ -278,7 +283,15 @@ if __name__ == "__main__":
     try:
         pylftpd = Pylftpd()
         pylftpd.run()
+    except ServiceExit:
+        Pylftpd.logger.info("Exited successfully")
+    except ServiceRestart:
+        Pylftpd.logger.info("Restarting...")
+        is_pkg_frozen = getattr(sys, 'frozen', False)
+        if is_pkg_frozen:
+            os.execv(sys.executable, sys.argv)
+        else:
+            Pylftpd.logger.error("Restart is only supported for frozen package. You must restart manually.")
     except Exception as e:
-        if Pylftpd.logger is not None:
-            Pylftpd.logger.exception("Caught exception")
+        Pylftpd.logger.exception("Caught exception")
         raise

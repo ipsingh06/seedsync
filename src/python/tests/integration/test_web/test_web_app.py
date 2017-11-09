@@ -51,6 +51,13 @@ class BaseTestWebApp(unittest.TestCase):
 
 
 class TestWebApp(BaseTestWebApp):
+    def test_restart(self):
+        self.assertFalse(self.web_app.is_restart_requested())
+        print(self.test_app.get("/server/command/restart"))
+        self.assertTrue(self.web_app.is_restart_requested())
+        print(self.test_app.get("/server/command/restart"))
+        self.assertTrue(self.web_app.is_restart_requested())
+
     def test_queue(self):
         def side_effect(cmd: Controller.Command):
             cmd.callbacks[0].on_success()

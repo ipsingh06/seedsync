@@ -40,7 +40,7 @@ class WebAppJob(PylftpJob):
 
     @overrides(PylftpJob)
     def execute(self):
-        pass
+        self.__app.process()
 
     @overrides(PylftpJob)
     def cleanup(self):
@@ -74,6 +74,7 @@ class MyWSGIRefServer(bottle.ServerAdapter):
 
     @overrides(bottle.ServerAdapter)
     def run(self, handler):
+        self.logger.debug("Starting web server")
         handler = TransLogger(handler, logger=self.logger, setup_console_handler=(not self.quiet))
         self.server = httpserver.serve(handler, host=self.host, port=str(self.port), start_loop=False,
                                        handler=MyWSGIHandler,
@@ -81,4 +82,5 @@ class MyWSGIRefServer(bottle.ServerAdapter):
         self.server.serve_forever()
 
     def stop(self):
+        self.logger.debug("Stopping web server")
         self.server.server_close()
