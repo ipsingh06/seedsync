@@ -247,6 +247,8 @@ class Pylftpd:
         """
         config = PylftpConfig()
 
+        config.general.debug = False
+
         config.lftp.remote_address = Pylftpd.__CONFIG_DUMMY_VALUE
         config.lftp.remote_username = Pylftpd.__CONFIG_DUMMY_VALUE
         config.lftp.remote_path = Pylftpd.__CONFIG_DUMMY_VALUE

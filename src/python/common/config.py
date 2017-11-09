@@ -4,6 +4,7 @@ from configparser import ConfigParser
 from typing import Dict
 from io import StringIO
 import collections
+from distutils.util import strtobool
 
 from .error import PylftpError
 from .persist import Persist
@@ -63,6 +64,17 @@ def check_int_positive(cls, dct: InnerConfig, name: str) -> int:
     return val
 
 
+def check_bool(cls, dct: InnerConfig, name: str) -> bool:
+    val_str = check_string_nonempty(cls, dct, name)
+    try:
+        val = bool(strtobool(val_str))
+    except ValueError:
+        raise ConfigError("Bad config: {}.{} ({}) must be a boolean value".format(
+            cls.__name__, name, val_str
+        ))
+    return val
+
+
 def check_string_nonempty(cls, dct: InnerConfig, name: str) -> str:
     val = check_string(cls, dct, name)
     if not val:
@@ -82,6 +94,27 @@ class PylftpConfig(Persist):
     """
     Configuration registry
     """
+    class General:
+        def __init__(self):
+            self.debug = None
+
+        @staticmethod
+        def from_dict(config_dict: InnerConfig) -> "PylftpConfig.General":
+            config_dict = dict(config_dict)  # copy that we can modify
+            config = PylftpConfig.General()
+
+            config.debug = check_bool(
+                PylftpConfig.General, config_dict, "debug"
+            )
+
+            check_empty_inner_dict(PylftpConfig.General, config_dict)
+            return config
+
+        def as_dict(self) -> InnerConfig:
+            config_dict = collections.OrderedDict()
+            config_dict["debug"] = str(self.debug)
+            return config_dict
+
     class Lftp:
         def __init__(self):
             self.remote_address = None
@@ -188,6 +221,7 @@ class PylftpConfig(Persist):
             return config_dict
 
     def __init__(self):
+        self.general = PylftpConfig.General()
         self.lftp = PylftpConfig.Lftp()
         self.controller = PylftpConfig.Controller()
         self.web = PylftpConfig.Web()
@@ -222,6 +256,7 @@ class PylftpConfig(Persist):
         config_dict = dict(config_dict)  # copy that we can modify
         config = PylftpConfig()
 
+        config.general = PylftpConfig.General.from_dict(check_section(config_dict, "General"))
         config.lftp = PylftpConfig.Lftp.from_dict(check_section(config_dict, "Lftp"))
         config.controller = PylftpConfig.Controller.from_dict(check_section(config_dict, "Controller"))
         config.web = PylftpConfig.Web.from_dict(check_section(config_dict, "Web"))
@@ -233,6 +268,7 @@ class PylftpConfig(Persist):
         # We convert all values back to strings
         # Use an ordered dict to main section order
         config_dict = collections.OrderedDict()
+        config_dict["General"] = self.general.as_dict()
         config_dict["Lftp"] = self.lftp.as_dict()
         config_dict["Controller"] = self.controller.as_dict()
         config_dict["Web"] = self.web.as_dict()

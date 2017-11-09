@@ -68,6 +68,25 @@ class TestPylftpConfig(unittest.TestCase):
             cls.from_dict(bad_dict)
         self.assertTrue(str(error.exception).startswith("Bad config"))
 
+    def test_general(self):
+        good_dict = {
+            "debug": "True",
+        }
+        general = PylftpConfig.General.from_dict(good_dict)
+        self.assertEqual(True, general.debug)
+
+        # unknown
+        self.__check_unknown_error(PylftpConfig.General, good_dict)
+
+        # missing keys
+        self.__check_missing_error(PylftpConfig.General, good_dict, "debug")
+
+        # empty values
+        self.__check_empty_error(PylftpConfig.General, good_dict, "debug")
+
+        # bad values
+        self.__check_bad_value_error(PylftpConfig.General, good_dict, "debug", "SomeString")
+
     def test_lftp(self):
         good_dict = {
             "remote_address": "remote.server.com",
@@ -180,6 +199,9 @@ class TestPylftpConfig(unittest.TestCase):
         config_file = open(tempfile.mktemp(suffix="test_config"), "w")
 
         config_file.write("""
+        [General]
+        debug=False
+
         [Lftp]
         remote_address=remote.server.com
         remote_username=remote-user
@@ -202,6 +224,8 @@ class TestPylftpConfig(unittest.TestCase):
         """)
         config_file.flush()
         config = PylftpConfig.from_file(config_file.name)
+
+        self.assertEqual(False, config.general.debug)
 
         self.assertEqual("remote.server.com", config.lftp.remote_address)
         self.assertEqual("remote-user", config.lftp.remote_username)
@@ -238,6 +262,7 @@ class TestPylftpConfig(unittest.TestCase):
         config_file_path = tempfile.mktemp(suffix="test_config")
 
         config = PylftpConfig()
+        config.general.debug = True
         config.lftp.remote_address = "server.remote.com"
         config.lftp.remote_username = "user-on-remote-server"
         config.lftp.remote_path = "/remote/server/path"
@@ -257,6 +282,9 @@ class TestPylftpConfig(unittest.TestCase):
             actual_str = f.read()
 
         golden_str = """
+        [General]
+        debug = True
+
         [Lftp]
         remote_address = server.remote.com
         remote_username = user-on-remote-server
