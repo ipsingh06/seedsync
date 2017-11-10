@@ -13,7 +13,7 @@ import sys
 
 import timeout_decorator
 
-from common import overrides, PylftpContext, PylftpConfig, PylftpArgs, PylftpError
+from common import overrides, PylftpContext, PylftpConfig, PylftpArgs, PylftpError, Localization
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
@@ -213,40 +213,51 @@ class TestController(unittest.TestCase):
     def test_bad_config_remote_address_raises_exception(self):
         self.context.config.lftp.remote_address = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(0.5)
-        with self.assertRaises(PylftpError):
+        with self.assertRaises(PylftpError) as error:
             self.controller.process()
+        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
 
     def test_bad_config_remote_username_raises_exception(self):
         self.context.config.lftp.remote_username = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(0.5)
-        with self.assertRaises(PylftpError):
+        with self.assertRaises(PylftpError) as error:
             self.controller.process()
+        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
 
     def test_bad_config_remote_path_raises_exception(self):
         self.context.config.lftp.remote_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(0.5)
-        with self.assertRaises(PylftpError):
+        with self.assertRaises(PylftpError) as error:
             self.controller.process()
+        self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(error.exception))
 
     def test_bad_config_local_path_raises_exception(self):
         self.context.config.lftp.local_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(0.5)
-        with self.assertRaises(PylftpError):
+        with self.assertRaises(PylftpError) as error:
             self.controller.process()
+        self.assertEqual(Localization.Error.LOCAL_SERVER_SCAN, str(error.exception))
 
     def test_bad_config_remote_path_to_scan_script_raises_exception(self):
         self.context.config.lftp.remote_path_to_scan_script = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(0.5)
-        with self.assertRaises(PylftpError):
+        with self.assertRaises(PylftpError) as error:
             self.controller.process()
+        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
 
     def test_initial_model(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
         self.controller.process()
 
@@ -261,6 +272,7 @@ class TestController(unittest.TestCase):
 
     def test_local_file_added(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -287,6 +299,7 @@ class TestController(unittest.TestCase):
 
     def test_local_file_updated(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -315,6 +328,7 @@ class TestController(unittest.TestCase):
 
     def test_local_file_removed(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -341,6 +355,7 @@ class TestController(unittest.TestCase):
 
     def test_remote_file_added(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -367,6 +382,7 @@ class TestController(unittest.TestCase):
 
     def test_remote_file_updated(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -395,6 +411,7 @@ class TestController(unittest.TestCase):
 
     def test_remote_file_removed(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -422,6 +439,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(5)
     def test_command_queue_directory(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -466,6 +484,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(5)
     def test_command_queue_file(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -508,6 +527,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(5)
     def test_command_queue_invalid(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -543,6 +563,7 @@ class TestController(unittest.TestCase):
 
     def test_command_queue_local_directory(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -576,6 +597,7 @@ class TestController(unittest.TestCase):
 
     def test_command_queue_local_file(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -612,6 +634,7 @@ class TestController(unittest.TestCase):
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
@@ -667,6 +690,7 @@ class TestController(unittest.TestCase):
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
@@ -720,6 +744,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(10)
     def test_command_stop_default(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -760,6 +785,7 @@ class TestController(unittest.TestCase):
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
@@ -822,6 +848,7 @@ class TestController(unittest.TestCase):
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
@@ -879,6 +906,7 @@ class TestController(unittest.TestCase):
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         # noinspection PyUnresolvedReferences
         self.controller._Controller__lftp.rate_limit = 100
 
@@ -934,6 +962,7 @@ class TestController(unittest.TestCase):
     def test_config_num_max_parallel_downloads(self):
         self.context.config.lftp.num_max_parallel_downloads = 2
         new_controller = Controller(self.context, ControllerPersist())
+        new_controller.start()
 
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
@@ -992,6 +1021,7 @@ class TestController(unittest.TestCase):
         self.context.config.controller.interval_ms_downloading_scan = 200
         self.context.config.controller.interval_ms_local_scan = 10000
         new_controller = Controller(self.context, ControllerPersist())
+        new_controller.start()
 
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
@@ -1038,6 +1068,7 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(10)
     def test_persist_downloaded(self):
         self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
         time.sleep(1.0)
 
         # Ignore the initial state
@@ -1081,6 +1112,7 @@ class TestController(unittest.TestCase):
         # We set the downloaded state in controller persist
         self.controller_persist.downloaded_file_names.add("ra")
         new_controller = Controller(self.context, self.controller_persist)
+        new_controller.start()
 
         time.sleep(1.0)
 

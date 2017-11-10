@@ -11,7 +11,8 @@ from logging.handlers import RotatingFileHandler
 from typing import Optional
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError, ServiceRestart
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError, ServiceRestart, \
+                   Localization
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
 from web import WebAppJob, WebApp, BackendStatus
 
@@ -114,7 +115,7 @@ class Pylftpd:
             self.context.logger.error("Config is incomplete")
             web_app.set_backend_status(BackendStatus(
                 up=False,
-                error_msg="Settings are incomplete"
+                error_msg=Localization.Error.SETTINGS_INCOMPLETE
             ))
 
         # Start child threads here
@@ -159,15 +160,14 @@ class Pylftpd:
             time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
 
             # Join all the threads here
-            controller_job.terminate()
+            if do_start_controller:
+                controller_job.terminate()
             webapp_job.terminate()
 
             # Wait for the threads to close
-            controller_job.join()
+            if do_start_controller:
+                controller_job.join()
             webapp_job.join()
-
-            # Stop any threads/process in controller
-            controller.exit()
 
             # Last persist
             self.persist()

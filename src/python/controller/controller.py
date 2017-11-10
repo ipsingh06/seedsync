@@ -12,13 +12,20 @@ import copy
 # my libs
 from .scanner_process import ScannerProcess
 from .model_builder import ModelBuilder
-from common import PylftpContext
+from common import PylftpContext, PylftpError
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
 from lftp import Lftp, LftpError, LftpJobStatus
 from .downloading_scanner import DownloadingScanner
 from .local_scanner import LocalScanner
 from .remote_scanner import RemoteScanner
 from .controller_persist import ControllerPersist
+
+
+class ControllerError(PylftpError):
+    """
+    Exception indicating a controller error
+    """
+    pass
 
 
 class Controller:
@@ -132,9 +139,19 @@ class Controller:
         self.__downloading_scan_process.set_base_logger(self.logger.getChild("Downloading"))  # to differentiate scanner
         self.__local_scan_process.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
         self.__remote_scan_process.set_base_logger(self.logger.getChild("Remote"))  # to differentiate scanner
+
+        self.__started = False
+
+    def start(self):
+        """
+        Start the controller
+        Must be called after ctor and before process()
+        :return:
+        """
         self.__downloading_scan_process.start()
         self.__local_scan_process.start()
         self.__remote_scan_process.start()
+        self.__started = True
 
     def process(self):
         """
@@ -142,15 +159,19 @@ class Controller:
         This method should return relatively quickly as the heavy lifting is done by concurrent tasks
         :return:
         """
+        if not self.__started:
+            raise ControllerError("Cannot process, controller is not started")
         self.__propagate_exceptions()
         self.__process_commands()
         self.__update_model()
 
     def exit(self):
-        self.__downloading_scan_process.terminate()
-        self.__local_scan_process.terminate()
-        self.__remote_scan_process.terminate()
-        self.logger.info("Exited controller")
+        if self.__started:
+            self.__downloading_scan_process.terminate()
+            self.__local_scan_process.terminate()
+            self.__remote_scan_process.terminate()
+            self.__started = False
+            self.logger.info("Exited controller")
 
     def get_model_files(self) -> List[ModelFile]:
         """

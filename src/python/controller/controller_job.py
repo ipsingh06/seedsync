@@ -22,7 +22,7 @@ class ControllerJob(PylftpJob):
 
     @overrides(PylftpJob)
     def setup(self):
-        pass
+        self.__controller.start()
 
     @overrides(PylftpJob)
     def execute(self):
@@ -31,4 +31,4 @@ class ControllerJob(PylftpJob):
 
     @overrides(PylftpJob)
     def cleanup(self):
-        pass
+        self.__controller.exit()
