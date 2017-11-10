@@ -170,6 +170,9 @@ class Controller:
             self.__downloading_scan_process.terminate()
             self.__local_scan_process.terminate()
             self.__remote_scan_process.terminate()
+            self.__downloading_scan_process.join()
+            self.__local_scan_process.join()
+            self.__remote_scan_process.join()
             self.__started = False
             self.logger.info("Exited controller")
 
