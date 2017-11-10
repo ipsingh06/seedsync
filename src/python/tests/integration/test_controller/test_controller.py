@@ -152,6 +152,9 @@ class TestController(unittest.TestCase):
         ctx_args.local_path_to_scanfs = local_exe_path
 
         config_dict = {
+            "General": {
+                "debug": "True"
+            },
             "Lftp": {
                 "remote_address": "localhost",
                 "remote_username": getpass.getuser(),

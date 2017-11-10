@@ -5,6 +5,8 @@ from typing import Dict
 from io import StringIO
 import collections
 from distutils.util import strtobool
+from abc import ABC
+from typing import Type, TypeVar, Callable
 
 from .error import PylftpError
 from .persist import Persist
@@ -22,209 +24,168 @@ InnerConfig = Dict[str, str]
 OuterConfig = Dict[str, InnerConfig]
 
 
-def check_section(dct: OuterConfig, name: str) -> InnerConfig:
-    if name not in dct:
-        raise ConfigError("Missing config section: {}".format(name))
-    val = dct[name]
-    del dct[name]
-    return val
+# Source: https://stackoverflow.com/a/39205612/8571324
+T = TypeVar('T', bound='PylftpInnerConfig')
 
 
-def check_empty_outer_dict(dct: OuterConfig):
-    extra_keys = dct.keys()
-    if extra_keys:
-        raise ConfigError("Unknown section: {}".format(next(iter(extra_keys))))
+class PylftpInnerConfig(ABC):
+    """
+    Abstract base class for an config section
+    Provides utility methods for checking and parsing string values to proper types
+    """
+    def __init__(self):
+        self.__registry = collections.OrderedDict()  # registry of values, maps name -> checker method
 
+    def _register_value(self, name, checker_method: Callable):
+        self.__registry[name] = checker_method
+        return "Unset"
 
-def check_string(cls, dct: InnerConfig, name: str) -> str:
-    if name not in dct:
-        raise ConfigError("Missing config: {}.{}".format(cls.__name__, name))
-    val = dct[name]
-    del dct[name]
-    return val
+    @classmethod
+    def from_dict(cls: Type[T], config_dict: InnerConfig) -> T:
+        """
+        Construct and return inner config from a dict
+        :param config_dict:
+        :return:
+        """
+        config_dict = dict(config_dict)  # copy that we can modify
 
+        # noinspection PyCallingNonCallable
+        inner_config = cls()
+        for name, checker_method in inner_config.__registry.items():
+            setattr(inner_config, name, checker_method(config_dict, name))
 
-def check_int_non_negative(cls, dct: InnerConfig, name: str) -> int:
-    val_str = check_string_nonempty(cls, dct, name)
-    val = int(val_str)
-    if val < 0:
-        raise ConfigError("Bad config: {}.{} ({}) must be zero or greater".format(
-            cls.__name__, name, val
-        ))
-    return val
+        PylftpInnerConfig._check_empty_inner_dict(config_dict)
 
+        return inner_config
 
-def check_int_positive(cls, dct: InnerConfig, name: str) -> int:
-    val_str = check_string_nonempty(cls, dct, name)
-    val = int(val_str)
-    if val < 1:
-        raise ConfigError("Bad config: {}.{} ({}) must be greater than 0".format(
-            cls.__name__, name, val
-        ))
-    return val
+    def as_dict(self) -> InnerConfig:
+        """
+        Return the dict representation of the inner config
+        :return:
+        """
+        config_dict = collections.OrderedDict()
+        for name, _ in self.__registry.items():
+            config_dict[name] = str(getattr(self, name))
+        return config_dict
 
+    @classmethod
+    def _check_empty_inner_dict(cls, dct: InnerConfig):
+        extra_keys = dct.keys()
+        if extra_keys:
+            raise ConfigError("Unknown config: {}.{}".format(cls.__name__, next(iter(extra_keys))))
 
-def check_bool(cls, dct: InnerConfig, name: str) -> bool:
-    val_str = check_string_nonempty(cls, dct, name)
-    try:
-        val = bool(strtobool(val_str))
-    except ValueError:
-        raise ConfigError("Bad config: {}.{} ({}) must be a boolean value".format(
-            cls.__name__, name, val_str
-        ))
-    return val
+    @classmethod
+    def _check_bool(cls, dct: InnerConfig, name: str) -> bool:
+        val_str = cls._check_string_nonempty(dct, name)
+        try:
+            val = bool(strtobool(val_str))
+        except ValueError:
+            raise ConfigError("Bad config: {}.{} ({}) must be a boolean value".format(
+                cls.__name__, name, val_str
+            ))
+        return val
 
+    @classmethod
+    def _check_int_positive(cls, dct: InnerConfig, name: str) -> int:
+        val_str = cls._check_string_nonempty(dct, name)
+        val = int(val_str)
+        if val < 1:
+            raise ConfigError("Bad config: {}.{} ({}) must be greater than 0".format(
+                cls.__name__, name, val
+            ))
+        return val
 
-def check_string_nonempty(cls, dct: InnerConfig, name: str) -> str:
-    val = check_string(cls, dct, name)
-    if not val:
-        raise ConfigError("Bad config: {}.{} is empty".format(
-            cls.__name__, name
-        ))
-    return val
+    @classmethod
+    def _check_int_non_negative(cls, dct: InnerConfig, name: str) -> int:
+        val_str = cls._check_string_nonempty(dct, name)
+        val = int(val_str)
+        if val < 0:
+            raise ConfigError("Bad config: {}.{} ({}) must be zero or greater".format(
+                cls.__name__, name, val
+            ))
+        return val
 
+    @classmethod
+    def _check_string_nonempty(cls, dct: InnerConfig, name: str) -> str:
+        val = cls._check_string(dct, name)
+        if not val:
+            raise ConfigError("Bad config: {}.{} is empty".format(
+                cls.__name__, name
+            ))
+        return val
 
-def check_empty_inner_dict(cls, dct: InnerConfig):
-    extra_keys = dct.keys()
-    if extra_keys:
-        raise ConfigError("Unknown config: {}.{}".format(cls.__name__, next(iter(extra_keys))))
+    @classmethod
+    def _check_string(cls, dct: InnerConfig, name: str) -> str:
+        if name not in dct:
+            raise ConfigError("Missing config: {}.{}".format(cls.__name__, name))
+        val = dct[name]
+        del dct[name]
+        return val
 
 
 class PylftpConfig(Persist):
     """
     Configuration registry
     """
-    class General:
+    class General(PylftpInnerConfig):
         def __init__(self):
-            self.debug = None
+            super().__init__()
+            self.debug = self._register_value("debug", self._check_bool)
 
-        @staticmethod
-        def from_dict(config_dict: InnerConfig) -> "PylftpConfig.General":
-            config_dict = dict(config_dict)  # copy that we can modify
-            config = PylftpConfig.General()
-
-            config.debug = check_bool(
-                PylftpConfig.General, config_dict, "debug"
-            )
-
-            check_empty_inner_dict(PylftpConfig.General, config_dict)
-            return config
-
-        def as_dict(self) -> InnerConfig:
-            config_dict = collections.OrderedDict()
-            config_dict["debug"] = str(self.debug)
-            return config_dict
-
-    class Lftp:
+    class Lftp(PylftpInnerConfig):
         def __init__(self):
-            self.remote_address = None
-            self.remote_username = None
-            self.remote_path = None
-            self.local_path = None
-            self.remote_path_to_scan_script = None
-            self.num_max_parallel_downloads = None
-            self.num_max_parallel_files_per_download = None
-            self.num_max_connections_per_root_file = None
-            self.num_max_connections_per_dir_file = None
-            self.num_max_total_connections = None
+            super().__init__()
+            self.remote_address = self._register_value("remote_address", self._check_string_nonempty)
+            self.remote_username = self._register_value("remote_username", self._check_string_nonempty)
+            self.remote_path = self._register_value("remote_path", self._check_string_nonempty)
+            self.local_path = self._register_value("local_path", self._check_string_nonempty)
+            self.remote_path_to_scan_script = self._register_value("remote_path_to_scan_script",
+                                                                   self._check_string_nonempty)
+            self.num_max_parallel_downloads = self._register_value("num_max_parallel_downloads",
+                                                                   self._check_int_positive)
+            self.num_max_parallel_files_per_download = self._register_value("num_max_parallel_files_per_download",
+                                                                            self._check_int_positive)
+            self.num_max_connections_per_root_file = self._register_value("num_max_connections_per_root_file",
+                                                                          self._check_int_positive)
+            self.num_max_connections_per_dir_file = self._register_value("num_max_connections_per_dir_file",
+                                                                         self._check_int_positive)
+            self.num_max_total_connections = self._register_value("num_max_total_connections",
+                                                                  self._check_int_non_negative)
 
-        @staticmethod
-        def from_dict(config_dict: InnerConfig) -> "PylftpConfig.Lftp":
-            config_dict = dict(config_dict)  # copy that we can modify
-            config = PylftpConfig.Lftp()
-
-            config.remote_address = check_string_nonempty(PylftpConfig.Lftp, config_dict, "remote_address")
-            config.remote_username = check_string_nonempty(PylftpConfig.Lftp, config_dict, "remote_username")
-            config.remote_path = check_string_nonempty(PylftpConfig.Lftp, config_dict, "remote_path")
-            config.local_path = check_string_nonempty(PylftpConfig.Lftp, config_dict, "local_path")
-            config.remote_path_to_scan_script = check_string_nonempty(
-                PylftpConfig.Lftp, config_dict, "remote_path_to_scan_script")
-
-            config.num_max_parallel_downloads = check_int_positive(
-                PylftpConfig.Lftp, config_dict, "num_max_parallel_downloads")
-            config.num_max_parallel_files_per_download = check_int_positive(
-                PylftpConfig.Lftp, config_dict, "num_max_parallel_files_per_download")
-            config.num_max_connections_per_root_file = check_int_positive(
-                PylftpConfig.Lftp, config_dict, "num_max_connections_per_root_file")
-            config.num_max_connections_per_dir_file = check_int_positive(
-                PylftpConfig.Lftp, config_dict, "num_max_connections_per_dir_file")
-            config.num_max_total_connections = check_int_non_negative(
-                PylftpConfig.Lftp, config_dict, "num_max_total_connections")
-
-            check_empty_inner_dict(PylftpConfig.Lftp, config_dict)
-            return config
-
-        def as_dict(self) -> InnerConfig:
-            config_dict = collections.OrderedDict()
-            config_dict["remote_address"] = self.remote_address
-            config_dict["remote_username"] = self.remote_username
-            config_dict["remote_path"] = self.remote_path
-            config_dict["local_path"] = self.local_path
-            config_dict["remote_path_to_scan_script"] = self.remote_path_to_scan_script
-            config_dict["num_max_parallel_downloads"] = str(self.num_max_parallel_downloads)
-            config_dict["num_max_parallel_files_per_download"] = str(self.num_max_parallel_files_per_download)
-            config_dict["num_max_connections_per_root_file"] = str(self.num_max_connections_per_root_file)
-            config_dict["num_max_connections_per_dir_file"] = str(self.num_max_connections_per_dir_file)
-            config_dict["num_max_total_connections"] = str(self.num_max_total_connections)
-            return config_dict
-
-    class Controller:
+    class Controller(PylftpInnerConfig):
         def __init__(self):
-            self.interval_ms_remote_scan = None
-            self.interval_ms_local_scan = None
-            self.interval_ms_downloading_scan = None
+            super().__init__()
+            self.interval_ms_remote_scan = self._register_value("interval_ms_remote_scan",
+                                                                self._check_int_positive)
+            self.interval_ms_local_scan = self._register_value("interval_ms_local_scan",
+                                                               self._check_int_positive)
+            self.interval_ms_downloading_scan = self._register_value("interval_ms_downloading_scan",
+                                                                     self._check_int_positive)
 
-        @staticmethod
-        def from_dict(config_dict: InnerConfig) -> "PylftpConfig.Controller":
-            config_dict = dict(config_dict)  # copy that we can modify
-            config = PylftpConfig.Controller()
-
-            config.interval_ms_remote_scan = check_int_positive(
-                PylftpConfig.Controller, config_dict, "interval_ms_remote_scan"
-            )
-            config.interval_ms_local_scan = check_int_positive(
-                PylftpConfig.Controller, config_dict, "interval_ms_local_scan"
-            )
-            config.interval_ms_downloading_scan = check_int_positive(
-                PylftpConfig.Controller, config_dict, "interval_ms_downloading_scan"
-            )
-
-            check_empty_inner_dict(PylftpConfig.Controller, config_dict)
-            return config
-
-        def as_dict(self) -> InnerConfig:
-            config_dict = collections.OrderedDict()
-            config_dict["interval_ms_remote_scan"] = str(self.interval_ms_remote_scan)
-            config_dict["interval_ms_local_scan"] = str(self.interval_ms_local_scan)
-            config_dict["interval_ms_downloading_scan"] = str(self.interval_ms_downloading_scan)
-            return config_dict
-
-    class Web:
+    class Web(PylftpInnerConfig):
         def __init__(self):
-            self.port = None
-
-        @staticmethod
-        def from_dict(config_dict: InnerConfig) -> "PylftpConfig.Web":
-            config_dict = dict(config_dict)  # copy that we can modify
-            config = PylftpConfig.Web()
-
-            config.port = check_int_positive(
-                PylftpConfig.Web, config_dict, "port"
-            )
-
-            check_empty_inner_dict(PylftpConfig.Web, config_dict)
-            return config
-
-        def as_dict(self) -> InnerConfig:
-            config_dict = collections.OrderedDict()
-            config_dict["port"] = str(self.port)
-            return config_dict
+            super().__init__()
+            self.port = self._register_value("port", self._check_int_positive)
 
     def __init__(self):
         self.general = PylftpConfig.General()
         self.lftp = PylftpConfig.Lftp()
         self.controller = PylftpConfig.Controller()
         self.web = PylftpConfig.Web()
+
+    @staticmethod
+    def _check_section(dct: OuterConfig, name: str) -> InnerConfig:
+        if name not in dct:
+            raise ConfigError("Missing config section: {}".format(name))
+        val = dct[name]
+        del dct[name]
+        return val
+
+    @staticmethod
+    def _check_empty_outer_dict(dct: OuterConfig):
+        extra_keys = dct.keys()
+        if extra_keys:
+            raise ConfigError("Unknown section: {}".format(next(iter(extra_keys))))
 
     @classmethod
     @overrides(Persist)
@@ -256,12 +217,12 @@ class PylftpConfig(Persist):
         config_dict = dict(config_dict)  # copy that we can modify
         config = PylftpConfig()
 
-        config.general = PylftpConfig.General.from_dict(check_section(config_dict, "General"))
-        config.lftp = PylftpConfig.Lftp.from_dict(check_section(config_dict, "Lftp"))
-        config.controller = PylftpConfig.Controller.from_dict(check_section(config_dict, "Controller"))
-        config.web = PylftpConfig.Web.from_dict(check_section(config_dict, "Web"))
+        config.general = PylftpConfig.General.from_dict(PylftpConfig._check_section(config_dict, "General"))
+        config.lftp = PylftpConfig.Lftp.from_dict(PylftpConfig._check_section(config_dict, "Lftp"))
+        config.controller = PylftpConfig.Controller.from_dict(PylftpConfig._check_section(config_dict, "Controller"))
+        config.web = PylftpConfig.Web.from_dict(PylftpConfig._check_section(config_dict, "Web"))
 
-        check_empty_outer_dict(config_dict)
+        PylftpConfig._check_empty_outer_dict(config_dict)
         return config
 
     def as_dict(self) -> OuterConfig:

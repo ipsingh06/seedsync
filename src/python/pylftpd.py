@@ -273,7 +273,7 @@ class Pylftpd:
         config_dict = config.as_dict()
         for sec_name in config_dict:
             for key in config_dict[sec_name]:
-                if Pylftpd.__CONFIG_DUMMY_VALUE == str(config_dict[sec_name][key]):
+                if Pylftpd.__CONFIG_DUMMY_VALUE == config_dict[sec_name][key]:
                     return True
         return False
 

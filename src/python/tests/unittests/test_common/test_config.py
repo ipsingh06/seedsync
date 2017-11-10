@@ -52,7 +52,24 @@ class TestPylftpConfig(unittest.TestCase):
             cls.from_dict(bad_dict)
         self.assertTrue(str(error.exception).startswith("Bad config"))
 
-    def __check_bad_value_error(self, cls, good_dict, key, value):
+    def check_common(self, cls, good_dict, keys):
+        """
+        Helper method to run some common checks
+        :param cls:
+        :param good_dict:
+        :param keys:
+        :return:
+        """
+        # unknown
+        self.__check_unknown_error(cls, good_dict)
+
+        for key in keys:
+            # missing key
+            self.__check_missing_error(cls, good_dict, key)
+            # empty value
+            self.__check_empty_error(cls, good_dict, key)
+
+    def check_bad_value_error(self, cls, good_dict, key, value):
         """
         Helper method to check that a config class raises an error on
         a bad value
@@ -75,17 +92,15 @@ class TestPylftpConfig(unittest.TestCase):
         general = PylftpConfig.General.from_dict(good_dict)
         self.assertEqual(True, general.debug)
 
-        # unknown
-        self.__check_unknown_error(PylftpConfig.General, good_dict)
-
-        # missing keys
-        self.__check_missing_error(PylftpConfig.General, good_dict, "debug")
-
-        # empty values
-        self.__check_empty_error(PylftpConfig.General, good_dict, "debug")
+        self.check_common(PylftpConfig.General,
+                          good_dict,
+                          {
+                              "debug"
+                          })
 
         # bad values
-        self.__check_bad_value_error(PylftpConfig.General, good_dict, "debug", "SomeString")
+        self.check_bad_value_error(PylftpConfig.General, good_dict, "debug", "SomeString")
+        self.check_bad_value_error(PylftpConfig.General, good_dict, "debug", "-1")
 
     def test_lftp(self):
         good_dict = {
@@ -112,39 +127,31 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual(6, lftp.num_max_connections_per_dir_file)
         self.assertEqual(7, lftp.num_max_total_connections)
 
-        # unknown
-        self.__check_unknown_error(PylftpConfig.Lftp, good_dict)
-
-        # missing keys
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_address")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_username")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_path")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "local_path")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "remote_path_to_scan_script")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file")
-        self.__check_missing_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections")
-
-        # empty values
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_address")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_username")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_path")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "local_path")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "remote_path_to_scan_script")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file")
-        self.__check_empty_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections")
+        self.check_common(PylftpConfig.Lftp,
+                          good_dict,
+                          {
+                              "remote_address",
+                              "remote_username",
+                              "remote_path",
+                              "local_path",
+                              "remote_path_to_scan_script",
+                              "num_max_parallel_downloads",
+                              "num_max_parallel_files_per_download",
+                              "num_max_connections_per_root_file",
+                              "num_max_connections_per_dir_file",
+                              "num_max_total_connections"
+                          })
 
         # bad values
-        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads", "-1")
-        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download", "-1")
-        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file", "-1")
-        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file", "-1")
-        self.__check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections", "-1")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads", "-1")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads", "0")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download", "-1")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download", "0")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file", "-1")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file", "0")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file", "-1")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file", "0")
+        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections", "-1")
 
     def test_controller(self):
         good_dict = {
@@ -157,23 +164,21 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual(10000, lftp.interval_ms_local_scan)
         self.assertEqual(2000, lftp.interval_ms_downloading_scan)
 
-        # unknown
-        self.__check_unknown_error(PylftpConfig.Controller, good_dict)
-
-        # missing keys
-        self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan")
-        self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan")
-        self.__check_missing_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan")
-
-        # empty values
-        self.__check_empty_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan")
-        self.__check_empty_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan")
-        self.__check_empty_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan")
+        self.check_common(PylftpConfig.Controller,
+                          good_dict,
+                          {
+                              "interval_ms_remote_scan",
+                              "interval_ms_local_scan",
+                              "interval_ms_downloading_scan"
+                          })
 
         # bad values
-        self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "-1")
-        self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "-1")
-        self.__check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan", "-1")
+        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "-1")
+        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "0")
+        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "-1")
+        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "0")
+        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan", "-1")
+        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan", "0")
 
     def test_web(self):
         good_dict = {
@@ -182,17 +187,15 @@ class TestPylftpConfig(unittest.TestCase):
         web = PylftpConfig.Web.from_dict(good_dict)
         self.assertEqual(1234, web.port)
 
-        # unknown
-        self.__check_unknown_error(PylftpConfig.Web, good_dict)
-
-        # missing keys
-        self.__check_missing_error(PylftpConfig.Web, good_dict, "port")
-
-        # empty values
-        self.__check_empty_error(PylftpConfig.Web, good_dict, "port")
+        self.check_common(PylftpConfig.Web,
+                          good_dict,
+                          {
+                              "port"
+                          })
 
         # bad values
-        self.__check_bad_value_error(PylftpConfig.Web, good_dict, "port", "-1")
+        self.check_bad_value_error(PylftpConfig.Web, good_dict, "port", "-1")
+        self.check_bad_value_error(PylftpConfig.Web, good_dict, "port", "0")
 
     def test_from_file(self):
         # Create empty config file
