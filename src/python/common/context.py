@@ -2,6 +2,7 @@
 
 import logging
 import copy
+import collections
 
 # my libs
 from .config import PylftpConfig
@@ -17,6 +18,13 @@ class PylftpArgs:
         self.local_path_to_scanfs = None
         self.html_path = None
         self.debug = None
+
+    def as_dict(self) -> dict:
+        dct = collections.OrderedDict()
+        dct["local_path_to_scanfs"] = str(self.local_path_to_scanfs)
+        dct["html_path"] = str(self.html_path)
+        dct["debug"] = str(self.debug)
+        return dct
 
 
 class PylftpContext:
@@ -52,5 +60,5 @@ class PylftpContext:
                 self.logger.debug("  {}.{}: {}".format(section, option, value))
 
         self.logger.debug("Args:")
-        self.logger.debug("  {}: {}".format("local_path_to_scanfs", self.args.local_path_to_scanfs))
-        self.logger.debug("  {}: {}".format("html_path", self.args.html_path))
+        for name, value in self.args.as_dict().items():
+            self.logger.debug("  {}: {}".format(name, value))

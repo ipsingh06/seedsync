@@ -34,22 +34,6 @@ class Pylftpd:
         # Parse the args
         args = self._parse_args()
 
-        # Logger setup
-        # We separate the main log from the web-access log
-        logger = self._create_logger(name=Constants.SERVICE_NAME,
-                                     debug=args.debug,
-                                     logdir=args.logdir)
-        Pylftpd.logger = logger
-        web_access_logger = self._create_logger(name=Constants.WEB_ACCESS_LOG_NAME,
-                                                debug=args.debug,
-                                                logdir=args.logdir)
-
-        # Create context args
-        ctx_args = PylftpArgs()
-        ctx_args.local_path_to_scanfs = args.scanfs
-        ctx_args.html_path = args.html
-        ctx_args.debug = args.debug
-
         # Create/load config
         config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)
         if os.path.isfile(config_path):
@@ -58,6 +42,26 @@ class Pylftpd:
             # Create default config
             config = Pylftpd._create_default_config()
             config.to_file(config_path)
+
+        # Determine the true value of debug
+        is_debug = args.debug or config.general.debug
+
+        # Create context args
+        ctx_args = PylftpArgs()
+        ctx_args.local_path_to_scanfs = args.scanfs
+        ctx_args.html_path = args.html
+        ctx_args.debug = is_debug
+
+        # Logger setup
+        # We separate the main log from the web-access log
+        logger = self._create_logger(name=Constants.SERVICE_NAME,
+                                     debug=is_debug,
+                                     logdir=args.logdir)
+        Pylftpd.logger = logger
+        web_access_logger = self._create_logger(name=Constants.WEB_ACCESS_LOG_NAME,
+                                                debug=is_debug,
+                                                logdir=args.logdir)
+        logger.info("Debug mode is {}.".format("enabled" if is_debug else "disabled"))
 
         # Create context
         self.context = PylftpContext(logger=logger,
