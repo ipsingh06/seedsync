@@ -23,6 +23,7 @@ class DownloadingScanner(IScanner):
         self.__downloading_files = []  # latest state
         self.logger = logging.getLogger("DownloadingScanner")
 
+    @overrides(IScanner)
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("DownloadingScanner")
 

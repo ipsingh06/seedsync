@@ -12,7 +12,7 @@ import copy
 # my libs
 from .scanner_process import ScannerProcess
 from .model_builder import ModelBuilder
-from common import PylftpContext, PylftpError
+from common import PylftpContext, PylftpError, MultiprocessingLogger
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
 from lftp import Lftp, LftpError, LftpJobStatus
 from .downloading_scanner import DownloadingScanner
@@ -112,9 +112,6 @@ class Controller:
             local_path_to_scan_script=self.__context.args.local_path_to_scanfs,
             remote_path_to_scan_script=self.__context.config.lftp.remote_path_to_scan_script
         )
-        self.__downloading_scanner.set_base_logger(self.logger.getChild("Downloading"))  # to differentiate scanner
-        self.__local_scanner.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
-        self.__remote_scanner.set_base_logger(self.logger.getChild("Remote"))  # to differentiate scanner
 
         self.__downloading_scan_queue = multiprocessing.Queue()
         self.__local_scan_queue = multiprocessing.Queue()
@@ -136,9 +133,12 @@ class Controller:
             scanner=self.__remote_scanner,
             interval_in_ms=self.__context.config.controller.interval_ms_remote_scan,
         )
-        self.__downloading_scan_process.set_base_logger(self.logger.getChild("Downloading"))  # to differentiate scanner
-        self.__local_scan_process.set_base_logger(self.logger.getChild("Local"))  # to differentiate scanner
-        self.__remote_scan_process.set_base_logger(self.logger.getChild("Remote"))  # to differentiate scanner
+
+        # Setup multiprocess logging
+        self.__mp_logger = MultiprocessingLogger(self.logger)
+        self.__downloading_scan_process.set_multiprocessing_logger(self.__mp_logger)
+        self.__local_scan_process.set_multiprocessing_logger(self.__mp_logger)
+        self.__remote_scan_process.set_multiprocessing_logger(self.__mp_logger)
 
         self.__started = False
 
@@ -148,9 +148,11 @@ class Controller:
         Must be called after ctor and before process()
         :return:
         """
+        self.logger.debug("Starting controller")
         self.__downloading_scan_process.start()
         self.__local_scan_process.start()
         self.__remote_scan_process.start()
+        self.__mp_logger.start()
         self.__started = True
 
     def process(self):
@@ -166,6 +168,7 @@ class Controller:
         self.__update_model()
 
     def exit(self):
+        self.logger.debug("Exiting controller")
         if self.__started:
             self.__downloading_scan_process.terminate()
             self.__local_scan_process.terminate()
@@ -173,6 +176,7 @@ class Controller:
             self.__downloading_scan_process.join()
             self.__local_scan_process.join()
             self.__remote_scan_process.join()
+            self.__mp_logger.stop()
             self.__started = False
             self.logger.info("Exited controller")
 
@@ -381,3 +385,4 @@ class Controller:
         self.__downloading_scan_process.propagate_exception()
         self.__local_scan_process.propagate_exception()
         self.__remote_scan_process.propagate_exception()
+        self.__mp_logger.propagate_exception()

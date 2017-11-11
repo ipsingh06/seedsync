@@ -35,6 +35,7 @@ class RemoteScanner(IScanner):
                          user=remote_username)
         self.__first_run = True
 
+    @overrides(IScanner)
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("RemoteScanner")
         self.__ssh.set_base_logger(self.logger)

@@ -228,6 +228,13 @@ class Pylftpd:
     @staticmethod
     def _create_logger(name: str, debug: bool, logdir: Optional[str]) -> logging.Logger:
         logger = logging.getLogger(name)
+
+        # Remove any existing handlers (needed when restarting)
+        handlers = logger.handlers[:]
+        for handler in handlers:
+            handler.close()
+            logger.removeHandler(handler)
+
         logger.setLevel(logging.DEBUG if debug else logging.INFO)
         if logdir is not None:
             # Output logs to a file in the given directory
@@ -238,7 +245,9 @@ class Pylftpd:
                       )
         else:
             handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(name)s (%(processName)s/%(threadName)s) - %(message)s"
+        )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
@@ -286,18 +295,17 @@ if __name__ == "__main__":
     if sys.hexversion < 0x03050000:
         sys.exit("Python 3.5 or newer is required to run this program.")
 
-    try:
-        pylftpd = Pylftpd()
-        pylftpd.run()
-    except ServiceExit:
+    while True:
+        try:
+            pylftpd = Pylftpd()
+            pylftpd.run()
+        except ServiceExit:
+            break
+        except ServiceRestart:
+            Pylftpd.logger.info("Restarting...")
+            continue
+        except Exception as e:
+            Pylftpd.logger.exception("Caught exception")
+            raise
+
         Pylftpd.logger.info("Exited successfully")
-    except ServiceRestart:
-        Pylftpd.logger.info("Restarting...")
-        is_pkg_frozen = getattr(sys, 'frozen', False)
-        if is_pkg_frozen:
-            os.execv(sys.executable, sys.argv)
-        else:
-            Pylftpd.logger.error("Restart is only supported for frozen package. You must restart manually.")
-    except Exception as e:
-        Pylftpd.logger.exception("Caught exception")
-        raise

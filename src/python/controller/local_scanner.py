@@ -16,6 +16,7 @@ class LocalScanner(IScanner):
         self.__scanner = SystemScanner(local_path)
         self.logger = logging.getLogger("LocalScanner")
 
+    @overrides(IScanner)
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("LocalScanner")
 

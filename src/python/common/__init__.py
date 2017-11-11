@@ -8,3 +8,4 @@ from .constants import Constants
 from .config import PylftpConfig, ConfigError
 from .persist import Persist
 from .localization import Localization
+from .multiprocessing_logger import MultiprocessingLogger
