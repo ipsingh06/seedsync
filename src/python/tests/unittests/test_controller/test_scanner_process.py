@@ -17,6 +17,9 @@ class DummyScanner(IScanner):
     def scan(self):
         return []
 
+    def set_base_logger(self, base_logger: logging.Logger):
+        pass
+
 
 class DummyException(Exception):
     pass
@@ -25,6 +28,9 @@ class DummyException(Exception):
 class DummyFailingScanner(IScanner):
     def scan(self):
         raise DummyException("")
+
+    def set_base_logger(self, base_logger: logging.Logger):
+        pass
 
 
 class TestScannerProcess(unittest.TestCase):
