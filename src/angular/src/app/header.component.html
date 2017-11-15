@@ -1,6 +1,6 @@
 <div id="header">
     <div class="alert alert-danger"
-         [class.show]="(serverStatus | async)?.up == false">
-        {{(serverStatus | async)?.errorMessage}}
+         [class.show]="(serverStatus | async)?.server.up == false">
+        {{(serverStatus | async)?.server.errorMessage}}
     </div>
 </div>

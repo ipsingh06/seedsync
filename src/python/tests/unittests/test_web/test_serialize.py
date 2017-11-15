@@ -43,31 +43,31 @@ class TestSerializeStatus(unittest.TestCase):
         out = parse_stream(serialize.status(status))
         self.assertEqual("status", out["event"])
 
-    def test_status_up(self):
+    def test_server_status_up(self):
         serialize = SerializeStatus()
         status = Status()
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual(True, data["up"])
+        self.assertEqual(True, data["server"]["up"])
 
         status.server.up = False
         status.server.error_msg = "Bad stuff happened"
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual(False, data["up"])
+        self.assertEqual(False, data["server"]["up"])
 
-    def test_status_error_msg(self):
+    def test_server_status_error_msg(self):
         serialize = SerializeStatus()
         status = Status()
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual(None, data["error_msg"])
+        self.assertEqual(None, data["server"]["error_msg"])
 
         status.server.up = False
         status.server.error_msg = "Bad stuff happened"
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual("Bad stuff happened", data["error_msg"])
+        self.assertEqual("Bad stuff happened", data["server"]["error_msg"])
 
 
 class TestSerializeModel(unittest.TestCase):

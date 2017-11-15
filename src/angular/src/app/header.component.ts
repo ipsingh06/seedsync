@@ -2,7 +2,8 @@ import {Component} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 
 import {LoggerService} from "./common/logger.service"
-import {ServerStatus, ServerStatusService} from "./other/server-status.service";
+import {ServerStatusService} from "./other/server-status.service";
+import {ServerStatus} from "./other/server-status";
 
 @Component({
     selector: 'header',

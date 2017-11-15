@@ -1,7 +1,6 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 from typing import Optional
-import copy
 
 from .web_app_stream import WebAppStream
 from .serialize import SerializeStatus

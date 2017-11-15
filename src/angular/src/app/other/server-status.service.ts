@@ -2,41 +2,10 @@ import {Injectable, NgZone} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 
-import {Record} from 'immutable';
-
 import {LoggerService} from "../common/logger.service";
 import {SseUtil} from "../common/sse.util";
 import {Localization} from "../common/localization";
-
-/**
- * ServerStatus immutable
- */
-interface IServerStatus {
-    up: boolean;
-    errorMessage: string;
-}
-const DefaultServerStatus: IServerStatus = {
-    up: null,
-    errorMessage: null
-};
-const ServerStatusRecord = Record(DefaultServerStatus);
-export class ServerStatus extends ServerStatusRecord implements IServerStatus {
-    readonly up: boolean;
-    readonly errorMessage: string;
-
-    constructor(props) {
-        super(props);
-    }
-}
-
-/**
- * ServerStatus as serialized by the backend.
- * Note: naming convention matches that used in JSON
- */
-interface ServerStatusJson {
-    up: boolean;
-    error_msg: string;
-}
+import {ServerStatus, ServerStatusJson} from "./server-status";
 
 
 @Injectable()
@@ -47,7 +16,9 @@ export class ServerStatusService {
 
     private _status: BehaviorSubject<ServerStatus> =
         new BehaviorSubject(new ServerStatus({
-            up: true
+            server: {
+                up: true
+            }
         }));
 
     constructor(private _logger: LoggerService,
@@ -78,7 +49,12 @@ export class ServerStatusService {
                 this._logger.error("SSE Error: %O", err);
 
                 // Notify the clients
-                this._status.next(new ServerStatus({up: false, errorMessage: Localization.Error.SERVER_DISCONNECTED}));
+                this._status.next(new ServerStatus({
+                    server: {
+                        up: false,
+                        errorMessage: Localization.Error.SERVER_DISCONNECTED
+                    }
+                }));
 
                 // Retry after a delay
                 setTimeout(() => {this.createSseObserver()}, this.STATUS_STREAM_RETRY_INTERVAL_MS);
@@ -92,7 +68,12 @@ export class ServerStatusService {
      */
     private parseStatus(data: string) {
         let statusJson: ServerStatusJson = JSON.parse(data);
-        let status = new ServerStatus({up: statusJson.up, errorMessage: statusJson.error_msg});
+        let status = new ServerStatus({
+            server: {
+                up: statusJson.server.up,
+                errorMessage: statusJson.server.error_msg
+            }
+        });
         this._status.next(status);
     }
 
