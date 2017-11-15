@@ -6,6 +6,7 @@ import collections
 
 # my libs
 from .config import PylftpConfig
+from .status import Status
 
 
 class PylftpArgs:
@@ -35,7 +36,8 @@ class PylftpContext:
                  logger: logging.Logger,
                  web_access_logger: logging.Logger,
                  config: PylftpConfig,
-                 args: PylftpArgs):
+                 args: PylftpArgs,
+                 status: Status):
         """
         Primary constructor to construct the top-level context
         """
@@ -44,6 +46,7 @@ class PylftpContext:
         self.web_access_logger = web_access_logger
         self.config = config
         self.args = args
+        self.status = status
 
     def create_child_context(self, context_name: str) -> "PylftpContext":
         child_context = copy.copy(self)

@@ -3,7 +3,8 @@
 import unittest
 import json
 
-from web import SerializeModel, SerializeBackendStatus, BackendStatus
+from common import Status
+from web import SerializeModel, SerializeStatus
 from model import ModelFile
 
 
@@ -18,41 +19,53 @@ def parse_stream(serialized_str: str):
 
 class TestSerializeStatus(unittest.TestCase):
     def test_id_increments(self):
-        serialize = SerializeBackendStatus()
-        out = parse_stream(serialize.status(BackendStatus(True, None)))
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
         idx_new = int(out["id"])
         self.assertGreaterEqual(idx_new, 0)
 
         idx_old = idx_new
-        out = parse_stream(serialize.status(BackendStatus(False, "Bad stuff happened")))
+        status.server.up = False
+        status.server.error_msg = "Bad stuff happened"
+        out = parse_stream(serialize.status(status))
         idx_new = int(out["id"])
         self.assertGreater(idx_new, idx_old)
 
     def test_event_names(self):
-        serialize = SerializeBackendStatus()
-        out = parse_stream(serialize.status(BackendStatus(True, None)))
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
         self.assertEqual("status", out["event"])
 
-        out = parse_stream(serialize.status(BackendStatus(False, "Bad stuff happened")))
+        status.server.up = False
+        status.server.error_msg = "Bad stuff happened"
+        out = parse_stream(serialize.status(status))
         self.assertEqual("status", out["event"])
 
     def test_status_up(self):
-        serialize = SerializeBackendStatus()
-        out = parse_stream(serialize.status(BackendStatus(True, None)))
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
         self.assertEqual(True, data["up"])
 
-        out = parse_stream(serialize.status(BackendStatus(False, "Bad stuff happened")))
+        status.server.up = False
+        status.server.error_msg = "Bad stuff happened"
+        out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
         self.assertEqual(False, data["up"])
 
     def test_status_error_msg(self):
-        serialize = SerializeBackendStatus()
-        out = parse_stream(serialize.status(BackendStatus(True, None)))
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
         self.assertEqual(None, data["error_msg"])
 
-        out = parse_stream(serialize.status(BackendStatus(False, "Bad stuff happened")))
+        status.server.up = False
+        status.server.error_msg = "Bad stuff happened"
+        out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
         self.assertEqual("Bad stuff happened", data["error_msg"])
 

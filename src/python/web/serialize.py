@@ -5,7 +5,7 @@ import json
 from typing import List, Optional
 
 # my libs
-from .status import BackendStatus
+from common import Status
 from model import ModelFile
 
 
@@ -19,7 +19,7 @@ def sse_pack(idx: int, event: str, data: str) -> str:
     return buffer
 
 
-class SerializeBackendStatus:
+class SerializeStatus:
     """
     This class defines the serialization interface between python backend
     and the EventSource client frontend for the status stream.
@@ -34,13 +34,13 @@ class SerializeBackendStatus:
     __KEY_UP = "up"
     __KEY_ERROR_MSG = "error_msg"
 
-    def status(self, status: BackendStatus) ->str:
+    def status(self, status: Status) ->str:
         self.id += 1
         json_dict = dict()
-        json_dict[SerializeBackendStatus.__KEY_UP] = status.up
-        json_dict[SerializeBackendStatus.__KEY_ERROR_MSG] = status.error_msg
+        json_dict[SerializeStatus.__KEY_UP] = status.server.up
+        json_dict[SerializeStatus.__KEY_ERROR_MSG] = status.server.error_msg
         status_json = json.dumps(json_dict)
-        return sse_pack(idx=self.id, event=SerializeBackendStatus.__EVENT_STATUS, data=status_json)
+        return sse_pack(idx=self.id, event=SerializeStatus.__EVENT_STATUS, data=status_json)
 
 
 class SerializeModel:

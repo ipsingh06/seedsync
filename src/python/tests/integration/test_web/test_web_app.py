@@ -7,7 +7,7 @@ import sys
 
 from webtest import TestApp
 
-from common import overrides
+from common import overrides, Status
 from web import WebApp
 from controller import Controller
 
@@ -33,6 +33,9 @@ class BaseTestWebApp(unittest.TestCase):
 
         # Model files
         self.model_files = []
+
+        # Real status
+        self.context.status = Status()
 
         # Capture the model listener
         def capture_listener(listener):

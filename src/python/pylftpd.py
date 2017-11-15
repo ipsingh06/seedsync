@@ -12,9 +12,9 @@ from typing import Optional
 
 # my libs
 from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError, ServiceRestart, \
-                   Localization
+                   Localization, Status
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
-from web import WebAppJob, WebApp, BackendStatus
+from web import WebAppJob, WebApp
 
 
 class Pylftpd:
@@ -63,11 +63,15 @@ class Pylftpd:
                                                 logdir=args.logdir)
         logger.info("Debug mode is {}.".format("enabled" if is_debug else "disabled"))
 
+        # Create status
+        status = Status()
+
         # Create context
         self.context = PylftpContext(logger=logger,
                                      web_access_logger=web_access_logger,
                                      config=config,
-                                     args=ctx_args)
+                                     args=ctx_args,
+                                     status=status)
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, self.signal)
@@ -117,10 +121,8 @@ class Pylftpd:
         if Pylftpd._detect_incomplete_config(self.context.config):
             do_start_controller = False
             self.context.logger.error("Config is incomplete")
-            web_app.set_backend_status(BackendStatus(
-                up=False,
-                error_msg=Localization.Error.SETTINGS_INCOMPLETE
-            ))
+            self.context.status.server.up = False
+            self.context.status.server.error_msg = Localization.Error.SETTINGS_INCOMPLETE
 
         # Start child threads here
         if do_start_controller:
@@ -144,7 +146,8 @@ class Pylftpd:
                 try:
                     controller_job.propagate_exception()
                 except PylftpError as exc:
-                    web_app.set_backend_status(BackendStatus(up=False, error_msg=str(exc)))
+                    self.context.status.server.up = False
+                    self.context.status.server.error_msg = str(exc)
                     Pylftpd.logger.exception("Caught exception")
 
                 # Check if a restart is requested

@@ -1,44 +1,46 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 from typing import Optional
+import copy
 
 from .web_app_stream import WebAppStream
-from .serialize import SerializeBackendStatus
+from .serialize import SerializeStatus
 from .utils import StreamQueue
-from .status import BackendStatus, IBackendStatusListener, IBackendStatusProvider
-from common import overrides
+from common import overrides, Status, IStatusListener
 
 
-class BackendStatusListener(IBackendStatusListener, StreamQueue[BackendStatus]):
+class StatusListener(IStatusListener, StreamQueue[Status]):
     """
     Status listener used by status streams to listen to status updates
     """
-    def __init__(self):
+    def __init__(self, status: Status):
         super().__init__()
+        self.__status = status
 
-    @overrides(IBackendStatusListener)
-    def notify(self, status: BackendStatus):
-        self.put(status)
+    @overrides(IStatusListener)
+    def notify(self):
+        self.put(self.__status.copy())
 
 
 class StreamStatus(WebAppStream):
     _EVENT_BLOCK_INTERVAL_IN_MS = 500
 
-    def __init__(self, status_provider: IBackendStatusProvider):
-        self.status_provider = status_provider
-        self.serialize = SerializeBackendStatus()
-        self.status_listener = BackendStatusListener()
+    def __init__(self, status: Status):
+        self.status = status
+        self.serialize = SerializeStatus()
+        self.status_listener = StatusListener(status)
         self.first_run = True
 
     @overrides(WebAppStream)
     def setup(self):
-        self.status_provider.add_listener(self.status_listener)
+        self.status.add_listener(self.status_listener)
 
     @overrides(WebAppStream)
     def get_value(self) -> Optional[str]:
         if self.first_run:
             self.first_run = False
-            return self.serialize.status(self.status_provider.get_status())
+            status = self.status.copy()
+            return self.serialize.status(status)
         else:
             status = self.status_listener.get_next_event(timeout_in_ms=StreamStatus._EVENT_BLOCK_INTERVAL_IN_MS)
             if status:
@@ -49,4 +51,4 @@ class StreamStatus(WebAppStream):
     @overrides(WebAppStream)
     def cleanup(self):
         if self.status_listener:
-            self.status_provider.remove_listener(self.status_listener)
+            self.status.remove_listener(self.status_listener)

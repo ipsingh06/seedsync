@@ -10,7 +10,6 @@ from bottle import static_file, HTTPResponse
 from common import overrides, PylftpContext
 from controller import Controller
 from .web_app_stream import WebAppStream
-from .status import BackendStatus, IBackendStatusProvider, IBackendStatusListener
 from .stream_model import StreamModel
 from .stream_status import StreamStatus
 
@@ -43,29 +42,6 @@ class WebResponseActionCallback(Controller.Command.ICallback):
         self.__event.wait()
 
 
-class WebStatusProvider(IBackendStatusProvider):
-    def __init__(self):
-        self.listeners = []
-        self.status = BackendStatus(up=True, error_msg=None)
-
-    @overrides(IBackendStatusProvider)
-    def add_listener(self, listener: IBackendStatusListener):
-        self.listeners.append(listener)
-
-    @overrides(IBackendStatusProvider)
-    def remove_listener(self, listener: IBackendStatusListener):
-        self.listeners.remove(listener)
-
-    @overrides(IBackendStatusProvider)
-    def get_status(self) -> BackendStatus:
-        return self.status
-
-    def set_status(self, status: BackendStatus):
-        self.status = status
-        for listener in self.listeners:
-            listener.notify(status)
-
-
 class WebApp(bottle.Bottle):
     """
     Web app implementation
@@ -75,9 +51,9 @@ class WebApp(bottle.Bottle):
         self.logger = context.logger.getChild("WebApp")
         self.__controller = controller
         self.__html_path = context.args.html_path
+        self.__status = context.status
         self.logger.info("Html path set to: {}".format(self.__html_path))
         self.__stop = False
-        self.__status_provider = WebStatusProvider()
         self.__request_restart = False
 
         # Backend routes
@@ -85,7 +61,7 @@ class WebApp(bottle.Bottle):
         self.get("/server/status-stream")(functools.partial(
             self.web_stream,
             cls=StreamStatus,
-            status_provider=self.__status_provider
+            status=self.__status
         ))
         self.get("/server/model-stream")(functools.partial(
             self.web_stream,
@@ -110,15 +86,6 @@ class WebApp(bottle.Bottle):
         :return:
         """
         pass
-
-    def set_backend_status(self, status: BackendStatus):
-        """
-        Notify the web app about the backend status
-        :param status:
-        :return:
-        """
-        self.logger.info("Setting backend status: up={} msg={}".format(status.up, status.error_msg))
-        self.__status_provider.set_status(status)
 
     def is_restart_requested(self):
         """
