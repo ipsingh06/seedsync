@@ -24,7 +24,7 @@ class TestStreamModel(BaseTestWebApp):
         self.test_app.get("/server/model-stream")
         self.controller.remove_model_listener.assert_called_once_with(self.model_listener)
 
-    @patch("web.stream_model.SerializeModel")
+    @patch("web.handler.stream_model.SerializeModel")
     def test_stream_model_serializes_initial_model(self, mock_serialize_model_cls):
         # Schedule server stop
         Timer(0.5, self.web_app.stop).start()
@@ -39,7 +39,7 @@ class TestStreamModel(BaseTestWebApp):
         self.test_app.get("/server/model-stream")
         mock_serialize.model.assert_called_once_with([ModelFile("a", True), ModelFile("b", False)])
 
-    @patch("web.stream_model.SerializeModel")
+    @patch("web.handler.stream_model.SerializeModel")
     def test_stream_model_serializes_updates(self, mock_serialize_model_cls):
         # Schedule server stop
         Timer(2.0, self.web_app.stop).start()

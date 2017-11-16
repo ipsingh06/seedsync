@@ -2,9 +2,9 @@
 
 from typing import Optional
 
-from .utils import StreamQueue
-from .serialize import SerializeModel
-from .web_app_stream import WebAppStream
+from ..web_app import IStreamHandler
+from ..utils import StreamQueue
+from ..serialize import SerializeModel
 from model import IModelListener, ModelFile
 from common import overrides
 from controller import Controller
@@ -37,7 +37,7 @@ class WebResponseModelListener(IModelListener, StreamQueue[SerializeModel.Update
                                             new_file=new_file))
 
 
-class StreamModel(WebAppStream):
+class ModelStreamHandler(IStreamHandler):
     _EVENT_BLOCK_INTERVAL_IN_MS = 500
 
     def __init__(self, controller: Controller):
@@ -47,23 +47,28 @@ class StreamModel(WebAppStream):
         self.initial_model_files = None
         self.first_run = True
 
-    @overrides(WebAppStream)
+    @staticmethod
+    @overrides(IStreamHandler)
+    def get_path() -> str:
+        return "/server/model-stream"
+
+    @overrides(IStreamHandler)
     def setup(self):
         self.initial_model_files = self.controller.get_model_files_and_add_listener(self.model_listener)
 
-    @overrides(WebAppStream)
+    @overrides(IStreamHandler)
     def get_value(self) -> Optional[str]:
         if self.first_run:
             self.first_run = False
             return self.serialize.model(self.initial_model_files)
         else:
-            event = self.model_listener.get_next_event(timeout_in_ms=StreamModel._EVENT_BLOCK_INTERVAL_IN_MS)
+            event = self.model_listener.get_next_event(timeout_in_ms=ModelStreamHandler._EVENT_BLOCK_INTERVAL_IN_MS)
             if event:
                 return self.serialize.update_event(event)
             else:
                 return None
 
-    @overrides(WebAppStream)
+    @overrides(IStreamHandler)
     def cleanup(self):
         if self.model_listener:
             self.controller.remove_model_listener(self.model_listener)

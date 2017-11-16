@@ -14,7 +14,7 @@ from typing import Optional
 from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError, ServiceRestart, \
                    Localization, Status
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
-from web import WebAppJob, WebApp
+from web import WebAppJob, WebAppBuilder
 
 
 class Pylftpd:
@@ -102,7 +102,8 @@ class Pylftpd:
         auto_queue = AutoQueue(self.context, self.auto_queue_persist, controller)
 
         # Create web app
-        web_app = WebApp(self.context, controller)
+        web_app_builder = WebAppBuilder(self.context, controller)
+        web_app = web_app_builder.build()
 
         # Define child threads
         controller_job = ControllerJob(
@@ -151,7 +152,7 @@ class Pylftpd:
                     Pylftpd.logger.exception("Caught exception")
 
                 # Check if a restart is requested
-                if web_app.is_restart_requested():
+                if web_app_builder.server_handler.is_restart_requested():
                     raise ServiceRestart()
 
                 # Nothing else to do

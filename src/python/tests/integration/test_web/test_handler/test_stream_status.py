@@ -7,7 +7,7 @@ from tests.integration.test_web.test_web_app import BaseTestWebApp
 
 
 class TestStreamStatus(BaseTestWebApp):
-    @patch("web.stream_status.SerializeStatus")
+    @patch("web.handler.stream_status.SerializeStatus")
     def test_stream_status_serializes_initial_status(self, mock_serialize_status_cls):
         # Schedule server stop
         Timer(0.5, self.web_app.stop).start()
@@ -23,7 +23,7 @@ class TestStreamStatus(BaseTestWebApp):
         self.assertEqual(True, status.server.up)
         self.assertEqual(None, status.server.error_msg)
 
-    @patch("web.stream_status.SerializeStatus")
+    @patch("web.handler.stream_status.SerializeStatus")
     def test_stream_status_serializes_new_status(self, mock_serialize_status_cls):
         # Schedule server stop
         Timer(0.5, self.web_app.stop).start()

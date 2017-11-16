@@ -2,9 +2,9 @@
 
 from typing import Optional
 
-from .web_app_stream import WebAppStream
-from .serialize import SerializeStatus
-from .utils import StreamQueue
+from ..web_app import IStreamHandler
+from ..serialize import SerializeStatus
+from ..utils import StreamQueue
 from common import overrides, Status, IStatusListener
 
 
@@ -21,7 +21,7 @@ class StatusListener(IStatusListener, StreamQueue[Status]):
         self.put(self.__status.copy())
 
 
-class StreamStatus(WebAppStream):
+class StatusStreamHandler(IStreamHandler):
     _EVENT_BLOCK_INTERVAL_IN_MS = 500
 
     def __init__(self, status: Status):
@@ -30,24 +30,29 @@ class StreamStatus(WebAppStream):
         self.status_listener = StatusListener(status)
         self.first_run = True
 
-    @overrides(WebAppStream)
+    @staticmethod
+    @overrides(IStreamHandler)
+    def get_path() -> str:
+        return "/server/status-stream"
+
+    @overrides(IStreamHandler)
     def setup(self):
         self.status.add_listener(self.status_listener)
 
-    @overrides(WebAppStream)
+    @overrides(IStreamHandler)
     def get_value(self) -> Optional[str]:
         if self.first_run:
             self.first_run = False
             status = self.status.copy()
             return self.serialize.status(status)
         else:
-            status = self.status_listener.get_next_event(timeout_in_ms=StreamStatus._EVENT_BLOCK_INTERVAL_IN_MS)
+            status = self.status_listener.get_next_event(timeout_in_ms=StatusStreamHandler._EVENT_BLOCK_INTERVAL_IN_MS)
             if status:
                 return self.serialize.status(status)
             else:
                 return None
 
-    @overrides(WebAppStream)
+    @overrides(IStreamHandler)
     def cleanup(self):
         if self.status_listener:
             self.status.remove_listener(self.status_listener)
