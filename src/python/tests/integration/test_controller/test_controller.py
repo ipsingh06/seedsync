@@ -211,49 +211,64 @@ class TestController(unittest.TestCase):
         except Exception:
             self.fail("Controller ctor raised exception unexpectedly")
 
+    @timeout_decorator.timeout(5)
     def test_bad_config_remote_address_raises_exception(self):
         self.context.config.lftp.remote_address = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         time.sleep(0.5)
         with self.assertRaises(PylftpError) as error:
-            self.controller.process()
+            while True:
+                self.controller.process()
+        # noinspection PyUnreachableCode
         self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
 
+    @timeout_decorator.timeout(5)
     def test_bad_config_remote_username_raises_exception(self):
         self.context.config.lftp.remote_username = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         time.sleep(0.5)
         with self.assertRaises(PylftpError) as error:
-            self.controller.process()
+            while True:
+                self.controller.process()
+        # noinspection PyUnreachableCode
         self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
 
+    @timeout_decorator.timeout(5)
     def test_bad_config_remote_path_raises_exception(self):
         self.context.config.lftp.remote_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         time.sleep(0.5)
         with self.assertRaises(PylftpError) as error:
-            self.controller.process()
+            while True:
+                self.controller.process()
+        # noinspection PyUnreachableCode
         self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(error.exception))
 
+    @timeout_decorator.timeout(5)
     def test_bad_config_local_path_raises_exception(self):
         self.context.config.lftp.local_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         time.sleep(0.5)
         with self.assertRaises(PylftpError) as error:
-            self.controller.process()
+            while True:
+                self.controller.process()
+        # noinspection PyUnreachableCode
         self.assertEqual(Localization.Error.LOCAL_SERVER_SCAN, str(error.exception))
 
+    @timeout_decorator.timeout(5)
     def test_bad_config_remote_path_to_scan_script_raises_exception(self):
         self.context.config.lftp.remote_path_to_scan_script = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         time.sleep(0.5)
         with self.assertRaises(PylftpError) as error:
-            self.controller.process()
+            while True:
+                self.controller.process()
+        # noinspection PyUnreachableCode
         self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
 
     def test_initial_model(self):

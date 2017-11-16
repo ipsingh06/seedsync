@@ -113,7 +113,7 @@ class Lftp:
                 self.logger.debug("retry out:")
                 for line in out.split("\n"):
                     self.logger.debug("  {}".format(line))
-            raise LftpError("Detected error: {}".format(error_out))
+            self.logger.error("Lftp detected error: {}".format(error_out))
         return out
 
     @staticmethod
