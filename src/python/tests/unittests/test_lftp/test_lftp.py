@@ -86,6 +86,9 @@ class TestLftp(unittest.TestCase):
         logger.addHandler(handler)
         self.lftp.set_base_logger(logger)
 
+    def tearDown(self):
+        self.lftp.exit()
+
     def test_num_connections_per_dir_file(self):
         self.lftp.num_connections_per_dir_file = 5
         self.assertEqual(5, self.lftp.num_connections_per_dir_file)

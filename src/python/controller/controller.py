@@ -170,6 +170,7 @@ class Controller:
     def exit(self):
         self.logger.debug("Exiting controller")
         if self.__started:
+            self.__lftp.exit()
             self.__downloading_scan_process.terminate()
             self.__local_scan_process.terminate()
             self.__remote_scan_process.terminate()

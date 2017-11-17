@@ -50,6 +50,7 @@ class TestLftp(unittest.TestCase):
         Lftp._LOG_COMMAND_OUTPUT = True
 
     def tearDown(self):
+        self.lftp.exit()
         shutil.rmtree(os.path.join(TestLftp.temp_dir, "remote"))
         shutil.rmtree(os.path.join(TestLftp.temp_dir, "local"))
 

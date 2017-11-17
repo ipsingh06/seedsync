@@ -306,6 +306,14 @@ class Lftp:
         self.__run_command("queue -d *")
         self.__run_command("kill all")
 
+    def exit(self):
+        """
+        Exit the lftp instance. It cannot be used after being killed
+        :return:
+        """
+        self.__process.sendline("exit")
+        self.__process.close(force=True)
+
     # Mark decorators as static (must be at end of class)
     # Source: https://stackoverflow.com/a/3422823
     with_check_process = staticmethod(with_check_process)
