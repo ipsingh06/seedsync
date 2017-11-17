@@ -6,7 +6,7 @@ from threading import Timer
 from tests.integration.test_web.test_web_app import BaseTestWebApp
 
 
-class TestStreamStatus(BaseTestWebApp):
+class TestStatusStreamHandler(BaseTestWebApp):
     @patch("web.handler.stream_status.SerializeStatus")
     def test_stream_status_serializes_initial_status(self, mock_serialize_status_cls):
         # Schedule server stop

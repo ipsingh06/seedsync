@@ -6,7 +6,7 @@ from tests.integration.test_web.test_web_app import BaseTestWebApp
 from controller import Controller
 
 
-class TestControllerActionHandler(BaseTestWebApp):
+class TestControllerHandler(BaseTestWebApp):
     def test_queue(self):
         def side_effect(cmd: Controller.Command):
             cmd.callbacks[0].on_success()

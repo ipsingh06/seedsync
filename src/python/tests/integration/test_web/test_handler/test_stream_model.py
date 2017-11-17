@@ -9,7 +9,7 @@ from web import SerializeModel
 from model import ModelFile
 
 
-class TestStreamModel(BaseTestWebApp):
+class TestModelStreamHandler(BaseTestWebApp):
     def test_stream_model_fetches_model_and_adds_listener(self):
         # Schedule server stop
         Timer(0.5, self.web_app.stop).start()
