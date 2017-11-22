@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from threading import Timer
 
 from tests.integration.test_web.test_web_app import BaseTestWebApp
-from web import SerializeModel
+from web.serialize import SerializeModel
 from model import ModelFile
 
 

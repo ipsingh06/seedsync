@@ -4,48 +4,11 @@ from enum import Enum
 import json
 from typing import List, Optional
 
-# my libs
-from common import Status
+from .serialize import Serialize
 from model import ModelFile
 
 
-def sse_pack(idx: int, event: str, data: str) -> str:
-    """Pack data in SSE format"""
-    buffer = ""
-    buffer += "id: %s\n" % str(idx)
-    buffer += "event: %s\n" % event
-    buffer += "data: %s\n" % data
-    buffer += "\n"
-    return buffer
-
-
-class SerializeStatus:
-    """
-    This class defines the serialization interface between python backend
-    and the EventSource client frontend for the status stream.
-    """
-    def __init__(self):
-        self.id = -1
-
-    # Event keys
-    __EVENT_STATUS = "status"
-
-    # Data keys
-    __KEY_SERVER = "server"
-    __KEY_SERVER_UP = "up"
-    __KEY_SERVER_ERROR_MSG = "error_msg"
-
-    def status(self, status: Status) ->str:
-        self.id += 1
-        json_dict = dict()
-        json_dict[SerializeStatus.__KEY_SERVER] = dict()
-        json_dict[SerializeStatus.__KEY_SERVER][SerializeStatus.__KEY_SERVER_UP] = status.server.up
-        json_dict[SerializeStatus.__KEY_SERVER][SerializeStatus.__KEY_SERVER_ERROR_MSG] = status.server.error_msg
-        status_json = json.dumps(json_dict)
-        return sse_pack(idx=self.id, event=SerializeStatus.__EVENT_STATUS, data=status_json)
-
-
-class SerializeModel:
+class SerializeModel(Serialize):
     """
     This class defines the serialization interface between the python backend
     and the EventSource client frontend for the model stream.
@@ -90,9 +53,6 @@ class SerializeModel:
     __KEY_FILE_FULL_PATH = "full_path"
     __KEY_FILE_CHILDREN = "children"
 
-    def __init__(self):
-        self.id = -1
-
     @staticmethod
     def __model_file_to_json_dict(model_file: ModelFile) -> dict:
         json_dict = dict()
@@ -114,12 +74,10 @@ class SerializeModel:
         Serialize the model
         :return:
         """
-        self.id += 1
         model_json_list = [SerializeModel.__model_file_to_json_dict(f) for f in model_files]
         model_json = json.dumps(model_json_list)
-        return sse_pack(idx=self.id,
-                        event=SerializeModel.__EVENT_INIT,
-                        data=model_json)
+        return self._sse_pack(event=SerializeModel.__EVENT_INIT,
+                              data=model_json)
 
     def update_event(self, event: UpdateEvent):
         self.id += 1
@@ -130,6 +88,5 @@ class SerializeModel:
                 SerializeModel.__model_file_to_json_dict(event.new_file) if event.new_file else None
         }
         model_file_json = json.dumps(model_file_json_dict)
-        return sse_pack(idx=self.id,
-                        event=SerializeModel.__EVENT_UPDATE[event.change],
-                        data=model_file_json)
+        return self._sse_pack(event=SerializeModel.__EVENT_UPDATE[event.change],
+                              data=model_file_json)
