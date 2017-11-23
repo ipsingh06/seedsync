@@ -392,9 +392,16 @@ class LftpJobStatusParser:
                 continue
             result = mirror_empty_m.search(line)
             if result:
-                # There may be "Getting files list" or "cd" line next, ignore it as well
-                if lines and ("Getting file list" in lines[0] or lines[0].startswith("cd ")):
-                    lines.pop(0)
+                name = result.group("name")
+                # One of these lines may follow, ignore it as well
+                #    "Getting files list"
+                #    "cd"
+                #    "<name>: "
+                if lines:
+                    if "Getting file list" in lines[0] or \
+                            lines[0].startswith("cd ") or \
+                            lines[0] == "{}:".format(name):
+                        lines.pop(0)
                 # Continue the outer loop
                 continue
 
