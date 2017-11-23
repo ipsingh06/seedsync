@@ -5,6 +5,81 @@ import os
 import tempfile
 
 from common import PylftpConfig, ConfigError
+from common.config import PylftpInnerConfig, Checkers, Converters
+
+
+class TestConverters(unittest.TestCase):
+    def test_int(self):
+        self.assertEqual(0, Converters.int(None, "", "0"))
+        self.assertEqual(1, Converters.int(None, "", "1"))
+        self.assertEqual(-1, Converters.int(None, "", "-1"))
+        self.assertEqual(5000, Converters.int(None, "", "5000"))
+        self.assertEqual(-5000, Converters.int(None, "", "-5000"))
+        with self.assertRaises(ConfigError) as e:
+            Converters.int(TestConverters, "bad", "")
+        self.assertEqual("Bad config: TestConverters.bad is empty", str(e.exception))
+        with self.assertRaises(ConfigError) as e:
+            Converters.int(TestConverters, "bad", "3.14")
+        self.assertEqual("Bad config: TestConverters.bad (3.14) must be an integer value", str(e.exception))
+        with self.assertRaises(ConfigError) as e:
+            Converters.int(TestConverters, "bad", "cat")
+        self.assertEqual("Bad config: TestConverters.bad (cat) must be an integer value", str(e.exception))
+
+    def test_bool(self):
+        self.assertEqual(True, Converters.bool(None, "", "True"))
+        self.assertEqual(False, Converters.bool(None, "", "False"))
+        self.assertEqual(True, Converters.bool(None, "", "1"))
+        self.assertEqual(False, Converters.bool(None, "", "0"))
+        with self.assertRaises(ConfigError) as e:
+            Converters.bool(TestConverters, "bad", "")
+        self.assertEqual("Bad config: TestConverters.bad is empty", str(e.exception))
+        with self.assertRaises(ConfigError) as e:
+            Converters.bool(TestConverters, "bad", "cat")
+        self.assertEqual("Bad config: TestConverters.bad (cat) must be a boolean value", str(e.exception))
+        with self.assertRaises(ConfigError) as e:
+            Converters.bool(TestConverters, "bad", "-3.14")
+        self.assertEqual("Bad config: TestConverters.bad (-3.14) must be a boolean value", str(e.exception))
+
+
+class DummyInnerConfig(PylftpInnerConfig):
+    c_prop1 = PylftpInnerConfig._create_property("prop1", Checkers.null, Converters.null)
+    a_prop2 = PylftpInnerConfig._create_property("prop2", Checkers.null, Converters.null)
+    b_prop3 = PylftpInnerConfig._create_property("prop3", Checkers.null, Converters.null)
+
+    def __init__(self):
+        self.c_prop1 = "1"
+        self.a_prop2 = "2"
+        self.b_prop3 = "3"
+
+
+class DummyInnerConfig2(PylftpInnerConfig):
+    prop_int = PylftpInnerConfig._create_property("prop_int", Checkers.null, Converters.int)
+    prop_str = PylftpInnerConfig._create_property("prop_str", Checkers.string_nonempty, Converters.null)
+
+    def __init__(self):
+        self.prop_int = None
+        self.prop_str = None
+
+
+class TestPylftpInnerConfig(unittest.TestCase):
+    def test_property_order(self):
+        dummy_config = DummyInnerConfig()
+        self.assertEqual(["c_prop1", "a_prop2", "b_prop3"], list(dummy_config.as_dict().keys()))
+
+    def test_checker_is_called(self):
+        dummy_config = DummyInnerConfig2()
+        dummy_config.prop_str = "a string"
+        self.assertEqual("a string", dummy_config.prop_str)
+        with self.assertRaises(ConfigError) as e:
+            dummy_config.prop_str = ""
+        self.assertEqual("Bad config: DummyInnerConfig2.prop_str is empty", str(e.exception))
+
+    def test_converter_is_called(self):
+        dummy_config = DummyInnerConfig2.from_dict({"prop_int": "5", "prop_str": "a"})
+        self.assertEqual(5, dummy_config.prop_int)
+        with self.assertRaises(ConfigError) as e:
+            DummyInnerConfig2.from_dict({"prop_int": "cat", "prop_str": "a"})
+        self.assertEqual("Bad config: DummyInnerConfig2.prop_int (cat) must be an integer value", str(e.exception))
 
 
 class TestPylftpConfig(unittest.TestCase):
@@ -283,6 +358,7 @@ class TestPylftpConfig(unittest.TestCase):
         config.to_file(config_file_path)
         with open(config_file_path, "r") as f:
             actual_str = f.read()
+        print(actual_str)
 
         golden_str = """
         [General]
