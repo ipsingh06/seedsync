@@ -7,7 +7,7 @@ import sys
 
 from webtest import TestApp
 
-from common import overrides, Status
+from common import overrides, Status, PylftpConfig
 from web import WebAppBuilder
 
 
@@ -35,6 +35,9 @@ class BaseTestWebApp(unittest.TestCase):
 
         # Real status
         self.context.status = Status()
+
+        # Real config
+        self.context.config = PylftpConfig()
 
         # Capture the model listener
         def capture_listener(listener):

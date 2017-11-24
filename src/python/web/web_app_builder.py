@@ -7,6 +7,7 @@ from .handler.stream_model import ModelStreamHandler
 from .handler.stream_status import StatusStreamHandler
 from .handler.controller import ControllerHandler
 from .handler.server import ServerHandler
+from .handler.config import ConfigHandler
 
 
 class WebAppBuilder:
@@ -19,6 +20,7 @@ class WebAppBuilder:
 
         self.controller_handler = ControllerHandler(controller)
         self.server_handler = ServerHandler(context)
+        self.config_handler = ConfigHandler(context.config)
 
     def build(self) -> WebApp:
         web_app = WebApp(context=self.__context,
@@ -32,6 +34,7 @@ class WebAppBuilder:
 
         self.controller_handler.add_routes(web_app)
         self.server_handler.add_routes(web_app)
+        self.config_handler.add_routes(web_app)
 
         web_app.add_default_routes()
 

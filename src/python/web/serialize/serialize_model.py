@@ -80,7 +80,6 @@ class SerializeModel(Serialize):
                               data=model_json)
 
     def update_event(self, event: UpdateEvent):
-        self.id += 1
         model_file_json_dict = {
             SerializeModel.__KEY_UPDATE_OLD_FILE:
                 SerializeModel.__model_file_to_json_dict(event.old_file) if event.old_file else None,

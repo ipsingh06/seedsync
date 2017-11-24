@@ -35,13 +35,13 @@ class Pylftpd:
         args = self._parse_args()
 
         # Create/load config
-        config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)
-        if os.path.isfile(config_path):
-            config = PylftpConfig.from_file(config_path)
+        self.config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)
+        if os.path.isfile(self.config_path):
+            config = PylftpConfig.from_file(self.config_path)
         else:
             # Create default config
             config = Pylftpd._create_default_config()
-            config.to_file(config_path)
+            config.to_file(self.config_path)
 
         # Determine the true value of debug
         is_debug = args.debug or config.general.debug
@@ -190,6 +190,7 @@ class Pylftpd:
         self.context.logger.debug("Persisting states to file")
         self.controller_persist.to_file(self.controller_persist_path)
         self.auto_queue_persist.to_file(self.auto_queue_persist_path)
+        self.context.config.to_file(self.config_path)
 
     def signal(self, signum: int, _):
         # noinspection PyUnresolvedReferences

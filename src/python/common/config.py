@@ -69,7 +69,7 @@ class Checkers:
 
     @staticmethod
     def string_nonempty(cls: T, name: str, value: str) -> str:
-        if not value:
+        if not value or not value.strip():
             raise ConfigError("Bad config: {}.{} is empty".format(
                 cls.__name__, name
             ))
@@ -137,6 +137,7 @@ class PylftpInnerConfig(ABC):
     def from_dict(cls: Type[T], config_dict: InnerConfig) -> T:
         """
         Construct and return inner config from a dict
+        Dict values can be either native types, or str representations
         :param config_dict:
         :return:
         """
@@ -150,13 +151,7 @@ class PylftpInnerConfig(ABC):
         for name, prop in property_map.items():
             if name not in config_dict:
                 raise ConfigError("Missing config: {}.{}".format(cls.__name__, name))
-            prop_addon = PylftpInnerConfig.__prop_addon_map[prop]
-            # Do the conversion first
-            value = config_dict[name]
-            native_value = prop_addon.converter(cls, name, value)
-            # Set the property, which will invoke the checker
-            # noinspection PyProtectedMember
-            inner_config._set_property(name, native_value, prop_addon.checker)
+            inner_config.set_property(name, config_dict[name])
             del config_dict[name]
 
         # Raise error if a key in config_dict did not match a property
@@ -180,8 +175,35 @@ class PylftpInnerConfig(ABC):
         for prop in all_properties:
             if prop in my_property_to_name_map.keys():
                 name = my_property_to_name_map[prop]
-                config_dict[name] = str(getattr(self, name))
+                config_dict[name] = getattr(self, name)
         return config_dict
+
+    def has_property(self, name: str) -> bool:
+        """
+        Returns true if the given property exists, false otherwise
+        :param name:
+        :return:
+        """
+        try:
+            return isinstance(getattr(self.__class__, name), property)
+        except AttributeError:
+            return False
+
+    def set_property(self, name: str, value: Any):
+        """
+        Set a property dynamically
+        Do a str conversion of the value, if necessary
+        :param name:
+        :param value:
+        :return:
+        """
+        cls = self.__class__
+        prop_addon = PylftpInnerConfig.__prop_addon_map[getattr(cls, name)]
+        # Do the conversion if value is of type str
+        native_value = prop_addon.converter(cls, name, value) if type(value) is str else value
+        # Set the property, which will invoke the checker
+        # noinspection PyProtectedMember
+        self._set_property(name, native_value, prop_addon.checker)
 
 
 # Useful aliases
@@ -290,7 +312,7 @@ class PylftpConfig(Persist):
             config_parser.add_section(section)
             section_dict = config_dict[section]
             for key in section_dict:
-                config_parser.set(section, key, section_dict[key])
+                config_parser.set(section, key, str(section_dict[key]))
         str_io = StringIO()
         config_parser.write(str_io)
         return str_io.getvalue()
@@ -317,3 +339,14 @@ class PylftpConfig(Persist):
         config_dict["Controller"] = self.controller.as_dict()
         config_dict["Web"] = self.web.as_dict()
         return config_dict
+
+    def has_section(self, name: str) -> bool:
+        """
+        Returns true if the given section exists, false otherwise
+        :param name:
+        :return:
+        """
+        try:
+            return isinstance(getattr(self, name), PylftpInnerConfig)
+        except AttributeError:
+            return False

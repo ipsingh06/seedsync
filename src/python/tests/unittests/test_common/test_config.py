@@ -66,6 +66,15 @@ class TestPylftpInnerConfig(unittest.TestCase):
         dummy_config = DummyInnerConfig()
         self.assertEqual(["c_prop1", "a_prop2", "b_prop3"], list(dummy_config.as_dict().keys()))
 
+    def test_has_property(self):
+        dummy_config = DummyInnerConfig()
+        self.assertTrue(dummy_config.has_property("c_prop1"))
+        self.assertTrue(dummy_config.has_property("a_prop2"))
+        self.assertTrue(dummy_config.has_property("b_prop3"))
+        self.assertFalse(dummy_config.has_property("not_prop"))
+        self.assertFalse(dummy_config.has_property("__init__"))
+        self.assertFalse(dummy_config.has_property(""))
+
     def test_checker_is_called(self):
         dummy_config = DummyInnerConfig2()
         dummy_config.prop_str = "a string"
@@ -126,6 +135,10 @@ class TestPylftpConfig(unittest.TestCase):
         with self.assertRaises(ConfigError) as error:
             cls.from_dict(bad_dict)
         self.assertTrue(str(error.exception).startswith("Bad config"))
+        bad_dict[key] = "   "
+        with self.assertRaises(ConfigError) as error:
+            cls.from_dict(bad_dict)
+        self.assertTrue(str(error.exception).startswith("Bad config"))
 
     def check_common(self, cls, good_dict, keys):
         """
@@ -159,6 +172,16 @@ class TestPylftpConfig(unittest.TestCase):
         with self.assertRaises(ConfigError) as error:
             cls.from_dict(bad_dict)
         self.assertTrue(str(error.exception).startswith("Bad config"))
+
+    def test_has_section(self):
+        config = PylftpConfig()
+        self.assertTrue(config.has_section("general"))
+        self.assertTrue(config.has_section("lftp"))
+        self.assertTrue(config.has_section("controller"))
+        self.assertTrue(config.has_section("web"))
+        self.assertFalse(config.has_section("nope"))
+        self.assertFalse(config.has_section("from_file"))
+        self.assertFalse(config.has_section("__init__"))
 
     def test_general(self):
         good_dict = {

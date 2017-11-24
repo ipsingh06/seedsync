@@ -3,3 +3,4 @@
 from .serialize import Serialize
 from .serialize_model import SerializeModel
 from .serialize_status import SerializeStatus
+from .serialize_config import SerializeConfig
