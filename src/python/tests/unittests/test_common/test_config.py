@@ -28,6 +28,10 @@ class TestConverters(unittest.TestCase):
     def test_bool(self):
         self.assertEqual(True, Converters.bool(None, "", "True"))
         self.assertEqual(False, Converters.bool(None, "", "False"))
+        self.assertEqual(True, Converters.bool(None, "", "true"))
+        self.assertEqual(False, Converters.bool(None, "", "false"))
+        self.assertEqual(True, Converters.bool(None, "", "TRUE"))
+        self.assertEqual(False, Converters.bool(None, "", "FALSE"))
         self.assertEqual(True, Converters.bool(None, "", "1"))
         self.assertEqual(False, Converters.bool(None, "", "0"))
         with self.assertRaises(ConfigError) as e:
