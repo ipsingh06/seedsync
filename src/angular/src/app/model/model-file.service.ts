@@ -184,7 +184,7 @@ export class ModelFileService {
                     } else {
                         // The backend returned an unsuccessful response code.
                         // The response body may contain clues as to what went wrong,
-                        this._logger.error(`Http request returned code ${err.status}, body was: ${err.error}`);
+                        this._logger.error("Http request returned code %d, body was: %O", err.status, err.error);
                         errorMessage = err.error;
                     }
                     observer.next(new ModelFileReaction(false, errorMessage));

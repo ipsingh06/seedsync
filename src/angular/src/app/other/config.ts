@@ -76,7 +76,7 @@ const WebRecord = Record(DefaultWeb);
 /*
  * CONFIG
  */
-interface IConfig {
+export interface IConfig {
     general: IGeneral,
     lftp: ILftp,
     controller: IController,

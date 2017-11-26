@@ -6,7 +6,7 @@ describe('Testing config record initialization', () => {
     let config: Config;
 
     beforeEach(() => {
-        let config_json = {
+        let configJson = {
             general: {
                 debug: true
             },
@@ -31,7 +31,7 @@ describe('Testing config record initialization', () => {
                 port: 8800
             }
         };
-        config = new Config(config_json);
+        config = new Config(configJson);
     });
 
 

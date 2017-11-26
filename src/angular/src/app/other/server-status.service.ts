@@ -16,8 +16,9 @@ export class ServerStatusService {
 
     private _status: BehaviorSubject<ServerStatus> =
         new BehaviorSubject(new ServerStatus({
+            connected: false,
             server: {
-                up: true
+                up: false
             }
         }));
 
@@ -50,6 +51,7 @@ export class ServerStatusService {
 
                 // Notify the clients
                 this._status.next(new ServerStatus({
+                    connected: false,
                     server: {
                         up: false,
                         errorMessage: Localization.Error.SERVER_DISCONNECTED
@@ -69,6 +71,7 @@ export class ServerStatusService {
     private parseStatus(data: string) {
         let statusJson: ServerStatusJson = JSON.parse(data);
         let status = new ServerStatus({
+            connected: true,
             server: {
                 up: statusJson.server.up,
                 errorMessage: statusJson.server.error_msg

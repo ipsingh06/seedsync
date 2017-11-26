@@ -1,0 +1,93 @@
+import {Injectable} from '@angular/core';
+import {Observable} from "rxjs/Observable";
+import {BehaviorSubject} from "rxjs/Rx";
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+
+import {Config, IConfig} from "./config";
+import {LoggerService} from "../common/logger.service";
+import {BaseWebService, WebReaction} from "../common/base-web.service";
+import {ServerStatusService} from "./server-status.service";
+
+
+/**
+ * ConfigService provides the store for the config
+ */
+@Injectable()
+export class ConfigService extends BaseWebService {
+    private readonly CONFIG_GET_URL = "/server/config/get";
+    private readonly CONFIG_SET_URL = (section, option, value) => `/server/config/set/${section}/${option}/${value}`;
+
+    private _config: BehaviorSubject<Config> = new BehaviorSubject(null);
+
+    constructor(_statusService: ServerStatusService,
+                _logger: LoggerService,
+                _http: HttpClient) {
+        super(_statusService, _logger, _http);
+
+        // No need to getConfig() here since onConnectedChanged will be
+        // called right away if there is a connection to the server
+    }
+
+    /**
+     * Returns an observable that provides that latest Config
+     * @returns {Observable<Config>}
+     */
+    get config(): Observable<Config> {
+        return this._config.asObservable();
+    }
+
+    /**
+     * Sets a value in the config
+     * @param {string} section
+     * @param {string} option
+     * @param value
+     * @returns {WebReaction}
+     */
+    public set(section: string, option: string, value: any): Observable<WebReaction> {
+        let currentConfig = this._config.getValue();
+        if(!currentConfig.has(section) || !currentConfig.get(section).has(option)) {
+            return Observable.create(observer => {
+                observer.next(new WebReaction(false, null, `Config has no option named ${section}.${option}`));
+            });
+        } else {
+            let valueStr = encodeURIComponent(value);
+            let url = this.CONFIG_SET_URL(section, option, valueStr);
+            let obs = this.sendRequest(url);
+            obs.subscribe({
+                next: reaction => {
+                    if(reaction.success) {
+                        // Update our copy and notify clients
+                        let config = this._config.getValue();
+                        let newConfig = new Config(config.updateIn([section, option], (_) => value));
+                        this._config.next(newConfig);
+                    }
+                }
+            });
+            return obs;
+        }
+    }
+
+    protected onConnectedChanged(connected: boolean): void {
+        if(connected) {
+            // Retry the get
+            this.getConfig();
+        } else {
+            // Send null config
+            this._config.next(null);
+        }
+    }
+
+    private getConfig() {
+        this._logger.debug("Getting config...");
+        this.sendRequest(this.CONFIG_GET_URL).subscribe({
+            next: reaction => {
+                if(reaction.success) {
+                    let config_json: IConfig = JSON.parse(reaction.data);
+                    this._config.next(new Config(config_json));
+                } else {
+                    this._config.next(null);
+                }
+            }
+        });
+    }
+}

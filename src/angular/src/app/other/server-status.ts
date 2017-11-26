@@ -4,12 +4,17 @@ import {Record} from 'immutable';
  * ServerStatus immutable
  */
 interface IServerStatus {
+    // Frontend only member. Indicates connection status to backend
+    connected: boolean;
+
     server: {
         up: boolean;
         errorMessage: string;
     }
 }
 const DefaultServerStatus: IServerStatus = {
+    connected: null,
+
     server: {
         up: null,
         errorMessage: null
@@ -17,6 +22,8 @@ const DefaultServerStatus: IServerStatus = {
 };
 const ServerStatusRecord = Record(DefaultServerStatus);
 export class ServerStatus extends ServerStatusRecord implements IServerStatus {
+    connected: boolean;
+
     server : {
         up: boolean;
         errorMessage: string;

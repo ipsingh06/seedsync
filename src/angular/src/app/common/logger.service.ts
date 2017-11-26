@@ -6,7 +6,7 @@ export class LoggerService {
     public level: LoggerService.Level;
 
     constructor() {
-        this.level = LoggerService.Level.INFO;
+        this.level = LoggerService.Level.DEBUG;
     }
 
     get debug() {
