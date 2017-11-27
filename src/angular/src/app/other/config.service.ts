@@ -23,9 +23,6 @@ export class ConfigService extends BaseWebService {
                 _logger: LoggerService,
                 _http: HttpClient) {
         super(_statusService, _logger, _http);
-
-        // No need to getConfig() here since onConnectedChanged will be
-        // called right away if there is a connection to the server
     }
 
     /**
@@ -91,3 +88,22 @@ export class ConfigService extends BaseWebService {
         });
     }
 }
+
+/**
+ * ConfigService factory and provider
+ */
+export let configServiceFactory = (
+    _statusService: ServerStatusService,
+    _logger: LoggerService,
+    _http: HttpClient) =>
+{
+  let configService = new ConfigService(_statusService, _logger, _http);
+  configService.onInit();
+  return configService;
+};
+
+export let ConfigServiceProvider = {
+    provide: ConfigService,
+    useFactory: configServiceFactory,
+    deps: [ServerStatusService, LoggerService, HttpClient]
+};

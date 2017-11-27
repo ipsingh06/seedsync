@@ -51,6 +51,9 @@ describe('Testing config service', () => {
         configService = TestBed.get(ConfigService);
         statusService = TestBed.get(ServerStatusService);
 
+        // Finish test config init
+        configService.onInit();
+
         // Connect the service
         statusService.status.next(new ServerStatus({connected: true}));
     });

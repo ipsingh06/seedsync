@@ -42,8 +42,13 @@ export abstract class BaseWebService {
                 private _http: HttpClient) {
         // We start off assuming we are not connected
         this._connected = false;
+    }
 
-        _statusService.status.subscribe({
+    /**
+     * Call this method to finish initialization
+     */
+    public onInit() {
+        this._statusService.status.subscribe({
             next: status => {
                 // Change the status BEFORE notifying derived class so that if
                 // it calls any methods on us, we have the latest state

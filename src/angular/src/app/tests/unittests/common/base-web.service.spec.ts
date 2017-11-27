@@ -44,6 +44,9 @@ describe('Testing base web service', () => {
         baseWebService = TestBed.get(TestBaseWebService);
         statusServiceStub = TestBed.get(ServerStatusService);
         httpMock = TestBed.get(HttpTestingController);
+
+        // Initialize base web service
+        baseWebService.onInit();
     });
 
     it('should create an instance', () => {
