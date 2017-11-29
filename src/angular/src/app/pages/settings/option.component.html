@@ -1,0 +1,31 @@
+
+<div class="form-group">
+    <!-- Unfortunately, binding to type attribute breaks functionality, so we
+         have to go with a if statement -->
+
+    <!-- Textbox -->
+    <label *ngIf="type == OptionType.Text">
+        <span class="name">{{label}}</span>
+        <input *ngIf="type == OptionType.Text"
+               type="text"
+               class="form-control"
+               [disabled]="value == null"
+               [ngModel]="value"
+               (ngModelChange)="onChange($event)" />
+        <span *ngIf="description != null"
+              class="description">{{description}}</span>
+    </label>
+
+    <!-- Checkbox -->
+    <label *ngIf="type == OptionType.Checkbox">
+        <input
+               type="checkbox"
+               class="form-control"
+               [disabled]="value == null"
+               [ngModel]="value"
+           (ngModelChange)="onChange($event)" />
+        <span class="name">{{label}}</span>
+        <span *ngIf="description != null"
+              class="description">{{description}}</span>
+    </label>
+</div>

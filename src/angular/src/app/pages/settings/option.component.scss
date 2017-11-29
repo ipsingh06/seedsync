@@ -1,0 +1,29 @@
+@import '../../common/common';
+
+label {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+span.description {
+    color: darkgrey;
+    font-size: 80%;
+    width: 100%;
+    white-space: pre-line;  // renders newline as <br />
+}
+
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+
+    &:focus {
+        box-shadow: none;
+    }
+}
+
+input[type="text"] {
+    width: 100%;
+}

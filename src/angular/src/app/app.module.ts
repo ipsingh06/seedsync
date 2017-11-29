@@ -22,6 +22,8 @@ import {HeaderComponent} from "./header.component";
 import {SidebarComponent} from "./sidebar.component";
 import {SettingsPageComponent} from "./pages/settings/settings-page.component";
 import {ServerStatusService} from "./other/server-status.service";
+import {ConfigServiceProvider} from "./other/config.service";
+import {OptionComponent} from "./pages/settings/option.component";
 
 @NgModule({
     declarations: [
@@ -36,7 +38,8 @@ import {ServerStatusService} from "./other/server-status.service";
         FilesPageComponent,
         HeaderComponent,
         SidebarComponent,
-        SettingsPageComponent
+        SettingsPageComponent,
+        OptionComponent
     ],
     imports: [
         BrowserModule,
@@ -62,7 +65,8 @@ import {ServerStatusService} from "./other/server-status.service";
                 ModelFileService,
                 ViewFileService,
                 ViewFileFilterService,
-                ServerStatusService],
+                ServerStatusService,
+                ConfigServiceProvider],
     bootstrap: [AppComponent]
 })
 export class AppModule {

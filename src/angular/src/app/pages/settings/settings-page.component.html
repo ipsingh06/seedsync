@@ -1,1 +1,22 @@
-Some settings...
+<div id="settings">
+    <div id="left">
+        <div option
+             *ngFor="let option of optionsLeft"
+             [type]="option.type"
+             [label]="option.label"
+             [description]="option.description"
+             [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
+             (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
+        </div>
+    </div>
+    <div id="right">
+        <div option
+             *ngFor="let option of optionsRight"
+             [type]="option.type"
+             [label]="option.label"
+             [description]="option.description"
+             [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
+             (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
+        </div>
+    </div>
+</div>

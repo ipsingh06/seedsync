@@ -11,7 +11,7 @@ import {ViewFile} from "../../view/view-file";
 })
 
 export class FileComponent {
-    // Make ViewFile type accessible from template
+    // Make ViewFile optionType accessible from template
     ViewFile = ViewFile;
 
     @Input() file: ViewFile;
