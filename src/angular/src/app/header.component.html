@@ -1,6 +1,10 @@
 <div id="header">
-    <div class="alert alert-danger"
-         [class.show]="(serverStatus | async)?.server.up == false">
-        {{(serverStatus | async)?.server.errorMessage}}
+    <div *ngFor="let notif of notifications | async"
+         class="alert show"
+         [class.alert-danger]="notif.level == Notification.Level.DANGER"
+         [class.alert-warning]="notif.level == Notification.Level.WARNING"
+         [class.alert-info]="notif.level == Notification.Level.INFO"
+         [class.alert-success]="notif.level == Notification.Level.SUCCESS">
+        {{notif.text}}
     </div>
 </div>
