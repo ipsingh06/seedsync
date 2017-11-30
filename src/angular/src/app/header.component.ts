@@ -49,7 +49,7 @@ export class HeaderComponent {
                     // Show it, if different from the existing one
                     if(
                             this._prevServerNotification == null ||
-                            !Immutable.is(notification, this._prevServerNotification)
+                            this._prevServerNotification.text != notification.text
                     ) {
                         // Hide existing, if any
                         if(this._prevServerNotification != null) {
@@ -57,6 +57,7 @@ export class HeaderComponent {
                         }
                         this._prevServerNotification = notification;
                         this._notificationService.show(this._prevServerNotification);
+                        this._logger.debug("New server notification: %O", this._prevServerNotification);
                     }
                 }
             }
