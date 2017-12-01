@@ -4,6 +4,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from threading import Thread
 
 from system import SystemScanner
 
@@ -12,8 +13,7 @@ from system import SystemScanner
 class TestSystemScanner(unittest.TestCase):
     temp_dir = None
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         # Create a temp directory
         TestSystemScanner.temp_dir = tempfile.mkdtemp(prefix="test_system_scanner")
 
@@ -58,8 +58,7 @@ class TestSystemScanner(unittest.TestCase):
         my_touch(1, "b", "bb", "bbc", "bbca", ".bbcaa")
         my_touch(1234, "c")
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         # Cleanup
         shutil.rmtree(TestSystemScanner.temp_dir)
 
@@ -303,3 +302,30 @@ class TestSystemScanner(unittest.TestCase):
 
         # Cleanup
         shutil.rmtree(tempdir)
+
+    def test_files_deleted_while_scanning(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+
+        stop = False
+
+        # Make and delete files while test runs
+        def monkey_with_files():
+            orig = os.path.join(TestSystemScanner.temp_dir, "b")
+            dest = os.path.join(TestSystemScanner.temp_dir, "b_copy")
+            while not stop:
+                shutil.copytree(orig, dest)
+                shutil.rmtree(dest)
+        thread = Thread(target=monkey_with_files)
+        thread.start()
+
+        # Scan a bunch of times
+        for i in range(0, 2000):
+            files = scanner.scan()
+            # Must have at least the untouched files
+            self.assertGreaterEqual(len(files), 3)
+            names = set([f.name for f in files])
+            self.assertIn("a", names)
+            self.assertIn("b", names)
+            self.assertIn("c", names)
+        stop = True
+        thread.join()

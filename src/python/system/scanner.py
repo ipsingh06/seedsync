@@ -94,7 +94,11 @@ class SystemScanner:
                     continue
 
                 if entry.is_dir():
-                    sub_children = create_children(entry.path)
+                    # Files may get deleted while scanning, ignore the error
+                    try:
+                        sub_children = create_children(entry.path)
+                    except FileNotFoundError:
+                        sub_children = []
                     size = sum(sub_child.size for sub_child in sub_children)
                     sf = SystemFile(entry.name, size, True)
                     for sub_child in sub_children:
