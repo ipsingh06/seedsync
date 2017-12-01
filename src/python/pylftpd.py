@@ -291,7 +291,7 @@ class Pylftpd:
         config.lftp.remote_username = Pylftpd.__CONFIG_DUMMY_VALUE
         config.lftp.remote_path = Pylftpd.__CONFIG_DUMMY_VALUE
         config.lftp.local_path = Pylftpd.__CONFIG_DUMMY_VALUE
-        config.lftp.remote_path_to_scan_script = Pylftpd.__CONFIG_DUMMY_VALUE
+        config.lftp.remote_path_to_scan_script = "/tmp/scanfs"
         config.lftp.num_max_parallel_downloads = 2
         config.lftp.num_max_parallel_files_per_download = 4
         config.lftp.num_max_connections_per_root_file = 4
