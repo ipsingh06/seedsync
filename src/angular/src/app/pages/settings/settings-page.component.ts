@@ -10,6 +10,7 @@ import {Localization} from "../../common/localization";
 import {NotificationService} from "../../other/notification.service";
 import {ServerStatusService} from "../../other/server-status.service";
 import {ServerCommandService} from "../../other/server-command.service";
+import {ServerStatus} from "../../other/server-status";
 
 @Component({
     selector: 'settings-page',
@@ -145,14 +146,14 @@ export class SettingsPageComponent {
     // noinspection JSUnusedGlobalSymbols
     ngOnInit() {
         this._statusService.status.subscribe({
-            next: status => {
-                if(!status.server.up) {
+            next: (status: ServerStatus) => {
+                if(!status.connected) {
                     // Server went down, hide the config restart notification
                     this._notifService.hide(this._configRestartNotif);
                 }
 
-                // Enable/disable commands based on server status
-                this.commandsEnabled = status.server.up;
+                // Enable/disable commands based on server connection
+                this.commandsEnabled = status.connected;
             }
         });
     }
