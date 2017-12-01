@@ -9,6 +9,7 @@ import {Notification} from "../../other/notification";
 import {Localization} from "../../common/localization";
 import {NotificationService} from "../../other/notification.service";
 import {ServerStatusService} from "../../other/server-status.service";
+import {ServerCommandService} from "../../other/server-command.service";
 
 @Component({
     selector: 'settings-page',
@@ -20,6 +21,8 @@ import {ServerStatusService} from "../../other/server-status.service";
 
 export class SettingsPageComponent {
     public config: Observable<Config>;
+
+    public commandsEnabled: boolean;
 
     public optionsLeft: IOption[] = [
         {
@@ -129,14 +132,17 @@ export class SettingsPageComponent {
     constructor(private _logger: LoggerService,
                 private _configService: ConfigService,
                 private _notifService: NotificationService,
-                private _statusService: ServerStatusService) {
+                private _statusService: ServerStatusService,
+                private _commandService: ServerCommandService) {
         this.config = _configService.config;
+        this.commandsEnabled = false;
         this._configRestartNotif = new Notification({
             level: Notification.Level.INFO,
             text: Localization.Notification.CONFIG_RESTART
         });
     }
 
+    // noinspection JSUnusedGlobalSymbols
     ngOnInit() {
         this._statusService.status.subscribe({
             next: status => {
@@ -144,6 +150,9 @@ export class SettingsPageComponent {
                     // Server went down, hide the config restart notification
                     this._notifService.hide(this._configRestartNotif);
                 }
+
+                // Enable/disable commands based on server status
+                this.commandsEnabled = status.server.up;
             }
         });
     }
@@ -156,6 +165,18 @@ export class SettingsPageComponent {
 
                     // Show the restart notification
                     this._notifService.show(this._configRestartNotif);
+                } else {
+                    this._logger.error(reaction.errorMessage);
+                }
+            }
+        });
+    }
+
+    onCommandRestart() {
+        this._commandService.restart().subscribe({
+            next: reaction => {
+                if(reaction.success) {
+                    this._logger.info(reaction.data);
                 } else {
                     this._logger.error(reaction.errorMessage);
                 }

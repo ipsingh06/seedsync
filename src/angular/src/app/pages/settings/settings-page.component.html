@@ -19,4 +19,12 @@
              (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
         </div>
     </div>
+
+    <div id="commands">
+        <div class="button" click-stop-propagation [attr.disabled]="commandsEnabled ? null : true"
+             (click)="!commandsEnabled || onCommandRestart()">
+            <span class="icon glyphicon glyphicon-refresh"></span>
+            <span class="text">Restart</span>
+        </div>
+    </div>
 </div>

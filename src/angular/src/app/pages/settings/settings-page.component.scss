@@ -6,11 +6,32 @@
     flex-direction: row;
     flex-wrap: wrap;
     padding: 15px;
-}
 
-#settings #left,
-#settings #right {
-    width: 100%;
+    #left, #right {
+        width: 100%;
+    }
+
+    #commands {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+
+        .button {
+            @extend %button;
+
+            flex-direction: row;
+            padding: 10px;
+            margin-right: 8px;
+            height: 40px;
+            font-size: 120%;
+
+            .text {
+                margin-left: 5px;
+            }
+        }
+    }
 }
 
 

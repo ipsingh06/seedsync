@@ -25,6 +25,7 @@ import {ServerStatusService} from "./other/server-status.service";
 import {ConfigServiceProvider} from "./other/config.service";
 import {OptionComponent} from "./pages/settings/option.component";
 import {NotificationService} from "./other/notification.service";
+import {ServerCommandServiceProvider} from "./other/server-command.service";
 
 @NgModule({
     declarations: [
@@ -68,7 +69,8 @@ import {NotificationService} from "./other/notification.service";
                 ViewFileFilterService,
                 ServerStatusService,
                 ConfigServiceProvider,
-                NotificationService],
+                NotificationService,
+                ServerCommandServiceProvider],
     bootstrap: [AppComponent]
 })
 export class AppModule {
