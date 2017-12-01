@@ -9,10 +9,11 @@ import logging
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from typing import Optional
+import shutil
 
 # my libs
 from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError, ServiceRestart, \
-                   Localization, Status
+                   Localization, Status, ConfigError
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
 from web import WebAppJob, WebAppBuilder
 
@@ -35,10 +36,29 @@ class Pylftpd:
         args = self._parse_args()
 
         # Create/load config
+        config = None
         self.config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)
+        create_default_config = False
         if os.path.isfile(self.config_path):
-            config = PylftpConfig.from_file(self.config_path)
+            try:
+                config = PylftpConfig.from_file(self.config_path)
+            except ConfigError:
+                # backup the bad config file
+                i = 1
+                while True:
+                    config_backup_path = os.path.join(
+                        args.config_dir, "{}.{}.bak".format(Pylftpd.__FILE_CONFIG, i)
+                    )
+                    if not os.path.exists(config_backup_path):
+                        break
+                    i += 1
+                shutil.copy(self.config_path, config_backup_path)
+                # set config to default
+                create_default_config = True
         else:
+            create_default_config = True
+
+        if create_default_config:
             # Create default config
             config = Pylftpd._create_default_config()
             config.to_file(self.config_path)
