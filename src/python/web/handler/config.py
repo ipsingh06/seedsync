@@ -1,6 +1,7 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 from bottle import HTTPResponse
+from urllib.parse import unquote
 
 from common import overrides, PylftpConfig, ConfigError
 from ..web_app import IHandler, WebApp
@@ -22,6 +23,9 @@ class ConfigHandler(IHandler):
         return HTTPResponse(body=out_json)
 
     def __handle_set_config(self, section: str, key: str, value: str):
+        # value is double encoded
+        value = unquote(value)
+
         if not self.__config.has_section(section):
             return HTTPResponse(body="There is no section '{}' in config".format(section), status=400)
         inner_config = getattr(self.__config, section)

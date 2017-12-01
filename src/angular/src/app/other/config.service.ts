@@ -47,7 +47,8 @@ export class ConfigService extends BaseWebService {
                 observer.next(new WebReaction(false, null, `Config has no option named ${section}.${option}`));
             });
         } else {
-            let valueStr = encodeURIComponent(value);
+            // Double-encode the value
+            let valueStr = encodeURIComponent(encodeURIComponent(value));
             let url = this.CONFIG_SET_URL(section, option, valueStr);
             let obs = this.sendRequest(url);
             obs.subscribe({

@@ -27,7 +27,7 @@ class TestConfigHandler(BaseTestWebApp):
         self.assertEqual(True, self.context.config.general.debug)
 
         self.assertEqual(None, self.context.config.lftp.remote_path)
-        uri = quote("/path/to/somewhere", safe="")
+        uri = quote(quote("/path/to/somewhere", safe=""), safe="")
         resp = self.test_app.get("/server/config/set/lftp/remote_path/" + uri)
         self.assertEqual(200, resp.status_int)
         self.assertEqual("/path/to/somewhere", self.context.config.lftp.remote_path)

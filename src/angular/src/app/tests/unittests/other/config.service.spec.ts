@@ -251,13 +251,15 @@ describe('Testing config service', () => {
         configService.set("general", "debug", "test").subscribe({next: reaction => {}});
         httpMock.expectOne("/server/config/set/general/debug/test").flush("{}");
         configService.set("general", "debug", "test space").subscribe({next: reaction => {}});
-        httpMock.expectOne("/server/config/set/general/debug/test%20space").flush("{}");
+        httpMock.expectOne("/server/config/set/general/debug/test%2520space").flush("{}");
         configService.set("general", "debug", "test/slash").subscribe({next: reaction => {}});
-        httpMock.expectOne("/server/config/set/general/debug/test%2Fslash").flush("{}");
+        httpMock.expectOne("/server/config/set/general/debug/test%252Fslash").flush("{}");
         configService.set("general", "debug", "test\"doublequote").subscribe(
             {next: reaction => {}}
         );
-        httpMock.expectOne("/server/config/set/general/debug/test%22doublequote").flush("{}");
+        httpMock.expectOne("/server/config/set/general/debug/test%2522doublequote").flush("{}");
+        configService.set("general", "debug", "/test/leadingslash").subscribe({next: reaction => {}});
+        httpMock.expectOne("/server/config/set/general/debug/%252Ftest%252Fleadingslash").flush("{}");
 
         httpMock.verify();
     });
