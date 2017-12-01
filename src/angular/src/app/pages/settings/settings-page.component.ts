@@ -1,10 +1,14 @@
-import {ChangeDetectionStrategy, Component, Inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 
 import {LoggerService} from "../../common/logger.service";
 import {ConfigService} from "../../other/config.service";
 import {Config} from "../../other/config";
 import {OptionType} from "./option.component";
+import {Notification} from "../../other/notification";
+import {Localization} from "../../common/localization";
+import {NotificationService} from "../../other/notification.service";
+import {ServerStatusService} from "../../other/server-status.service";
 
 @Component({
     selector: 'settings-page',
@@ -120,9 +124,28 @@ export class SettingsPageComponent {
         },
     ];
 
+    private _configRestartNotif: Notification;
+
     constructor(private _logger: LoggerService,
-                private _configService: ConfigService) {
+                private _configService: ConfigService,
+                private _notifService: NotificationService,
+                private _statusService: ServerStatusService) {
         this.config = _configService.config;
+        this._configRestartNotif = new Notification({
+            level: Notification.Level.INFO,
+            text: Localization.Notification.CONFIG_RESTART
+        });
+    }
+
+    ngOnInit() {
+        this._statusService.status.subscribe({
+            next: status => {
+                if(!status.server.up) {
+                    // Server went down, hide the config restart notification
+                    this._notifService.hide(this._configRestartNotif);
+                }
+            }
+        });
     }
 
     onSetConfig(section: string, option: string, value: any) {
@@ -130,6 +153,9 @@ export class SettingsPageComponent {
             next: reaction => {
                 if(reaction.success) {
                     this._logger.info(reaction.data);
+
+                    // Show the restart notification
+                    this._notifService.show(this._configRestartNotif);
                 } else {
                     this._logger.error(reaction.errorMessage);
                 }

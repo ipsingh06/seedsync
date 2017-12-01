@@ -43,9 +43,7 @@ export class NotificationService {
 
     public show(notification: Notification) {
         let index = this._notifications.findIndex(value => Immutable.is(value, notification));
-        if(index >= 0) {
-            this._logger.error("Notification is already showing: %O", notification);
-        } else {
+        if(index < 0) {
             let notifications = this._notifications.push(notification);
             this._notifications = notifications.sort(this._comparator).toList();
             this._notificationsSubject.next(this._notifications);
@@ -57,8 +55,6 @@ export class NotificationService {
         if(index >= 0) {
             this._notifications = this._notifications.remove(index);
             this._notificationsSubject.next(this._notifications);
-        } else {
-            this._logger.error("Notification is not showing: %O", notification);
         }
     }
 }
