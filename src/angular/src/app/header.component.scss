@@ -3,9 +3,23 @@
         padding: 5px;
         margin-bottom: 0;
         border-radius: 0;
-        display: none;
-    }
-    .alert.show {
-        display: inline;
+
+        button.close {
+            top: -1px;
+            right: 0;
+            cursor: default;
+            user-select: none;
+            outline: none;
+            opacity: .2;
+
+            &:active {
+                color: red;
+            }
+
+            &:hover {
+                color: inherit;
+                opacity: .2;
+            }
+        }
     }
 }

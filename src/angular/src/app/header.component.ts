@@ -30,6 +30,10 @@ export class HeaderComponent {
         this._prevServerNotification = null;
     }
 
+    public dismiss(notif: Notification) {
+        this._notificationService.hide(notif)
+    }
+
     ngOnInit() {
         // Set up a subscriber to show server status notifications
         this._serverStatusService.status.subscribe({
