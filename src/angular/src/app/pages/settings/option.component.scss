@@ -1,5 +1,11 @@
 @import '../../common/common';
 
+.error {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #a94442;
+}
+
 label {
     width: 100%;
     display: flex;
