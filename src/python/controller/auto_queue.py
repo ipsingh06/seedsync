@@ -1,10 +1,24 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 import json
+from abc import ABC, abstractmethod
+from typing import Set
 
 from common import overrides, Constants, PylftpContext, Persist
 from model import IModelListener, ModelFile
 from .controller import Controller
+
+
+class IAutoQueuePersistListener(ABC):
+    """Listener for receiving AutoQueuePersist events"""
+
+    @abstractmethod
+    def pattern_added(self, pattern: str):
+        pass
+
+    @abstractmethod
+    def pattern_removed(self, pattern: str):
+        pass
 
 
 class AutoQueuePersist(Persist):
@@ -16,14 +30,34 @@ class AutoQueuePersist(Persist):
     __KEY_PATTERNS = "patterns"
 
     def __init__(self):
-        self.patterns = set()
+        self.__patterns = set()
+        self.__listeners = []
+
+    @property
+    def patterns(self) -> Set[str]:
+        return set(self.__patterns)
+
+    def add_pattern(self, pattern: str):
+        if pattern not in self.__patterns:
+            self.__patterns.add(pattern)
+            for listener in self.__listeners:
+                listener.pattern_added(pattern)
+
+    def remove_pattern(self, pattern: str):
+        if pattern in self.__patterns:
+            self.__patterns.remove(pattern)
+            for listener in self.__listeners:
+                listener.pattern_removed(pattern)
+
+    def add_listener(self, listener: IAutoQueuePersistListener):
+        self.__listeners.append(listener)
 
     @classmethod
     @overrides(Persist)
     def from_str(cls: "AutoQueuePersist", content: str) -> "AutoQueuePersist":
         persist = AutoQueuePersist()
         dct = json.loads(content)
-        persist.patterns = set(dct[AutoQueuePersist.__KEY_PATTERNS])
+        persist.__patterns = set(dct[AutoQueuePersist.__KEY_PATTERNS])
         return persist
 
     @overrides(Persist)
@@ -34,6 +68,7 @@ class AutoQueuePersist(Persist):
 
 
 class AutoQueueModelListener(IModelListener):
+    """Keeps track of added and modified files"""
     def __init__(self):
         self.new_files = []  # list of new files
         self.modified_files = []  # list of pairs (old_file, new_file)
@@ -51,6 +86,21 @@ class AutoQueueModelListener(IModelListener):
         pass
 
 
+class AutoQueuePersistListener(IAutoQueuePersistListener):
+    """Keeps track of newly added patterns"""
+    def __init__(self):
+        self.new_patterns = set()
+
+    @overrides(IAutoQueuePersistListener)
+    def pattern_added(self, pattern: str):
+        self.new_patterns.add(pattern)
+
+    @overrides(IAutoQueuePersistListener)
+    def pattern_removed(self, pattern: str):
+        if pattern in self.new_patterns:
+            self.new_patterns.remove(pattern)
+
+
 class AutoQueue:
     """
     Implements auto-queue functionality by sending commands to controller
@@ -66,6 +116,8 @@ class AutoQueue:
         self.__persist = persist
         self.__controller = controller
         self.__model_listener = AutoQueueModelListener()
+        self.__persist_listener = AutoQueuePersistListener()
+        persist.add_listener(self.__persist_listener)
 
         initial_model_files = self.__controller.get_model_files_and_add_listener(self.__model_listener)
         # pass the initial model files through to our listener
@@ -82,8 +134,8 @@ class AutoQueue:
         Advance the auto queue state
         :return:
         """
-        # Build a list of candidate file
-        candidate_file = []
+        # Build a list of candidate files
+        new_files = []
 
         # Accept new files that exist remotely
         for file in self.__model_listener.new_files:
@@ -93,7 +145,7 @@ class AutoQueue:
             # File must be in Default state
             if not file.state == ModelFile.State.DEFAULT:
                 continue
-            candidate_file.append(file)
+            new_files.append(file)
 
         # Accept modified files that were just discovered on remote
         for old_file, new_file in self.__model_listener.modified_files:
@@ -106,17 +158,45 @@ class AutoQueue:
             # File must be in Default state
             if not new_file.state == ModelFile.State.DEFAULT:
                 continue
-            candidate_file.append(new_file)
+            new_files.append(new_file)
 
-        # Filter candidate files with those matching a pattern
-        for file in candidate_file:
+        # Files to queue, filename -> pattern map
+        # Filename key prevents a file from being queued twice
+        files_to_queue = dict()
+
+        # Step 1: run new file through all the patterns
+        for file in new_files:
             for pattern in self.__persist.patterns:
-                if pattern.lower() in file.name.lower():
-                    self.logger.info("Auto queueing '{}' for pattern '{}'".format(file.name, pattern))
-                    command = Controller.Command(Controller.Command.Action.QUEUE, file.name)
-                    self.__controller.queue_command(command)
+                if AutoQueue.__match(pattern, file):
+                    files_to_queue[file.name] = pattern
                     break
+
+        # Step 2: run new pattern through all the files
+        if self.__persist_listener.new_patterns:
+            model_files = self.__controller.get_model_files()
+            for new_pattern in self.__persist_listener.new_patterns:
+                for file in model_files:
+                    if AutoQueue.__match(new_pattern, file):
+                        files_to_queue[file.name] = new_pattern
+
+        # Send the queue commands
+        for filename, pattern in files_to_queue.items():
+            self.logger.info("Auto queueing '{}' for pattern '{}'".format(filename, pattern))
+            command = Controller.Command(Controller.Command.Action.QUEUE, filename)
+            self.__controller.queue_command(command)
 
         # Clear the processed files
         self.__model_listener.new_files.clear()
         self.__model_listener.modified_files.clear()
+        # Clear the new patterns
+        self.__persist_listener.new_patterns.clear()
+
+    @staticmethod
+    def __match(pattern: str, file: ModelFile) -> bool:
+        """
+        Returns true is file matches the pattern
+        :param pattern:
+        :param file:
+        :return:
+        """
+        return pattern.lower() in file.name.lower()

@@ -6,11 +6,91 @@ import logging
 import sys
 import json
 
-from controller import AutoQueue, AutoQueuePersist, Controller
+from common import overrides
+from controller import AutoQueue, AutoQueuePersist, IAutoQueuePersistListener, Controller
 from model import IModelListener, ModelFile
 
 
+class TestAutoQueuePersistListener(IAutoQueuePersistListener):
+    @overrides(IAutoQueuePersistListener)
+    def pattern_added(self, pattern: str):
+        pass
+
+    @overrides(IAutoQueuePersistListener)
+    def pattern_removed(self, pattern: str):
+        pass
+
+
 class TestAutoQueuePersist(unittest.TestCase):
+    def test_add_pattern(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern("one")
+        persist.add_pattern("two")
+        self.assertEqual({"one", "two"}, persist.patterns)
+        persist.add_pattern("one")
+        persist.add_pattern("three")
+        self.assertEqual({"one", "two", "three"}, persist.patterns)
+
+    def test_remove_pattern(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern("one")
+        persist.add_pattern("two")
+        persist.remove_pattern("one")
+        self.assertEqual({"two"}, persist.patterns)
+        persist.add_pattern("one")
+        persist.add_pattern("three")
+        persist.remove_pattern("two")
+        self.assertEqual({"one", "three"}, persist.patterns)
+
+    def test_listener_pattern_added(self):
+        listener = TestAutoQueuePersistListener()
+        listener.pattern_added = MagicMock()
+        persist = AutoQueuePersist()
+        persist.add_listener(listener)
+        persist.add_pattern("one")
+        listener.pattern_added.assert_called_once_with("one")
+        listener.pattern_added.reset_mock()
+        persist.add_pattern("two")
+        listener.pattern_added.assert_called_once_with("two")
+        listener.pattern_added.reset_mock()
+
+    def test_listener_pattern_added_duplicate(self):
+        listener = TestAutoQueuePersistListener()
+        listener.pattern_added = MagicMock()
+        persist = AutoQueuePersist()
+        persist.add_listener(listener)
+        persist.add_pattern("one")
+        listener.pattern_added.assert_called_once_with("one")
+        listener.pattern_added.reset_mock()
+        persist.add_pattern("one")
+        listener.pattern_added.assert_not_called()
+
+    def test_listener_pattern_removed(self):
+        listener = TestAutoQueuePersistListener()
+        listener.pattern_removed = MagicMock()
+        persist = AutoQueuePersist()
+        persist.add_pattern("one")
+        persist.add_pattern("two")
+        persist.add_pattern("three")
+        persist.add_listener(listener)
+        persist.remove_pattern("one")
+        listener.pattern_removed.assert_called_once_with("one")
+        listener.pattern_removed.reset_mock()
+        persist.remove_pattern("two")
+        listener.pattern_removed.assert_called_once_with("two")
+        listener.pattern_removed.reset_mock()
+
+    def test_listener_pattern_removed_non_existing(self):
+        listener = TestAutoQueuePersistListener()
+        listener.pattern_removed = MagicMock()
+        persist = AutoQueuePersist()
+        persist.add_pattern("one")
+        persist.add_pattern("two")
+        persist.add_pattern("three")
+        persist.add_listener(listener)
+        persist.remove_pattern("four")
+        listener.pattern_removed.assert_not_called()
+
     def test_from_str(self):
         content = """
         {
@@ -23,10 +103,10 @@ class TestAutoQueuePersist(unittest.TestCase):
 
     def test_to_str(self):
         persist = AutoQueuePersist()
-        persist.patterns.add("one")
-        persist.patterns.add("two")
-        persist.patterns.add("th ree")
-        persist.patterns.add("fo.ur")
+        persist.add_pattern("one")
+        persist.add_pattern("two")
+        persist.add_pattern("th ree")
+        persist.add_pattern("fo.ur")
         dct = json.loads(persist.to_str())
         self.assertTrue("patterns" in dct)
         self.assertEqual({"one", "two", "th ree", "fo.ur"}, set(dct["patterns"]))
@@ -50,19 +130,21 @@ class TestAutoQueue(unittest.TestCase):
         self.model_listener = None
         self.initial_model = []
 
-        def capture_listener(listener: IModelListener):
-            self.model_listener = listener
+        def get_model():
             return self.initial_model
 
-        self.controller.get_model_files_and_add_listener.side_effect = capture_listener
+        def get_model_and_capture_listener(listener: IModelListener):
+            self.model_listener = listener
+            return get_model()
+
+        self.controller.get_model_files.side_effect = get_model
+        self.controller.get_model_files_and_add_listener.side_effect = get_model_and_capture_listener
 
     def test_matching_new_files_are_queued(self):
         persist = AutoQueuePersist()
-        persist.patterns = {
-            "File.One",
-            "File.Two",
-            "File.Three"
-        }
+        persist.add_pattern("File.One")
+        persist.add_pattern("File.Two")
+        persist.add_pattern("File.Three")
 
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
@@ -98,23 +180,15 @@ class TestAutoQueue(unittest.TestCase):
         self.model_listener.file_added(file_three)
         auto_queue.process()
         calls = self.controller.queue_command.call_args_list[-3:]
-        command = calls[0][0][0]
-        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
-        self.assertEqual("File.One", command.filename)
-        command = calls[1][0][0]
-        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
-        self.assertEqual("File.Two", command.filename)
-        command = calls[2][0][0]
-        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
-        self.assertEqual("File.Three", command.filename)
+        commands = [calls[i][0][0] for i in range(3)]
+        self.assertEqual(set([Controller.Command.Action.QUEUE]*3), {c.action for c in commands})
+        self.assertEqual({"File.One", "File.Two", "File.Three"}, {c.filename for c in commands})
 
     def test_matching_initial_files_are_queued(self):
         persist = AutoQueuePersist()
-        persist.patterns = {
-            "File.One",
-            "File.Two",
-            "File.Three"
-        }
+        persist.add_pattern("File.One")
+        persist.add_pattern("File.Two")
+        persist.add_pattern("File.Three")
 
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
@@ -136,21 +210,14 @@ class TestAutoQueue(unittest.TestCase):
 
         calls = self.controller.queue_command.call_args_list
         self.assertEqual(3, len(calls))
-        command = calls[0][0][0]
-        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
-        self.assertEqual("File.One", command.filename)
-        command = calls[1][0][0]
-        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
-        self.assertEqual("File.Two", command.filename)
-        command = calls[2][0][0]
-        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
-        self.assertEqual("File.Three", command.filename)
+        commands = [calls[i][0][0] for i in range(3)]
+        self.assertEqual(set([Controller.Command.Action.QUEUE]*3), {c.action for c in commands})
+        self.assertEqual({"File.One", "File.Two", "File.Three"}, {c.filename for c in commands})
 
     def test_matching_is_case_insensitive(self):
         persist = AutoQueuePersist()
-        persist.patterns = {
-            "FiLe.oNe"
-        }
+        persist.add_pattern("FiLe.oNe")
+
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -162,9 +229,7 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual("File.One", command.filename)
 
         persist = AutoQueuePersist()
-        persist.patterns = {
-            "File.One"
-        }
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("FiLe.oNe", True)
@@ -177,9 +242,7 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_partial_matches(self):
         persist = AutoQueuePersist()
-        persist.patterns = {
-            "One"
-        }
+        persist.add_pattern("One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -192,7 +255,7 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_matching_local_files_are_not_queued(self):
         persist = AutoQueuePersist()
-        persist.patterns = {"File.One"}
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -204,7 +267,7 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_matching_deleted_files_are_not_queued(self):
         persist = AutoQueuePersist()
-        persist.patterns = {"File.One"}
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -217,7 +280,7 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_matching_downloading_files_are_not_queued(self):
         persist = AutoQueuePersist()
-        persist.patterns = {"File.One"}
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -237,7 +300,7 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_matching_queued_files_are_not_queued(self):
         persist = AutoQueuePersist()
-        persist.patterns = {"File.One"}
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -249,7 +312,7 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_matching_downloaded_files_are_not_queued(self):
         persist = AutoQueuePersist()
-        persist.patterns = {"File.One"}
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -261,7 +324,7 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_auto_queued_file_not_re_queued_after_stopping(self):
         persist = AutoQueuePersist()
-        persist.patterns = {"File.One"}
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
         file_one = ModelFile("File.One", True)
@@ -283,7 +346,7 @@ class TestAutoQueue(unittest.TestCase):
     def test_partial_file_is_auto_queued_after_remote_discovery(self):
         # Test that a partial local file is auto-queued when discovered on remote some time later
         persist = AutoQueuePersist()
-        persist.patterns = {"File.One"}
+        persist.add_pattern("File.One")
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
 
@@ -304,3 +367,103 @@ class TestAutoQueue(unittest.TestCase):
         command = self.controller.queue_command.call_args[0][0]
         self.assertEqual(Controller.Command.Action.QUEUE, command.action)
         self.assertEqual("File.One", command.filename)
+
+    def test_new_matching_pattern_queues_existing_files(self):
+        persist = AutoQueuePersist()
+
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two", True)
+        file_two.remote_size = 200
+        file_three = ModelFile("File.Three", True)
+        file_three.remote_size = 300
+        file_four = ModelFile("File.Four", True)
+        file_four.remote_size = 400
+        file_five = ModelFile("File.Five", True)
+        file_five.remote_size = 500
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        persist.add_pattern("File.One")
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("File.One", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        persist.add_pattern("File.Two")
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("File.Two", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        persist.add_pattern("File.Three")
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("File.Three", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_removed_pattern_doesnt_queue_new_file(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern("One")
+        persist.add_pattern("Two")
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("File.One", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        persist.remove_pattern("Two")
+
+        file_two = ModelFile("File.Two", True)
+        file_two.remote_size = 100
+        self.model_listener.file_added(file_two)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_adding_then_removing_pattern_doesnt_queue_existing_file(self):
+        persist = AutoQueuePersist()
+
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two", True)
+        file_two.remote_size = 200
+        file_three = ModelFile("File.Three", True)
+        file_three.remote_size = 300
+        file_four = ModelFile("File.Four", True)
+        file_four.remote_size = 400
+        file_five = ModelFile("File.Five", True)
+        file_five.remote_size = 500
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        persist.add_pattern("File.One")
+        persist.remove_pattern("File.One")
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
