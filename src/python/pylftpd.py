@@ -8,14 +8,18 @@ import os
 import logging
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from typing import Optional
+from typing import Optional, Type, TypeVar
 import shutil
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError, ServiceRestart, \
-                   Localization, Status, ConfigError
+from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError
+from common import ServiceRestart
+from common import Localization, Status, ConfigError, Persist, PersistError
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
 from web import WebAppJob, WebAppBuilder
+
+
+T_Persist = TypeVar('T_Persist', bound=Persist)
 
 
 class Pylftpd:
@@ -42,17 +46,8 @@ class Pylftpd:
         if os.path.isfile(self.config_path):
             try:
                 config = PylftpConfig.from_file(self.config_path)
-            except ConfigError:
-                # backup the bad config file
-                i = 1
-                while True:
-                    config_backup_path = os.path.join(
-                        args.config_dir, "{}.{}.bak".format(Pylftpd.__FILE_CONFIG, i)
-                    )
-                    if not os.path.exists(config_backup_path):
-                        break
-                    i += 1
-                shutil.copy(self.config_path, config_backup_path)
+            except (ConfigError, PersistError):
+                Pylftpd.__backup_file(self.config_path)
                 # set config to default
                 create_default_config = True
         else:
@@ -102,15 +97,10 @@ class Pylftpd:
 
         # Load the persists
         self.controller_persist_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONTROLLER_PERSIST)
-        if os.path.isfile(self.controller_persist_path):
-            self.controller_persist = ControllerPersist.from_file(self.controller_persist_path)
-        else:
-            self.controller_persist = ControllerPersist()
+        self.controller_persist = self._load_persist(ControllerPersist, self.controller_persist_path)
+
         self.auto_queue_persist_path = os.path.join(args.config_dir, Pylftpd.__FILE_AUTO_QUEUE_PERSIST)
-        if os.path.isfile(self.auto_queue_persist_path):
-            self.auto_queue_persist = AutoQueuePersist.from_file(self.auto_queue_persist_path)
-        else:
-            self.auto_queue_persist = AutoQueuePersist()
+        self.auto_queue_persist = self._load_persist(AutoQueuePersist, self.auto_queue_persist_path)
 
     def run(self):
         self.context.logger.info("Starting pylftpd")
@@ -314,6 +304,48 @@ class Pylftpd:
                 if Pylftpd.__CONFIG_DUMMY_VALUE == config_dict[sec_name][key]:
                     return True
         return False
+
+    @staticmethod
+    def _load_persist(cls: Type[T_Persist], file_path: str) -> T_Persist:
+        """
+        Loads a persist from file.
+        Backs up existing persist if it's corrupted. Returns a new blank
+        persist in its place.
+        :param cls:
+        :param file_path:
+        :return:
+        """
+        if os.path.isfile(file_path):
+            try:
+                return cls.from_file(file_path)
+            except PersistError:
+                if Pylftpd.logger:
+                    Pylftpd.logger.exception("Caught exception")
+
+                # backup file
+                Pylftpd.__backup_file(file_path)
+
+                # noinspection PyCallingNonCallable
+                return cls()
+        else:
+            # noinspection PyCallingNonCallable
+            return cls()
+
+    @staticmethod
+    def __backup_file(file_path: str):
+        file_name = os.path.basename(file_path)
+        file_dir = os.path.dirname(file_path)
+        i = 1
+        while True:
+            backup_path = os.path.join(
+                file_dir, "{}.{}.bak".format(file_name, i)
+            )
+            if not os.path.exists(backup_path):
+                break
+            i += 1
+        if Pylftpd.logger:
+            Pylftpd.logger.info("Backing up {} to {}".format(file_path, backup_path))
+        shutil.copy(file_path, backup_path)
 
 
 if __name__ == "__main__":

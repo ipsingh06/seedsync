@@ -162,7 +162,7 @@ class AutoQueue:
         # Print the initial persist state
         self.logger.debug("Auto-Queue Patterns:")
         for pattern in self.__persist.patterns:
-            self.logger.debug("    {}".format(pattern))
+            self.logger.debug("    {}".format(pattern.pattern))
 
     def process(self):
         """
