@@ -1,6 +1,6 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-from configparser import ConfigParser
+import configparser
 from typing import Dict
 from io import StringIO
 import collections
@@ -9,7 +9,7 @@ from abc import ABC
 from typing import Type, TypeVar, Callable, Any
 
 from .error import PylftpError
-from .persist import Persist
+from .persist import Persist, PersistError
 from .types import overrides
 
 
@@ -295,8 +295,16 @@ class PylftpConfig(Persist):
     @classmethod
     @overrides(Persist)
     def from_str(cls: "PylftpConfig", content: str) -> "PylftpConfig":
-        config_parser = ConfigParser()
-        config_parser.read_string(content)
+        config_parser = configparser.ConfigParser()
+        try:
+            config_parser.read_string(content)
+        except (
+                configparser.MissingSectionHeaderError,
+                configparser.ParsingError
+        ) as e:
+            raise PersistError("Error parsing Config - {}: {}".format(
+                type(e).__name__, str(e))
+            )
         config_dict = {}
         for section in config_parser.sections():
             config_dict[section] = {}
@@ -306,7 +314,7 @@ class PylftpConfig(Persist):
 
     @overrides(Persist)
     def to_str(self) -> str:
-        config_parser = ConfigParser()
+        config_parser = configparser.ConfigParser()
         config_dict = self.as_dict()
         for section in config_dict:
             config_parser.add_section(section)

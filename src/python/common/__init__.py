@@ -6,7 +6,7 @@ from .context import PylftpContext, PylftpArgs
 from .error import PylftpError, ServiceExit, ServiceRestart
 from .constants import Constants
 from .config import PylftpConfig, ConfigError
-from .persist import Persist
+from .persist import Persist, PersistError, Serializable
 from .localization import Localization
 from .multiprocessing_logger import MultiprocessingLogger
 from .status import Status, IStatusListener, StatusComponent, IStatusComponentListener

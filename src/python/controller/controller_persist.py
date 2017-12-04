@@ -2,7 +2,7 @@
 
 import json
 
-from common import overrides, Constants, Persist
+from common import overrides, Constants, Persist, PersistError
 
 
 class ControllerPersist(Persist):
@@ -20,9 +20,14 @@ class ControllerPersist(Persist):
     @overrides(Persist)
     def from_str(cls: "ControllerPersist", content: str) -> "ControllerPersist":
         persist = ControllerPersist()
-        dct = json.loads(content)
-        persist.downloaded_file_names = set(dct[ControllerPersist.__KEY_DOWNLOADED_FILE_NAMES])
-        return persist
+        try:
+            dct = json.loads(content)
+            persist.downloaded_file_names = set(dct[ControllerPersist.__KEY_DOWNLOADED_FILE_NAMES])
+            return persist
+        except (json.decoder.JSONDecodeError, KeyError) as e:
+            raise PersistError("Error parsing AutoQueuePersist - {}: {}".format(
+                type(e).__name__, str(e))
+            )
 
     @overrides(Persist)
     def to_str(self) -> str:

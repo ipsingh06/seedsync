@@ -4,7 +4,7 @@ import unittest
 import os
 import tempfile
 
-from common import PylftpConfig, ConfigError
+from common import PylftpConfig, ConfigError, PersistError
 from common.config import PylftpInnerConfig, Checkers, Converters
 
 
@@ -420,3 +420,29 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual(len(golden_lines), len(actual_lines))
         for i, _ in enumerate(golden_lines):
             self.assertEqual(golden_lines[i], actual_lines[i])
+
+    def test_persist_read_error(self):
+        # bad section
+        content = """
+        [Web
+        port=88
+        """
+        with self.assertRaises(PersistError):
+            PylftpConfig.from_str(content)
+
+        # bad value
+        content = """
+        [Web]
+        port88
+        """
+        with self.assertRaises(PersistError):
+            PylftpConfig.from_str(content)
+
+        # bad line
+        content = """
+        [Web]
+        port=88
+        what am i doing here
+        """
+        with self.assertRaises(PersistError):
+            PylftpConfig.from_str(content)

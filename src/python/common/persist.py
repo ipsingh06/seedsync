@@ -9,10 +9,33 @@ from .localization import Localization
 
 
 # Source: https://stackoverflow.com/a/39205612/8571324
-T = TypeVar('T', bound='Persist')
+T_Persist = TypeVar('T_Persist', bound='Persist')
+T_Serializable = TypeVar('T_Serializable', bound='Serializable')
 
 
-class Persist(ABC):
+class Serializable(ABC):
+    """
+    Defines a class that is serializable to string.
+    The string representation must be human readable (i.e. not pickle)
+    """
+    @classmethod
+    @abstractmethod
+    def from_str(cls: Type[T_Serializable], content: str) -> T_Serializable:
+        pass
+
+    @abstractmethod
+    def to_str(self) -> str:
+        pass
+
+
+class PersistError(PylftpError):
+    """
+    Exception indicating persist loading/saving error
+    """
+    pass
+
+
+class Persist(Serializable):
     """
     Defines state that should be persisted between runs
     Provides utility methods to persist/load content to/from file
@@ -20,7 +43,7 @@ class Persist(ABC):
     to_str() functionality
     """
     @classmethod
-    def from_file(cls: Type[T], file_path: str) -> T:
+    def from_file(cls: Type[T_Persist], file_path: str) -> T_Persist:
         if not os.path.isfile(file_path):
             raise PylftpError(Localization.Error.MISSING_FILE.format(file_path))
         with open(file_path, "r") as f:
@@ -32,7 +55,7 @@ class Persist(ABC):
 
     @classmethod
     @abstractmethod
-    def from_str(cls: Type[T], content: str) -> T:
+    def from_str(cls: Type[T_Persist], content: str) -> T_Persist:
         pass
 
     @abstractmethod

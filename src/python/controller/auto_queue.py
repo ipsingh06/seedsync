@@ -4,20 +4,48 @@ import json
 from abc import ABC, abstractmethod
 from typing import Set
 
-from common import overrides, Constants, PylftpContext, Persist
+from common import overrides, Constants, PylftpContext, Persist, PersistError, Serializable
 from model import IModelListener, ModelFile
 from .controller import Controller
+
+
+class AutoQueuePattern(Serializable):
+    # Keys
+    __KEY_PATTERN = "pattern"
+
+    def __init__(self, pattern: str):
+        self.__pattern = pattern
+
+    @property
+    def pattern(self) -> str:
+        return self.__pattern
+
+    def __eq__(self, other: "AutoQueuePattern") -> bool:
+        return self.__pattern == other.__pattern
+
+    def __hash__(self) -> int:
+        return hash(self.__pattern)
+
+    def to_str(self) -> str:
+        dct = dict()
+        dct[AutoQueuePattern.__KEY_PATTERN] = self.__pattern
+        return json.dumps(dct)
+
+    @classmethod
+    def from_str(cls, content: str) -> "AutoQueuePattern":
+        dct = json.loads(content)
+        return AutoQueuePattern(pattern=dct[AutoQueuePattern.__KEY_PATTERN])
 
 
 class IAutoQueuePersistListener(ABC):
     """Listener for receiving AutoQueuePersist events"""
 
     @abstractmethod
-    def pattern_added(self, pattern: str):
+    def pattern_added(self, pattern: AutoQueuePattern):
         pass
 
     @abstractmethod
-    def pattern_removed(self, pattern: str):
+    def pattern_removed(self, pattern: AutoQueuePattern):
         pass
 
 
@@ -30,20 +58,20 @@ class AutoQueuePersist(Persist):
     __KEY_PATTERNS = "patterns"
 
     def __init__(self):
-        self.__patterns = set()
+        self.__patterns = []
         self.__listeners = []
 
     @property
-    def patterns(self) -> Set[str]:
+    def patterns(self) -> Set[AutoQueuePattern]:
         return set(self.__patterns)
 
-    def add_pattern(self, pattern: str):
+    def add_pattern(self, pattern: AutoQueuePattern):
         if pattern not in self.__patterns:
-            self.__patterns.add(pattern)
+            self.__patterns.append(pattern)
             for listener in self.__listeners:
                 listener.pattern_added(pattern)
 
-    def remove_pattern(self, pattern: str):
+    def remove_pattern(self, pattern: AutoQueuePattern):
         if pattern in self.__patterns:
             self.__patterns.remove(pattern)
             for listener in self.__listeners:
@@ -56,14 +84,21 @@ class AutoQueuePersist(Persist):
     @overrides(Persist)
     def from_str(cls: "AutoQueuePersist", content: str) -> "AutoQueuePersist":
         persist = AutoQueuePersist()
-        dct = json.loads(content)
-        persist.__patterns = set(dct[AutoQueuePersist.__KEY_PATTERNS])
-        return persist
+        try:
+            dct = json.loads(content)
+            pattern_list = dct[AutoQueuePersist.__KEY_PATTERNS]
+            for pattern in pattern_list:
+                persist.add_pattern(AutoQueuePattern.from_str(pattern))
+            return persist
+        except (json.decoder.JSONDecodeError, KeyError) as e:
+            raise PersistError("Error parsing AutoQueuePersist - {}: {}".format(
+                type(e).__name__, str(e))
+            )
 
     @overrides(Persist)
     def to_str(self) -> str:
         dct = dict()
-        dct[AutoQueuePersist.__KEY_PATTERNS] = list(self.patterns)
+        dct[AutoQueuePersist.__KEY_PATTERNS] = list(p.to_str() for p in self.__patterns)
         return json.dumps(dct, indent=Constants.JSON_PRETTY_PRINT_INDENT)
 
 
@@ -92,11 +127,11 @@ class AutoQueuePersistListener(IAutoQueuePersistListener):
         self.new_patterns = set()
 
     @overrides(IAutoQueuePersistListener)
-    def pattern_added(self, pattern: str):
+    def pattern_added(self, pattern: AutoQueuePattern):
         self.new_patterns.add(pattern)
 
     @overrides(IAutoQueuePersistListener)
-    def pattern_removed(self, pattern: str):
+    def pattern_removed(self, pattern: AutoQueuePattern):
         if pattern in self.new_patterns:
             self.new_patterns.remove(pattern)
 
@@ -181,7 +216,7 @@ class AutoQueue:
 
         # Send the queue commands
         for filename, pattern in files_to_queue.items():
-            self.logger.info("Auto queueing '{}' for pattern '{}'".format(filename, pattern))
+            self.logger.info("Auto queueing '{}' for pattern '{}'".format(filename, pattern.pattern))
             command = Controller.Command(Controller.Command.Action.QUEUE, filename)
             self.__controller.queue_command(command)
 
@@ -192,11 +227,11 @@ class AutoQueue:
         self.__persist_listener.new_patterns.clear()
 
     @staticmethod
-    def __match(pattern: str, file: ModelFile) -> bool:
+    def __match(pattern: AutoQueuePattern, file: ModelFile) -> bool:
         """
         Returns true is file matches the pattern
         :param pattern:
         :param file:
         :return:
         """
-        return pattern.lower() in file.name.lower()
+        return pattern.pattern.lower() in file.name.lower()
