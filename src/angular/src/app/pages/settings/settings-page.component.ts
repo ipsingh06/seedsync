@@ -129,6 +129,7 @@ export class SettingsPageComponent {
     ];
 
     private _configRestartNotif: Notification;
+    private _badValueNotifs: Map<string, Notification>;
 
     constructor(private _logger: LoggerService,
                 private _configService: ConfigService,
@@ -141,6 +142,7 @@ export class SettingsPageComponent {
             level: Notification.Level.INFO,
             text: Localization.Notification.CONFIG_RESTART
         });
+        this._badValueNotifs = new Map();
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -161,12 +163,31 @@ export class SettingsPageComponent {
     onSetConfig(section: string, option: string, value: any) {
         this._configService.set(section, option, value).subscribe({
             next: reaction => {
+                const notifKey = section + "." + option;
                 if(reaction.success) {
                     this._logger.info(reaction.data);
+
+                    // Hide bad value notification, if any
+                    if(this._badValueNotifs.has(notifKey)) {
+                        this._notifService.hide(this._badValueNotifs.get(notifKey));
+                        this._badValueNotifs.delete(notifKey);
+                    }
 
                     // Show the restart notification
                     this._notifService.show(this._configRestartNotif);
                 } else {
+                    // Show bad value notification
+                    let notif = new Notification({
+                        level: Notification.Level.DANGER,
+                        dismissible: true,
+                        text: reaction.errorMessage
+                    });
+                    if(this._badValueNotifs.has(notifKey)) {
+                        this._notifService.hide(this._badValueNotifs.get(notifKey));
+                    }
+                    this._notifService.show(notif);
+                    this._badValueNotifs.set(notifKey, notif);
+
                     this._logger.error(reaction.errorMessage);
                 }
             }

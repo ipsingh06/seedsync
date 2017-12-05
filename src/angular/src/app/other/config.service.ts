@@ -7,6 +7,7 @@ import {Config, IConfig} from "./config";
 import {LoggerService} from "../common/logger.service";
 import {BaseWebService, WebReaction} from "../common/base-web.service";
 import {ServerStatusService} from "./server-status.service";
+import {Localization} from "../common/localization";
 
 
 /**
@@ -42,15 +43,22 @@ export class ConfigService extends BaseWebService {
      * @returns {WebReaction}
      */
     public set(section: string, option: string, value: any): Observable<WebReaction> {
+        let valueStr: string = value;
         let currentConfig = this._config.getValue();
         if(!currentConfig.has(section) || !currentConfig.get(section).has(option)) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, `Config has no option named ${section}.${option}`));
             });
+        } else if(valueStr.length == 0) {
+            return Observable.create(observer => {
+                observer.next(new WebReaction(
+                    false, null, Localization.Notification.CONFIG_VALUE_BLANK(section, option))
+                );
+            });
         } else {
             // Double-encode the value
-            let valueStr = encodeURIComponent(encodeURIComponent(value));
-            let url = this.CONFIG_SET_URL(section, option, valueStr);
+            let valueEncoded = encodeURIComponent(encodeURIComponent(valueStr));
+            let url = this.CONFIG_SET_URL(section, option, valueEncoded);
             let obs = this.sendRequest(url);
             obs.subscribe({
                 next: reaction => {

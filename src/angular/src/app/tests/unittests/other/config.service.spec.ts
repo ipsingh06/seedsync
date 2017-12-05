@@ -176,40 +176,6 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should return error on setting non-existing section', () => {
-        // first connect
-        httpMock.expectOne("/server/config/get").flush("{}");
-
-        let configSubscriberIndex = 0;
-        configService.set("bad_section", "debug", true).subscribe({
-           next: reaction => {
-               configSubscriberIndex++;
-               expect(reaction.success).toBe(false);
-               expect(reaction.errorMessage).toBe("Config has no option named bad_section.debug");
-           }
-        });
-
-        expect(configSubscriberIndex).toBe(1);
-        httpMock.verify();
-    });
-
-    it('should return error on setting non-existing option', () => {
-        // first connect
-        httpMock.expectOne("/server/config/get").flush("{}");
-
-        let configSubscriberIndex = 0;
-        configService.set("general", "bad_option", true).subscribe({
-           next: reaction => {
-               configSubscriberIndex++;
-               expect(reaction.success).toBe(false);
-               expect(reaction.errorMessage).toBe("Config has no option named general.bad_option");
-           }
-        });
-
-        expect(configSubscriberIndex).toBe(1);
-        httpMock.verify();
-    });
-
     it('should send a GET on a set config option', () => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
@@ -261,6 +227,57 @@ describe('Testing config service', () => {
         configService.set("general", "debug", "/test/leadingslash").subscribe({next: reaction => {}});
         httpMock.expectOne("/server/config/set/general/debug/%252Ftest%252Fleadingslash").flush("{}");
 
+        httpMock.verify();
+    });
+
+    it('should return error on setting non-existing section', () => {
+        // first connect
+        httpMock.expectOne("/server/config/get").flush("{}");
+
+        let configSubscriberIndex = 0;
+        configService.set("bad_section", "debug", true).subscribe({
+           next: reaction => {
+               configSubscriberIndex++;
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Config has no option named bad_section.debug");
+           }
+        });
+
+        expect(configSubscriberIndex).toBe(1);
+        httpMock.verify();
+    });
+
+    it('should return error on setting non-existing option', () => {
+        // first connect
+        httpMock.expectOne("/server/config/get").flush("{}");
+
+        let configSubscriberIndex = 0;
+        configService.set("general", "bad_option", true).subscribe({
+           next: reaction => {
+               configSubscriberIndex++;
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Config has no option named general.bad_option");
+           }
+        });
+
+        expect(configSubscriberIndex).toBe(1);
+        httpMock.verify();
+    });
+
+    it('should return error on empty value', () => {
+        // first connect
+        httpMock.expectOne("/server/config/get").flush("{}");
+
+        let configSubscriberIndex = 0;
+        configService.set("general", "debug", "").subscribe({
+           next: reaction => {
+               configSubscriberIndex++;
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Setting general.debug cannot be blank.");
+           }
+        });
+
+        expect(configSubscriberIndex).toBe(1);
         httpMock.verify();
     });
 
