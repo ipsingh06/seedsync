@@ -108,6 +108,15 @@ class TestAutoQueuePersist(unittest.TestCase):
             AutoQueuePattern(pattern="three")
         }, persist.patterns)
 
+    def test_add_blank_pattern_fails(self):
+        persist = AutoQueuePersist()
+        with self.assertRaises(ValueError):
+            persist.add_pattern(AutoQueuePattern(pattern=""))
+        with self.assertRaises(ValueError):
+            persist.add_pattern(AutoQueuePattern(pattern=" "))
+        with self.assertRaises(ValueError):
+            persist.add_pattern(AutoQueuePattern(pattern="   "))
+
     def test_remove_pattern(self):
         persist = AutoQueuePersist()
         persist.add_pattern(AutoQueuePattern(pattern="one"))

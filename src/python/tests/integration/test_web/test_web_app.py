@@ -8,6 +8,7 @@ import sys
 from webtest import TestApp
 
 from common import overrides, Status, PylftpConfig
+from controller import AutoQueuePersist
 from web import WebAppBuilder
 
 
@@ -39,6 +40,9 @@ class BaseTestWebApp(unittest.TestCase):
         # Real config
         self.context.config = PylftpConfig()
 
+        # Real auto-queue persist
+        self.auto_queue_persist = AutoQueuePersist()
+
         # Capture the model listener
         def capture_listener(listener):
             self.model_listener = listener
@@ -49,7 +53,9 @@ class BaseTestWebApp(unittest.TestCase):
         self.controller.remove_model_listener = MagicMock()
 
         # noinspection PyTypeChecker
-        self.web_app_builder = WebAppBuilder(self.context, self.controller)
+        self.web_app_builder = WebAppBuilder(self.context,
+                                             self.controller,
+                                             self.auto_queue_persist)
         self.web_app = self.web_app_builder.build()
         self.test_app = TestApp(self.web_app)
 

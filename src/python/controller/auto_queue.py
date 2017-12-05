@@ -66,6 +66,10 @@ class AutoQueuePersist(Persist):
         return set(self.__patterns)
 
     def add_pattern(self, pattern: AutoQueuePattern):
+        # Check values
+        if not pattern.pattern.strip():
+            raise ValueError("Cannot add blank pattern")
+
         if pattern not in self.__patterns:
             self.__patterns.append(pattern)
             for listener in self.__listeners:

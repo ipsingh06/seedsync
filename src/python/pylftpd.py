@@ -112,7 +112,7 @@ class Pylftpd:
         auto_queue = AutoQueue(self.context, self.auto_queue_persist, controller)
 
         # Create web app
-        web_app_builder = WebAppBuilder(self.context, controller)
+        web_app_builder = WebAppBuilder(self.context, controller, self.auto_queue_persist)
         web_app = web_app_builder.build()
 
         # Define child threads
