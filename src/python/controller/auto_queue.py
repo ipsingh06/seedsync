@@ -178,26 +178,16 @@ class AutoQueue:
 
         # Accept new files that exist remotely
         for file in self.__model_listener.new_files:
-            # Files must exist remotely
-            if not file.remote_size:
-                continue
-            # File must be in Default state
-            if not file.state == ModelFile.State.DEFAULT:
-                continue
-            new_files.append(file)
+            if AutoQueue.__accept(file):
+                new_files.append(file)
 
         # Accept modified files that were just discovered on remote
         for old_file, new_file in self.__model_listener.modified_files:
-            # Files must exist remotely
-            if not new_file.remote_size:
-                continue
-            # File was just discovered
-            if old_file.remote_size is not None:
-                continue
-            # File must be in Default state
-            if not new_file.state == ModelFile.State.DEFAULT:
-                continue
-            new_files.append(new_file)
+            if AutoQueue.__accept(new_file):
+                if old_file.remote_size is None:
+                    # File was just discovered
+                    # (remote old size is None, new size is not None)
+                    new_files.append(new_file)
 
         # Files to queue, filename -> pattern map
         # Filename key prevents a file from being queued twice
@@ -215,7 +205,7 @@ class AutoQueue:
             model_files = self.__controller.get_model_files()
             for new_pattern in self.__persist_listener.new_patterns:
                 for file in model_files:
-                    if AutoQueue.__match(new_pattern, file):
+                    if AutoQueue.__accept(file) and AutoQueue.__match(new_pattern, file):
                         files_to_queue[file.name] = new_pattern
 
         # Send the queue commands
@@ -239,3 +229,14 @@ class AutoQueue:
         :return:
         """
         return pattern.pattern.lower() in file.name.lower()
+
+    @staticmethod
+    def __accept(file: ModelFile) -> bool:
+        """
+        Returns true if file is a candidate for queueing (must exist remotely
+        in the default state)
+        :param file:
+        :return:
+        """
+        return file.remote_size is not None and \
+                file.state == ModelFile.State.DEFAULT

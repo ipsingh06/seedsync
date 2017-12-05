@@ -595,6 +595,24 @@ class TestAutoQueue(unittest.TestCase):
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
 
+    def test_new_matching_pattern_doesnt_queue_local_file(self):
+        persist = AutoQueuePersist()
+
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+
+        self.initial_model = [file_one]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
     def test_removed_pattern_doesnt_queue_new_file(self):
         persist = AutoQueuePersist()
         persist.add_pattern(AutoQueuePattern(pattern="One"))

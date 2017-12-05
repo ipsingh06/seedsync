@@ -24,6 +24,24 @@ class TestAutoQueueHandler(BaseTestWebApp):
         self.assertIn({"pattern": "fo\"ur"}, json_list)
         self.assertIn({"pattern": "fi%ve"}, json_list)
 
+    def test_get_is_ordered(self):
+        self.auto_queue_persist.add_pattern(AutoQueuePattern(pattern="a"))
+        self.auto_queue_persist.add_pattern(AutoQueuePattern(pattern="b"))
+        self.auto_queue_persist.add_pattern(AutoQueuePattern(pattern="c"))
+        self.auto_queue_persist.add_pattern(AutoQueuePattern(pattern="d"))
+        self.auto_queue_persist.add_pattern(AutoQueuePattern(pattern="e"))
+        resp = self.test_app.get("/server/autoqueue/get")
+        self.assertEqual(200, resp.status_int)
+        json_list = json.loads(str(resp.html))
+        self.assertEqual(5, len(json_list))
+        self.assertEqual([
+            {"pattern": "a"},
+            {"pattern": "b"},
+            {"pattern": "c"},
+            {"pattern": "d"},
+            {"pattern": "e"}
+        ], json_list)
+
     def test_add_good(self):
         resp = self.test_app.get("/server/autoqueue/add/one")
         self.assertEqual(200, resp.status_int)

@@ -20,7 +20,9 @@ class AutoQueueHandler(IHandler):
         web_app.add_handler("/server/autoqueue/remove/<pattern>", self.__handle_remove_autoqueue)
 
     def __handle_get_autoqueue(self):
-        out_json = SerializeAutoQueue.patterns(list(self.__auto_queue_persist.patterns))
+        patterns = list(self.__auto_queue_persist.patterns)
+        patterns.sort(key=lambda p: p.pattern)
+        out_json = SerializeAutoQueue.patterns(patterns)
         return HTTPResponse(body=out_json)
 
     def __handle_add_autoqueue(self, pattern: str):
