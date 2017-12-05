@@ -15,7 +15,8 @@ import {ServerStatusService} from "./server-status.service";
 @Injectable()
 export class ConfigService extends BaseWebService {
     private readonly CONFIG_GET_URL = "/server/config/get";
-    private readonly CONFIG_SET_URL = (section, option, value) => `/server/config/set/${section}/${option}/${value}`;
+    private readonly CONFIG_SET_URL =
+        (section, option, value) => `/server/config/set/${section}/${option}/${value}`;
 
     private _config: BehaviorSubject<Config> = new BehaviorSubject(null);
 
