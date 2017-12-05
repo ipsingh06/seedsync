@@ -13,5 +13,9 @@ export const ROUTE_INFOS: Immutable.List<RouteInfo> = Immutable.List([
     {
         path: "/settings",
         name: "Settings"
+    },
+    {
+        path: "/autoqueue",
+        name: "AutoQueue"
     }
 ]);

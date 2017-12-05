@@ -1,0 +1,65 @@
+@import '../../common/common';
+
+#autoqueue {
+    padding: 15px;
+
+    #description {
+        font-size: 110%;
+    }
+
+    .pattern,
+    #add-pattern {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 10px;
+
+        .button {
+            @extend %button;
+
+            flex-grow: 0;
+            flex-direction: row;
+            padding: 8px;
+            margin-right: 12px;
+            font-size: 150%;
+        }
+    }
+
+    .pattern {
+        .text {
+            font-size: 150%;
+            font-family: monospace;
+            white-space: pre;
+        }
+
+        .button {
+            background-color: red;
+            border-color: darkred;
+
+            &:active {
+                background-color: darkred;
+            }
+        }
+    }
+
+    #add-pattern {
+        .button {
+            background-color: green;
+            border-color: darkgreen;
+
+            &:active {
+                background-color: darkgreen;
+            }
+
+            &[disabled] {
+                opacity: .65;
+                background-color: green;
+            }
+        }
+
+        label {
+            margin-bottom: 0;
+        }
+    }
+}

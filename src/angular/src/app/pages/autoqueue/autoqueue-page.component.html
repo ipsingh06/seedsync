@@ -1,0 +1,27 @@
+<div id="autoqueue">
+    <span id="description">
+        Files matching these patterns are automatically queued. <br />
+        Add/Remove these patterns below.
+    </span>
+    <div *ngFor="let pattern of patterns | async"
+         class="pattern">
+        <div class="button" click-stop-propagation
+             (click)="onRemovePattern(pattern)">
+            <span class="glyphicon glyphicon-minus"></span>
+        </div>
+        <span class="text">{{pattern.pattern}}</span>
+    </div>
+    <div id="add-pattern">
+        <div class="button" click-stop-propagation
+             (click)="!newPattern || onAddPattern()"
+             [attr.disabled]="newPattern ? null : true">
+            <span class="glyphicon glyphicon-plus"></span>
+        </div>
+        <label>
+            <input type="search"
+                   class="form-control"
+                   [(ngModel)]="newPattern"
+                   [disabled]="!enabled"/>
+        </label>
+    </div>
+</div>

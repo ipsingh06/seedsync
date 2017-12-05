@@ -222,6 +222,39 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
+    it('should return error on adding empty pattern', fakeAsync(() => {
+        httpMock.expectOne("/server/autoqueue/get").flush([]);
+
+        let actualCount: number = 0;
+        aqService.add("").subscribe({
+            next: reaction => {
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Cannot add an empty autoqueue pattern.");
+               actualCount++;
+            }
+        });
+        aqService.add(" ").subscribe({
+            next: reaction => {
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Cannot add an empty autoqueue pattern.");
+               actualCount++;
+            }
+        });
+        aqService.add(null).subscribe({
+            next: reaction => {
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Cannot add an empty autoqueue pattern.");
+               actualCount++;
+            }
+        });
+        httpMock.expectNone("/server/autoqueue/add/");
+
+        tick();
+
+        expect(actualCount).toBe(3);
+        httpMock.verify();
+    }));
+
     it('should send updated patterns after an add pattern', fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([]);
 
@@ -332,6 +365,40 @@ describe('Testing autoqueue service', () => {
         tick();
 
         expect(actualCount).toBe(1);
+        httpMock.verify();
+    }));
+
+    it('should return error on removing empty pattern', fakeAsync(() => {
+        httpMock.expectOne("/server/autoqueue/get").flush([
+        ]);
+
+        let actualCount: number = 0;
+        aqService.remove("").subscribe({
+            next: reaction => {
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Pattern '' not found.");
+               actualCount++;
+            }
+        });
+        aqService.remove(" ").subscribe({
+            next: reaction => {
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Pattern ' ' not found.");
+               actualCount++;
+            }
+        });
+        aqService.remove(null).subscribe({
+            next: reaction => {
+               expect(reaction.success).toBe(false);
+               expect(reaction.errorMessage).toBe("Pattern 'null' not found.");
+               actualCount++;
+            }
+        });
+        httpMock.expectNone("/server/autoqueue/remove/");
+
+        tick();
+
+        expect(actualCount).toBe(3);
         httpMock.verify();
     }));
 

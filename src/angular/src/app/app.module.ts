@@ -26,6 +26,8 @@ import {ConfigServiceProvider} from "./other/config.service";
 import {OptionComponent} from "./pages/settings/option.component";
 import {NotificationService} from "./other/notification.service";
 import {ServerCommandServiceProvider} from "./other/server-command.service";
+import {AutoQueuePageComponent} from "./pages/autoqueue/autoqueue-page.component";
+import {AutoQueueServiceProvider} from "./other/autoqueue.service";
 
 @NgModule({
     declarations: [
@@ -41,7 +43,8 @@ import {ServerCommandServiceProvider} from "./other/server-command.service";
         HeaderComponent,
         SidebarComponent,
         SettingsPageComponent,
-        OptionComponent
+        OptionComponent,
+        AutoQueuePageComponent
     ],
     imports: [
         BrowserModule,
@@ -60,6 +63,10 @@ import {ServerCommandServiceProvider} from "./other/server-command.service";
             {
                 path: 'settings',
                 component: SettingsPageComponent
+            },
+            {
+                path: 'autoqueue',
+                component: AutoQueuePageComponent
             }
         ])
     ],
@@ -70,7 +77,8 @@ import {ServerCommandServiceProvider} from "./other/server-command.service";
                 ServerStatusService,
                 ConfigServiceProvider,
                 NotificationService,
-                ServerCommandServiceProvider],
+                ServerCommandServiceProvider,
+                AutoQueueServiceProvider],
     bootstrap: [AppComponent]
 })
 export class AppModule {

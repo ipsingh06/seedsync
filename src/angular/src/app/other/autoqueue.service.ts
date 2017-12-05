@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 
 import * as Immutable from 'immutable';
 
@@ -9,6 +9,7 @@ import {LoggerService} from "../common/logger.service";
 import {BaseWebService, WebReaction} from "../common/base-web.service";
 import {ServerStatusService} from "./server-status.service";
 import {AutoQueuePattern, AutoQueuePatternJson} from "./autoqueue-pattern";
+import {Localization} from "../common/localization";
 
 
 /**
@@ -64,6 +65,15 @@ export class AutoQueueService extends BaseWebService {
      * @returns {Observable<WebReaction>}
      */
     public add(pattern: string): Observable<WebReaction> {
+        this._logger.debug("add pattern %O", pattern);
+
+        // Value check
+        if(pattern == null || pattern.trim().length == 0) {
+            return Observable.create(observer => {
+                observer.next(new WebReaction(false, null, Localization.Notification.AUTOQUEUE_PATTERN_EMPTY));
+            });
+        }
+
         let currentPatterns = this._patterns.getValue();
         let index = currentPatterns.findIndex(pat => pat.pattern == pattern);
         if(index >= 0) {
@@ -99,6 +109,8 @@ export class AutoQueueService extends BaseWebService {
      * @returns {Observable<WebReaction>}
      */
     public remove(pattern: string): Observable<WebReaction> {
+        this._logger.debug("remove pattern %O", pattern);
+
         let currentPatterns = this._patterns.getValue();
         let index = currentPatterns.findIndex(pat => pat.pattern == pattern);
         if(index < 0) {
@@ -139,18 +151,18 @@ export class AutoQueueService extends BaseWebService {
 /**
  * AutoQueueService factory and provider
  */
-export let autoqueueServiceFactory = (
+export let autoQueueServiceFactory = (
     _statusService: ServerStatusService,
     _logger: LoggerService,
     _http: HttpClient) =>
 {
-  let autoqueueService = new AutoQueueService(_statusService, _logger, _http);
-  autoqueueService.onInit();
-  return autoqueueService;
+  let autoQueueService = new AutoQueueService(_statusService, _logger, _http);
+  autoQueueService.onInit();
+  return autoQueueService;
 };
 
-export let AutoqueueServiceProvider = {
+export let AutoQueueServiceProvider = {
     provide: AutoQueueService,
-    useFactory: autoqueueServiceFactory,
+    useFactory: autoQueueServiceFactory,
     deps: [ServerStatusService, LoggerService, HttpClient]
 };
