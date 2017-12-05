@@ -84,6 +84,7 @@ class WebApp(bottle.Bottle):
         self.route("/")(self.__index)
         self.route("/dashboard")(self.__index)
         self.route("/settings")(self.__index)
+        self.route("/autoqueue")(self.__index)
         # For static files
         self.route("/<file_path:path>")(self.__static)
 
