@@ -1,28 +1,45 @@
 @import 'common/common';
 
-#sidebar .button {
-    background-color: inherit;
-    color: inherit;
-    text-decoration: none;
-    font-weight: bolder;
-    display: block;
-    width: 100%;
-    padding: 8px 16px;
-    text-align: left;
-    border: none;
-    outline: none;
-    white-space: normal;
-    float: none;
-    cursor: default;
-    user-select: none;
+#sidebar {
+    .button {
+        background-color: inherit;
+        color: inherit;
+        text-decoration: none;
+        font-weight: bolder;
+        display: block;
+        width: 100%;
+        padding: 8px 16px;
+        text-align: left;
+        border: none;
+        outline: none;
+        white-space: normal;
+        float: none;
+        cursor: default;
+        user-select: none;
 
-    &:active {
-        background-color: $primary-color;
+        &:active {
+            background-color: $primary-color;
+        }
+
+        &.selected {
+            background-color: $secondary-color;
+            color: white;
+            border-color: #6ac19e;
+        }
+
+        &[disabled] {
+            opacity: .65;
+            background-color: inherit;
+        }
+
+        .icon {
+            margin-right: 3px;
+        }
     }
 
-    &.selected {
-        background-color: $secondary-color;
-        color: white;
-        border-color: #6ac19e;
+    hr {
+        margin-top: 3px;
+        margin-bottom: 3px;
+        border: 1px solid $header-dark-color;
     }
 }

@@ -3,6 +3,16 @@
        class="button"
        routerLink="{{routeInfo.path}}"
        routerLinkActive="selected">
-        {{routeInfo.name}}
+        <span class="icon glyphicon {{routeInfo.icon}}"></span>
+        <span class="text">{{routeInfo.name}}</span>
+    </a>
+
+    <hr>
+
+    <a class="button"
+       [attr.disabled]="commandsEnabled ? null : true"
+       (click)="!commandsEnabled || onCommandRestart()">
+        <span class="icon glyphicon glyphicon-refresh"></span>
+        <span class="text">Restart</span>
     </a>
 </div>

@@ -8,14 +8,17 @@ export interface RouteInfo {
 export const ROUTE_INFOS: Immutable.List<RouteInfo> = Immutable.List([
     {
         path: "/dashboard",
-        name: "Dashboard"
+        name: "Dashboard",
+        icon: "glyphicon-dashboard"
     },
     {
         path: "/settings",
-        name: "Settings"
+        name: "Settings",
+        icon: "glyphicon-cog"
     },
     {
         path: "/autoqueue",
-        name: "AutoQueue"
+        name: "AutoQueue",
+        icon: "glyphicon-list"
     }
 ]);
