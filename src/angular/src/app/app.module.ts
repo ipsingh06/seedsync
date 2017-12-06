@@ -2,7 +2,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
-import {RouterModule} from '@angular/router';
+import {RouteReuseStrategy, RouterModule} from '@angular/router';
 
 import {AppComponent} from './app.component';
 import {environment}    from '../environments/environment';
@@ -28,6 +28,7 @@ import {NotificationService} from "./other/notification.service";
 import {ServerCommandServiceProvider} from "./other/server-command.service";
 import {AutoQueuePageComponent} from "./pages/autoqueue/autoqueue-page.component";
 import {AutoQueueServiceProvider} from "./other/autoqueue.service";
+import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
 
 @NgModule({
     declarations: [
@@ -70,7 +71,8 @@ import {AutoQueueServiceProvider} from "./other/autoqueue.service";
             }
         ])
     ],
-    providers: [LoggerService,
+    providers: [{provide: RouteReuseStrategy, useClass: CachedReuseStrategy},
+                LoggerService,
                 ModelFileService,
                 ViewFileService,
                 ViewFileFilterService,
