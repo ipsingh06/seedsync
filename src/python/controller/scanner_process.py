@@ -86,20 +86,22 @@ class ScannerProcess(Process):
     def set_multiprocessing_logger(self, mp_logger: MultiprocessingLogger):
         self.mp_logger = mp_logger
 
-    def __signal(self, signum: int, _):
-        # noinspection PyUnresolvedReferences
-        # Signals is a generated enum
-        self.logger.debug("Process caught signal {}".format(signal.Signals(signum).name))
-        raise ServiceExit()
-
     @overrides(Process)
     def run(self):
-        # Replace the signal handlers that may have been set by main process
-        # NOTE: very important that all signal handlers are reset
-        #       otherwise we may be executing non process-safe code
-        # Register the signal handlers
-        signal.signal(signal.SIGTERM, self.__signal)
-        signal.signal(signal.SIGINT, self.__signal)
+        # Replace the signal handlers that may have been set by main process to
+        # default handlers. Having non-default handlers in subprocesses causes
+        # a deadlock when attempting to join the process
+        # Info: https://stackoverflow.com/a/631605
+
+        # NOTE: There is a minuscule chance of deadlock if a signal is received
+        #       between start of the method and these resets.
+        #       The ideal solution is to remove the signal before the process is
+        #       started. Unfortunately that's difficult to do here because the
+        #       subprocess is started from a job thread, and python doesn't
+        #       allow setting signals from outside the main thread.
+        #       So we accept this risk for the quick and easy solution here
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         # Set the thread name for convenience
         threading.current_thread().name = self.__name
