@@ -122,7 +122,10 @@ class ScannerProcess(Process):
                 result = ScannerResult(timestamp=timestamp_start,
                                        files=files)
                 self.__queue.put(result)
-                delta_in_ms = int((datetime.now() - timestamp_start).total_seconds()*1000)
+                delta_in_s = (datetime.now() - timestamp_start).total_seconds()
+                delta_in_ms = int(delta_in_s*1000)
+                if self.verbose:
+                    self.logger.debug("Scan took {:.3f}s".format(delta_in_s))
                 if delta_in_ms < self.__interval_in_ms:
                     time.sleep(float(self.__interval_in_ms-delta_in_ms)/1000.0)
         except ServiceExit:

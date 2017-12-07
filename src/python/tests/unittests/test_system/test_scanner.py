@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from threading import Thread
 
-from system import SystemScanner
+from system import SystemScanner, SystemScannerError
 
 
 # noinspection SpellCheckingInspection
@@ -144,6 +144,64 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(1, bbcaa.size)
         self.assertEqual(1234, c.size)
 
+    def test_scan_non_existing_dir_fails(self):
+        scanner = SystemScanner(
+            path_to_scan=os.path.join(TestSystemScanner.temp_dir, "nonexisting")
+        )
+        with self.assertRaises(SystemScannerError) as ex:
+            scanner.scan()
+        self.assertTrue(str(ex.exception).startswith("Path does not exist"))
+
+    def test_scan_file_fails(self):
+        scanner = SystemScanner(
+            path_to_scan=os.path.join(TestSystemScanner.temp_dir, "c")
+        )
+        with self.assertRaises(SystemScannerError) as ex:
+            scanner.scan()
+        self.assertTrue(str(ex.exception).startswith("Path is not a directory"))
+
+    def test_scan_single_dir(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+        a = scanner.scan_single("a")
+
+        self.assertEqual("a", a.name)
+        self.assertTrue(a.is_dir)
+
+        self.assertEqual(2, len(a.children))
+        aa, ab = tuple(a.children)
+        self.assertEqual("aa", aa.name)
+        self.assertTrue(aa.is_dir)
+        self.assertEqual(2, len(aa.children))
+        aaa, aab = tuple(aa.children)
+        self.assertEqual(".aaa", aaa.name)
+        self.assertTrue(aaa.is_dir)
+        self.assertEqual(".aab", aab.name)
+        self.assertFalse(aab.is_dir)
+        self.assertEqual("ab", ab.name)
+        self.assertFalse(ab.is_dir)
+
+        self.assertEqual(12*1024+4+512, a.size)
+        self.assertEqual(512, aa.size)
+        self.assertEqual(0, aaa.size)
+        self.assertEqual(512, aab.size)
+        self.assertEqual(12*1024+4, ab.size)
+
+    def test_scan_single_file(self):
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+        c = scanner.scan_single("c")
+
+        self.assertEqual("c", c.name)
+        self.assertFalse(c.is_dir)
+        self.assertEqual(1234, c.size)
+
+    def test_scan_single_non_existing_path_fails(self):
+        scanner = SystemScanner(
+            path_to_scan=os.path.join(TestSystemScanner.temp_dir)
+        )
+        with self.assertRaises(SystemScannerError) as ex:
+            scanner.scan_single("nonexisting")
+        self.assertTrue(str(ex.exception).startswith("Path does not exist"))
+
     def test_scan_tree_excluded_prefix(self):
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         scanner.add_exclude_prefix(".")
@@ -230,28 +288,6 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(512+7, ba.size)
         self.assertEqual(1234, c.size)
 
-    def test_scan_add_root_filters(self):
-        scanner = SystemScanner(TestSystemScanner.temp_dir)
-        scanner.add_root_filter("a")
-        scanner.add_root_filter("c")
-        files = scanner.scan()
-        self.assertEqual(2, len(files))
-        a, c = tuple(files)
-        self.assertEqual("a", a.name)
-        self.assertEqual(12*1024+4+512, a.size)
-        self.assertEqual("c", c.name)
-        self.assertEqual(1234, c.size)
-
-    def test_scan_clear_root_filters(self):
-        scanner = SystemScanner(TestSystemScanner.temp_dir)
-        scanner.add_root_filter("a")
-        scanner.add_root_filter("c")
-        files = scanner.scan()
-        self.assertEqual(2, len(files))
-        scanner.clear_root_filters()
-        files = scanner.scan()
-        self.assertEqual(3, len(files))
-
     def test_lftp_status_file_size(self):
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         size = scanner._lftp_status_file_size("""
@@ -297,6 +333,36 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(10148, t.size)
         self.assertEqual(1, len(t.children))
         partial_mkv = t.children[0]
+        self.assertEqual("partial.mkv", partial_mkv.name)
+        self.assertEqual(10148, partial_mkv.size)
+
+        # Cleanup
+        shutil.rmtree(tempdir)
+
+    def test_scan_single_lftp_partial_file(self):
+        # Scan a single partial file
+        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+
+        # Create a partial file
+        path = os.path.join(tempdir, "partial.mkv")
+        with open(path, 'wb') as f:
+            f.write(bytearray([0xff] * 24588))
+        # Write the lftp status out
+        path = os.path.join(tempdir, "partial.mkv.lftp-pget-status")
+        with open(path, "w") as f:
+            f.write("""
+            size=24588
+            0.pos=3157
+            0.limit=6147
+            1.pos=11578
+            1.limit=12294
+            2.pos=12295
+            2.limit=18441
+            3.pos=20000
+            3.limit=24588
+            """)
+        scanner = SystemScanner(tempdir)
+        partial_mkv = scanner.scan_single("partial.mkv")
         self.assertEqual("partial.mkv", partial_mkv.name)
         self.assertEqual(10148, partial_mkv.size)
 

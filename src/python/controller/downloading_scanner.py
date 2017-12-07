@@ -6,7 +6,7 @@ import multiprocessing
 import queue
 
 from .scanner_process import IScanner
-from common import overrides, PylftpError, Localization
+from common import overrides
 from system import SystemScanner, SystemScannerError, SystemFile
 
 
@@ -44,16 +44,13 @@ class DownloadingScanner(IScanner):
         except queue.Empty:
             pass
 
-        # Set the filters
-        self.__scanner.clear_root_filters()
-        for file_name in self.__downloading_files:
-            self.__scanner.add_root_filter(file_name)
-
         # Do the scan
         # self.logger.debug("Scanning files: {}".format(str(self.__downloading_files)))
-        try:
-            result = self.__scanner.scan()
-        except SystemScannerError:
-            self.logger.exception("Caught SystemScannerError")
-            raise PylftpError(Localization.Error.LOCAL_SERVER_SCAN)
+        result = []
+        for file_name in self.__downloading_files:
+            try:
+                result.append(self.__scanner.scan_single(file_name))
+            except SystemScannerError as ex:
+                # Ignore errors here, file may have been deleted
+                self.logger.warning(str(ex))
         return result
