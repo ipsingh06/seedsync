@@ -4,14 +4,14 @@
     padding: 15px;
 
     #description {
-        font-size: 110%;
+        font-size: 100%;
     }
 
     .pattern,
     #add-pattern {
         display: flex;
         flex-direction: row;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
         margin: 10px;
 
@@ -22,15 +22,20 @@
             flex-direction: row;
             padding: 8px;
             margin-right: 12px;
-            font-size: 150%;
+            font-size: 120%;
         }
     }
 
     .pattern {
         .text {
-            font-size: 150%;
+            font-size: 120%;
             font-family: monospace;
-            white-space: pre;
+            white-space: pre-wrap;
+
+            /* break up long text */
+            overflow-wrap: normal;
+            hyphens: auto;
+            word-break: break-all;
         }
 
         .button {
