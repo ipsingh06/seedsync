@@ -172,4 +172,4 @@ class ModelFile:
         child_file.__parent = self
 
     def get_children(self) -> List["ModelFile"]:
-        return copy.deepcopy(self.__children)
+        return copy.copy(self.__children)
