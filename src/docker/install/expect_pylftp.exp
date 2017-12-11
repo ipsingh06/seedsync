@@ -1,0 +1,14 @@
+#!/usr/bin/expect
+set timeout 2
+spawn "./install_pylftp.sh"
+
+expect {
+    timeout {error "ERROR: missing user prompt"; exit 1}
+    "User for Pylftp service"
+}
+send "user\n"
+
+expect {
+    timeout {error "ERROR: timeout"; exit 1}
+    eof
+}
