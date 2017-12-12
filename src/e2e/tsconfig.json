@@ -1,0 +1,15 @@
+// Source: https://github.com/angular/protractor/tree/master/exampleTypescript
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "inlineSourceMap": true,
+    "declaration": false,
+    "noImplicitAny": false,
+    "outDir": "tmp"
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
