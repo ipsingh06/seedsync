@@ -3,12 +3,19 @@
 # exit on first error
 set -e
 
-# Compile test code
-tsc -p /e2e/ --outDir ./tmp
+# Link in all the src files we need
+# Links will be created in the working directory
+ln -s -t . \
+    /e2e/tests \
+    /e2e/node_modules \
+    /e2e/conf.ts \
+    /e2e/package.json \
+    /e2e/tsconfig.json
+# Note: don't link urls.ts, since we copied in a
+#       a test-specific file
 
-# Link node_module to compiled code directory
-# Not sure why this is needed, breaks without it
-ln -s /e2e/node_modules .
+# Compile test code
+tsc --outDir ./tmp
 
 # Run the tests
 protractor tmp/conf.js

@@ -1,8 +1,10 @@
 import {browser, by, element} from 'protractor';
 
+import {Urls} from "../urls";
+
 export class DashboardPage {
     navigateTo() {
-        return browser.get("http://localhost:8800/");
+        return browser.get(Urls.APP_BASE_URL);
     }
 
     getTitle() {

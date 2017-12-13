@@ -10,15 +10,25 @@
 // then run `protractor conf.js`.
 import {Config} from 'protractor';
 
+import {Urls} from "./urls";
+
 export let config: Config = {
     framework: 'jasmine',
     capabilities: {
         browserName: 'chrome'
     },
     specs: ['tests/**/*.spec.js'],
-    seleniumAddress: 'http://localhost:4444/wd/hub',
+    seleniumAddress: Urls.SELENIUM_ADDRESS,
 
     // You could set no globals to true to avoid jQuery '$' and protractor '$'
     // collisions on the global namespace.
-    noGlobals: true
+    noGlobals: true,
+
+    allScriptsTimeout: 5000,
+
+    // Options to be passed to Jasmine-node.
+    jasmineNodeOpts: {
+        showColors: true,
+        defaultTimeoutInterval: 3000
+    }
 };
