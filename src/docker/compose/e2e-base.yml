@@ -2,10 +2,10 @@ version: "3.4"
 services:
 
   test:
-    build: ../../tests/e2e
+    build: ../tests/e2e
     volumes:
       - type: volume
-        source: ../../../e2e
+        source: ../../e2e
         target: /e2e
         read_only: true
 
@@ -19,9 +19,7 @@ services:
 
   myapp:
     build:
-      context: ../../install
-      args:
-        - BASE_IMAGE=ubuntu-systemd:16.04
+      context: ../install
     tty: true
     tmpfs:
       - /run
@@ -30,7 +28,7 @@ services:
       - seccomp:unconfined
     volumes:
       - type: volume
-        source: ../../../../build/pylftp_0.1-0_amd64.deb
+        source: ${PATH_TO_INSTALL_DEB}
         target: /install/pylftp.deb
         read_only: true
 
