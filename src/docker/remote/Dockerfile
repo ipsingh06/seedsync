@@ -12,6 +12,9 @@ RUN  mkdir -p /home/remoteuser/.ssh && \
     cat /home/remoteuser/user_id_rsa.pub >> /home/remoteuser/.ssh/authorized_keys
 USER root
 
+# Copy over data
+ADD --chown=remoteuser:remoteuser ./files /home/remoteuser/files
+
 # Install and run ssh server
 RUN apt-get update && apt-get install -y openssh-server
 
