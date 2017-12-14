@@ -1,3 +1,13 @@
-rm -rf tmp && tsc
+###To run e2e tests in dev mode:
 
-protractor tmp/conf.js
+1. Start the docker dev image
+```
+docker-compose -f src/docker/compose/e2e-base.yml -f src/docker/compose/e2e-ubu1604.dev.yml -p pylftp_test_dev up
+```
+
+2. Compile and run the tests
+
+```
+cd src/e2e/
+rm -rf tmp && tsc && protractor tmp/conf.js
+```

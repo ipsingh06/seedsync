@@ -1,0 +1,21 @@
+version: "3.4"
+services:
+  test:
+    command: /bin/true
+
+  myapp:
+    build:
+      args:
+        - BASE_IMAGE=ubuntu-systemd:16.04
+    ports:
+      - target: 8800
+        published: 8800
+        protocol: tcp
+        mode: host
+
+  chrome:
+    ports:
+      - target: 4444
+        published: 4444
+        protocol: tcp
+        mode: host
