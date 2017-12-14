@@ -14,8 +14,6 @@ services:
     shm_size: 1024M
     cap_add:
      - SYS_ADMIN
-    ports:
-     - "4444:4444"
 
   myapp:
     build:
@@ -36,3 +34,6 @@ services:
         source: /sys/fs/cgroup
         target: /sys/fs/cgroup
         read_only: true
+
+  remote:
+    build: ../remote
