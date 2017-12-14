@@ -8,6 +8,6 @@ Standards-Version: 4.0.0
 
 Package: pylftp
 Architecture: amd64
-Depends: ${shlibs:Depends}, ${misc:Depends}, lftp
+Depends: ${shlibs:Depends}, ${misc:Depends}, lftp, ssh
 Pre-Depends: debconf (>= 0.2.17)
 Description: Pylftp keeps your local PC sync'ed with your remote seedbox.
