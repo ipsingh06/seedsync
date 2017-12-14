@@ -8,19 +8,28 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libexpat1 \
     expect \
-    lftp
+    lftp \
+    ssh
 
 # Create non-root user
 RUN useradd --create-home -s /bin/bash user && \
     echo "user:user" | chpasswd && adduser user sudo
 
-# Add ssh keys for user, as user
 USER user
+
+# Add ssh keys for user, as user
 ADD --chown=user:user id_rsa.pub /home/user/.ssh/
 ADD --chown=user:user id_rsa /home/user/.ssh/
 RUN chmod 600 /home/user/.ssh/id_rsa
 # Disable the known hosts prompt
 RUN echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /home/user/.ssh/config
+
+# Create directory for downloaded files
+RUN mkdir /home/user/files
+
+# Copy over app config
+ADD --chown=user:user settings.cfg /home/user/.pylftp/
+
 USER root
 
 
