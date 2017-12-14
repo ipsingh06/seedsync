@@ -8,10 +8,7 @@ describe('Testing dashboard page', () => {
         page.navigateTo();
     });
 
-    it('should have right title', () => {
-        page.getTitle()
-            .then((title: string) => {
-                expect(title).toEqual('Pylftp');
-            });
+    it('should have right top title', () => {
+        expect(page.getTopTitle()).toEqual("Dashboard");
     });
 });

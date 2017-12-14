@@ -5,8 +5,8 @@ import Promise = promise.Promise;
 import {Urls} from "../urls";
 import {App} from "./app";
 
-export class DashboardPage extends App {
+export class AutoQueuePage extends App {
     navigateTo() {
-        return browser.get(Urls.APP_BASE_URL + "dashboard");
+        return browser.get(Urls.APP_BASE_URL + "autoqueue");
     }
 }
