@@ -7,6 +7,7 @@ import time
 import multiprocessing
 
 from testfixtures import LogCapture
+import timeout_decorator
 
 from common import MultiprocessingLogger
 
@@ -20,6 +21,7 @@ class TestMultiprocessingLogger(unittest.TestCase):
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
         handler.setFormatter(formatter)
 
+    @timeout_decorator.timeout(5)
     def test_main_logger_receives_records(self):
         def process_1(_mp_logger: MultiprocessingLogger):
             logger = _mp_logger.get_process_safe_logger().getChild("process_1")
@@ -36,8 +38,8 @@ class TestMultiprocessingLogger(unittest.TestCase):
                                       args=(mp_logger,))
 
         with LogCapture("TestMultiprocessingLogger.MPLogger.process_1") as log_capture:
-            mp_logger.start()
             p_1.start()
+            mp_logger.start()
             time.sleep(1)
             p_1.join()
             mp_logger.stop()
@@ -49,6 +51,7 @@ class TestMultiprocessingLogger(unittest.TestCase):
                 ("process_1", "ERROR", "Error line")
             )
 
+    @timeout_decorator.timeout(5)
     def test_children_names(self):
         def process_1(_mp_logger: MultiprocessingLogger):
             logger = _mp_logger.get_process_safe_logger().getChild("process_1")
@@ -61,8 +64,8 @@ class TestMultiprocessingLogger(unittest.TestCase):
                                       args=(mp_logger,))
 
         with LogCapture("TestMultiprocessingLogger.MPLogger.process_1") as log_capture:
-            mp_logger.start()
             p_1.start()
+            mp_logger.start()
             time.sleep(1)
             p_1.join()
             mp_logger.stop()
@@ -73,6 +76,7 @@ class TestMultiprocessingLogger(unittest.TestCase):
                 ("process_1.child_1_1", "DEBUG", "Debug line"),
             )
 
+    @timeout_decorator.timeout(5)
     def test_logger_levels(self):
         def process_1(_mp_logger: MultiprocessingLogger):
             logger = _mp_logger.get_process_safe_logger().getChild("process_1")
@@ -87,8 +91,8 @@ class TestMultiprocessingLogger(unittest.TestCase):
             mp_logger = MultiprocessingLogger(self.logger)
             p_1 = multiprocessing.Process(target=process_1,
                                           args=(mp_logger,))
-            mp_logger.start()
             p_1.start()
+            mp_logger.start()
             time.sleep(0.2)
             p_1.join()
             mp_logger.stop()
@@ -106,8 +110,8 @@ class TestMultiprocessingLogger(unittest.TestCase):
             mp_logger = MultiprocessingLogger(self.logger)
             p_1 = multiprocessing.Process(target=process_1,
                                           args=(mp_logger,))
-            mp_logger.start()
             p_1.start()
+            mp_logger.start()
             time.sleep(0.2)
             p_1.join()
             mp_logger.stop()
@@ -124,8 +128,8 @@ class TestMultiprocessingLogger(unittest.TestCase):
             mp_logger = MultiprocessingLogger(self.logger)
             p_1 = multiprocessing.Process(target=process_1,
                                           args=(mp_logger,))
-            mp_logger.start()
             p_1.start()
+            mp_logger.start()
             time.sleep(0.2)
             p_1.join()
             mp_logger.stop()
@@ -141,8 +145,8 @@ class TestMultiprocessingLogger(unittest.TestCase):
             mp_logger = MultiprocessingLogger(self.logger)
             p_1 = multiprocessing.Process(target=process_1,
                                           args=(mp_logger,))
-            mp_logger.start()
             p_1.start()
+            mp_logger.start()
             time.sleep(0.2)
             p_1.join()
             mp_logger.stop()
