@@ -1,0 +1,13 @@
+version: "3.4"
+services:
+  test:
+    build: ../tests/python
+    volumes:
+      - type: volume
+        source: ../../python
+        target: /src
+        read_only: true
+
+      - type: volume
+        source: /tmp
+        target: /tmp
