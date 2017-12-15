@@ -118,11 +118,12 @@ class Lftp:
 
     @staticmethod
     def __detect_errors_from_output(out: str) -> bool:
-        errors_m = [
-            re.compile("^(?:pget|mirror): Access failed: .*$")
+        errors = [
+            "pget: Access failed",
+            "mirror: Access failed"
         ]
-        for m in errors_m:
-            if m.match(out):
+        for error in errors:
+            if error in out:
                 return True
         return False
 
