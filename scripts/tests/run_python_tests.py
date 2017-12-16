@@ -15,7 +15,7 @@ from typing import List
 class EndToEndTestsRunner:
     def __init__(self):
         self.script_dir = os.path.dirname(os.path.realpath(__file__))
-        self.root_dir = os.path.realpath(os.path.join(self.script_dir, "..", "..", ".."))
+        self.root_dir = os.path.realpath(os.path.join(self.script_dir, "..", ".."))
         self.docker_dir = os.path.join(self.root_dir, "src", "docker")
 
     def run(self):

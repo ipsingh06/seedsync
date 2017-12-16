@@ -20,7 +20,7 @@ TEST_FILES["pylftp_test_e2e_ubu1704"] = ["compose/e2e-base.yml", "compose/e2e-ub
 class EndToEndTestsRunner:
     def __init__(self):
         self.script_dir = os.path.dirname(os.path.realpath(__file__))
-        self.root_dir = os.path.realpath(os.path.join(self.script_dir, "..", "..", ".."))
+        self.root_dir = os.path.realpath(os.path.join(self.script_dir, "..", ".."))
         self.docker_dir = os.path.join(self.root_dir, "src", "docker")
 
         parser = argparse.ArgumentParser(description="End-to-end tests")
