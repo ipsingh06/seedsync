@@ -7,7 +7,6 @@ from subprocess import call
 import subprocess
 from collections import OrderedDict
 import re
-from distutils.util import strtobool
 from typing import List
 
 

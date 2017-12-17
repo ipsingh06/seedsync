@@ -1,0 +1,14 @@
+version: "3.4"
+services:
+  test:
+    tty: true
+    build: ../tests/angular
+    volumes:
+      - type: volume
+        source: ../../angular
+        target: /src
+        read_only: true
+
+      - type: volume
+        source: /tmp
+        target: /tmp
