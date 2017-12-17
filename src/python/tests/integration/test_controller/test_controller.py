@@ -200,10 +200,10 @@ class TestController(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
 
     # noinspection PyMethodMayBeStatic
-    def __wait_for_initial_model(self, controller: Controller):
-        while len(controller.get_model_files()) < 5:
+    def __wait_for_initial_model(self):
+        while len(self.controller.get_model_files()) < 5:
             time.sleep(0.1)
-            controller.process()
+            self.controller.process()
 
     @timeout_decorator.timeout(20)
     def test_bad_config_doesnot_raise_ctor_exception(self):
@@ -278,7 +278,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         model_files = self.controller.get_model_files()
         self.assertEqual(len(self.initial_state.keys()), len(model_files))
@@ -294,7 +294,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -323,7 +323,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -354,7 +354,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -383,7 +383,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -412,7 +412,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -443,7 +443,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -472,7 +472,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -518,7 +518,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -562,7 +562,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -600,7 +600,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -636,7 +636,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -677,7 +677,7 @@ class TestController(unittest.TestCase):
         self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -734,7 +734,7 @@ class TestController(unittest.TestCase):
         self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -786,7 +786,7 @@ class TestController(unittest.TestCase):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -831,7 +831,7 @@ class TestController(unittest.TestCase):
         self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -895,7 +895,7 @@ class TestController(unittest.TestCase):
         self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -954,7 +954,7 @@ class TestController(unittest.TestCase):
         self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -1005,20 +1005,20 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(20)
     def test_config_num_max_parallel_downloads(self):
         self.context.config.lftp.num_max_parallel_downloads = 2
-        new_controller = Controller(self.context, ControllerPersist())
-        new_controller.start()
+        self.controller = Controller(self.context, ControllerPersist())
+        self.controller.start()
 
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
-        new_controller._Controller__lftp.rate_limit = 100
+        self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(new_controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
-        new_controller.add_model_listener(listener)
-        new_controller.process()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
 
         # Setup mock
         listener.file_added = MagicMock()
@@ -1026,9 +1026,9 @@ class TestController(unittest.TestCase):
         listener.file_removed = MagicMock()
 
         # Queue 3 downloads
-        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
-        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rb"))
-        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rb"))
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "rc"))
 
         # Process until 2 downloads starts
         ra_downloading = False
@@ -1045,18 +1045,16 @@ class TestController(unittest.TestCase):
             return
         listener.file_updated.side_effect = updated_side_effect
         while True:
-            new_controller.process()
+            self.controller.process()
             if ra_downloading and rb_downloading:
                 break
 
         # Verify that ra, rb is Downloading, rc is Queued
-        files = new_controller.get_model_files()
+        files = self.controller.get_model_files()
         files_dict = {f.name: f for f in files}
         self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
         self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["rb"].state)
         self.assertEqual(ModelFile.State.QUEUED, files_dict["rc"].state)
-
-        new_controller.exit()
 
     @timeout_decorator.timeout(20)
     def test_downloading_scan(self):
@@ -1065,20 +1063,20 @@ class TestController(unittest.TestCase):
         # updates are still propagated
         self.context.config.controller.interval_ms_downloading_scan = 200
         self.context.config.controller.interval_ms_local_scan = 10000
-        new_controller = Controller(self.context, ControllerPersist())
-        new_controller.start()
+        self.controller = Controller(self.context, ControllerPersist())
+        self.controller.start()
 
         # White box hack: limit the rate of lftp so download doesn't finish
         # noinspection PyUnresolvedReferences
-        new_controller._Controller__lftp.rate_limit = 100
+        self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(new_controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
-        new_controller.add_model_listener(listener)
-        new_controller.process()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
 
         # Setup mock
         listener.file_added = MagicMock()
@@ -1086,7 +1084,7 @@ class TestController(unittest.TestCase):
         listener.file_removed = MagicMock()
 
         # Queue a download
-        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
 
         # Process until the downloads starts
         ra_downloading = False
@@ -1100,23 +1098,21 @@ class TestController(unittest.TestCase):
             return
         listener.file_updated.side_effect = updated_side_effect
         while True:
-            new_controller.process()
+            self.controller.process()
             if ra_downloading:
                 break
 
         # Verify that ra is Downloading
-        files = new_controller.get_model_files()
+        files = self.controller.get_model_files()
         files_dict = {f.name: f for f in files}
         self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
-
-        new_controller.exit()
 
     @timeout_decorator.timeout(20)
     def test_persist_downloaded(self):
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # wait for initial scan
-        self.__wait_for_initial_model(self.controller)
+        self.__wait_for_initial_model()
 
         # Ignore the initial state
         listener = DummyListener()
@@ -1158,22 +1154,26 @@ class TestController(unittest.TestCase):
         # Test that a previously downloaded then deleted file can be redownloaded
         # We set the downloaded state in controller persist
         self.controller_persist.downloaded_file_names.add("ra")
-        new_controller = Controller(self.context, self.controller_persist)
-        new_controller.start()
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+
+        # White box hack: limit the rate of lftp so download doesn't finish
+        # noinspection PyUnresolvedReferences
+        self.controller._Controller__lftp.rate_limit = 100
 
         # wait for initial scan
-        self.__wait_for_initial_model(new_controller)
+        self.__wait_for_initial_model()
 
         # Verify that ra is marked as Deleted
-        new_controller.process()
-        files = new_controller.get_model_files()
+        self.controller.process()
+        files = self.controller.get_model_files()
         files_dict = {f.name: f for f in files}
         self.assertEqual(ModelFile.State.DELETED, files_dict["ra"].state)
 
         # Ignore the initial state
         listener = DummyListener()
-        new_controller.add_model_listener(listener)
-        new_controller.process()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
 
         # Setup mock
         listener.file_added = MagicMock()
@@ -1181,7 +1181,7 @@ class TestController(unittest.TestCase):
         listener.file_removed = MagicMock()
 
         # Queue a download
-        new_controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.QUEUE, "ra"))
 
         # Process until the downloads starts
         ra_downloading = False
@@ -1195,13 +1195,11 @@ class TestController(unittest.TestCase):
             return
         listener.file_updated.side_effect = updated_side_effect
         while True:
-            new_controller.process()
+            self.controller.process()
             if ra_downloading:
                 break
 
         # Verify that ra is Downloading
-        files = new_controller.get_model_files()
+        files = self.controller.get_model_files()
         files_dict = {f.name: f for f in files}
         self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
-
-        new_controller.exit()
