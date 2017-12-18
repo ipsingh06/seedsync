@@ -1,4 +1,4 @@
-# pylftpd
+# SeedSync
 
 ## Dependencies
 sudo apt-get install lftp
