@@ -75,6 +75,7 @@ class EndToEndTestsRunner:
         passed = True
 
         for name, files in TEST_FILES.items():
+            # Launch tests
             print("Running test {}".format(name))
             run_args = [
                 "docker-compose",
@@ -83,10 +84,16 @@ class EndToEndTestsRunner:
             ]
             call(run_args)
 
+            # Wait for tests to finish
             project_name = re.sub(r'[^a-z0-9]', '', name.lower())
             ret = int(subprocess.check_output(["docker", "wait", "{}_test_1".format(project_name)]))
             passed = passed and ret == 0
 
+            # Print log from the test container
+            log_args = ["docker", "logs", "{}_test_1".format(project_name)]
+            call(log_args)
+
+            # Stop all containers
             stop_args = [
                 "docker-compose",
                 *self.__docker_compose_signature(name, files),
