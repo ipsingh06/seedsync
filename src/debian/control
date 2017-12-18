@@ -8,6 +8,6 @@ Standards-Version: 4.0.0
 
 Package: seedsync
 Architecture: amd64
-Depends: ${shlibs:Depends}, ${misc:Depends}, lftp, ssh
+Depends: ${shlibs:Depends}, ${misc:Depends}, lftp, openssh-client
 Pre-Depends: debconf (>= 0.2.17)
 Description: SeedSync keeps your local PC sync'ed with your remote seedbox.

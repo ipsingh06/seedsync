@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     libexpat1 \
     expect \
     lftp \
-    ssh
+    openssh-client
 
 # Create non-root user
 RUN useradd --create-home -s /bin/bash user && \
