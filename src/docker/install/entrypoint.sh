@@ -5,8 +5,8 @@ set -e
 
 echo "Running entrypoint"
 
-echo "Installing pylftp"
-./expect_pylftp.exp
+echo "Installing SeedSync"
+./expect_seedsync.exp
 
 echo "Continuing entrypoint"
 echo "$@"

@@ -16,7 +16,8 @@ py: builddir
 		-p ${SOURCEDIR}/python \
 		--distpath ${BUILDDIR}/py-dist \
 		--workpath ${BUILDDIR}/py-work \
-		--specpath ${BUILDDIR}
+		--specpath ${BUILDDIR} \
+		--name seedsync
 
 scanfs: builddir
 	pyinstaller ${SOURCEDIR}/python/scan_fs.py \
@@ -35,14 +36,14 @@ ng: builddir
 artifacts:
 	rm -rf ${BUILDDIR}/artifacts
 	mkdir -p ${BUILDDIR}/artifacts
-	cp -rf ${BUILDDIR}/py-dist/pylftpd/* ${BUILDDIR}/artifacts/
+	cp -rf ${BUILDDIR}/py-dist/seedsync/* ${BUILDDIR}/artifacts/
 	cp -rf ${BUILDDIR}/ng-dist ${BUILDDIR}/artifacts/html
 	cp -f ${BUILDDIR}/scanfs-dist/scanfs ${BUILDDIR}/artifacts/
 
 deb:
 	rm -rf ${BUILDDIR}/deb
 	mkdir -p ${BUILDDIR}/deb
-	cp -rf ${BUILDDIR}/artifacts ${BUILDDIR}/deb/pylftp
+	cp -rf ${BUILDDIR}/artifacts ${BUILDDIR}/deb/seedsync
 	cp -rf ${SOURCEDIR}/debian ${BUILDDIR}/deb/
 	cd ${BUILDDIR}/deb && dpkg-buildpackage -B -uc -us
 

@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export DESTROOT=$(CURDIR)/debian/pylftp
+export DESTROOT=$(CURDIR)/debian/seedsync
 
 %:
 	dh $@ --with=systemd
@@ -8,4 +8,4 @@ export DESTROOT=$(CURDIR)/debian/pylftp
 override_dh_auto_install:
 	dh_auto_install
 	mkdir -p $(DESTROOT)/usr/lib
-	cp -rf pylftp $(DESTROOT)/usr/lib/
+	cp -rf seedsync $(DESTROOT)/usr/lib/

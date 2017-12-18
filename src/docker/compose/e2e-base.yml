@@ -27,7 +27,7 @@ services:
     volumes:
       - type: volume
         source: ${PATH_TO_INSTALL_DEB}
-        target: /install/pylftp.deb
+        target: /install/seedsync.deb
         read_only: true
 
       - type: volume

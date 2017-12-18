@@ -1,6 +1,6 @@
 #!/bin/sh
 
-OVERRIDE_DIR=/etc/systemd/system/pylftp.service.d
+OVERRIDE_DIR=/etc/systemd/system/seedsync.service.d
 OVERRIDE_FILE=override.conf
 
 
@@ -9,7 +9,7 @@ OVERRIDE_FILE=override.conf
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
-db_get pylftp/username
+db_get seedsync/username
 USER=$RET
 
 if [ -z "${USER}" ]; then

@@ -4,5 +4,5 @@
 . /usr/share/debconf/confmodule
 
 # Ask for username
-db_input high pylftp/username || true
+db_input high seedsync/username || true
 db_go || true

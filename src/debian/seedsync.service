@@ -1,0 +1,19 @@
+# Service unit for seedsync
+# Note: User should be overridden in
+#       /etc/systemd/system/seedsync.service.d/override.conf
+
+[Unit]
+Description=Job that runs the SeedSync daemon
+Requires=local-fs.target network-online.target
+After=local-fs.target network-online.target
+
+[Service]
+Type=simple
+User=root
+Environment="HOME=/root"
+ExecStartPre=/bin/mkdir -p ${HOME}/.seedsync
+ExecStartPre=/bin/mkdir -p ${HOME}/.seedsync/log
+ExecStart=/usr/lib/seedsync/seedsync --logdir ${HOME}/.seedsync/log -c ${HOME}/.seedsync
+
+[Install]
+WantedBy=multi-user.target

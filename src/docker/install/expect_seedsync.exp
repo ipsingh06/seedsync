@@ -1,10 +1,10 @@
 #!/usr/bin/expect
 set timeout 2
-spawn "./install_pylftp.sh"
+spawn "./install_seedsync.sh"
 
 expect {
     timeout {error "ERROR: missing user prompt"; exit 1}
-    "User for Pylftp service"
+    "User for SeedSync service"
 }
 send "user\n"
 

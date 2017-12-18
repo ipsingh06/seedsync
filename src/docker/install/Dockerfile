@@ -28,7 +28,7 @@ RUN echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /home/user/.
 RUN mkdir /home/user/files
 
 # Copy over app config
-ADD --chown=user:user settings.cfg /home/user/.pylftp/
+ADD --chown=user:user settings.cfg /home/user/.seedsync/
 
 USER root
 
@@ -38,8 +38,8 @@ RUN echo "user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
 
 WORKDIR /scripts
 
-ADD install_pylftp.sh /scripts/
-ADD expect_pylftp.exp /scripts/
+ADD install_seedsync.sh /scripts/
+ADD expect_seedsync.exp /scripts/
 ADD entrypoint.sh /scripts/
 
 ENTRYPOINT ["/scripts/entrypoint.sh"]

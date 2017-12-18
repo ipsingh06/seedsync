@@ -20,7 +20,7 @@ class EndToEndTestsRunner:
         call([
             "docker-compose",
             "-f", os.path.join(self.docker_dir, "compose", "angular.yml"),
-            "-p", "pylftp_test_angular",
+            "-p", "seedsync_test_angular",
             "build"
         ])
 
@@ -31,7 +31,7 @@ class EndToEndTestsRunner:
         call([
             "docker-compose",
             "-f", os.path.join(self.docker_dir, "compose", "angular.yml"),
-            "-p", "pylftp_test_angular",
+            "-p", "seedsync_test_angular",
             "up", "--force-recreate"
         ])
 
