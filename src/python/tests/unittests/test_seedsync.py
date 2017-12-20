@@ -4,7 +4,7 @@ import unittest
 import sys
 import copy
 
-from common import overrides, PylftpConfig
+from common import overrides, Config
 from seedsync import Seedsync
 
 
@@ -130,7 +130,7 @@ class TestSeedsync(unittest.TestCase):
         # Test that default config is a valid config
         config = Seedsync._create_default_config()
         config_dict = config.as_dict()
-        config2 = PylftpConfig.from_dict(config_dict)
+        config2 = Config.from_dict(config_dict)
         config2_dict = config2.as_dict()
         self.assertEqual(config_dict, config2_dict)
 

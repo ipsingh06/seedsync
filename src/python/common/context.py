@@ -5,7 +5,7 @@ import copy
 import collections
 
 # my libs
-from .config import PylftpConfig
+from .config import Config
 from .status import Status
 
 
@@ -35,7 +35,7 @@ class PylftpContext:
     def __init__(self,
                  logger: logging.Logger,
                  web_access_logger: logging.Logger,
-                 config: PylftpConfig,
+                 config: Config,
                  args: PylftpArgs,
                  status: Status):
         """

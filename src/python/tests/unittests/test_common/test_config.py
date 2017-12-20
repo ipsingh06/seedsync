@@ -4,8 +4,8 @@ import unittest
 import os
 import tempfile
 
-from common import PylftpConfig, ConfigError, PersistError
-from common.config import PylftpInnerConfig, Checkers, Converters
+from common import Config, ConfigError, PersistError
+from common.config import InnerConfig, Checkers, Converters
 
 
 class TestConverters(unittest.TestCase):
@@ -45,10 +45,10 @@ class TestConverters(unittest.TestCase):
         self.assertEqual("Bad config: TestConverters.bad (-3.14) must be a boolean value", str(e.exception))
 
 
-class DummyInnerConfig(PylftpInnerConfig):
-    c_prop1 = PylftpInnerConfig._create_property("prop1", Checkers.null, Converters.null)
-    a_prop2 = PylftpInnerConfig._create_property("prop2", Checkers.null, Converters.null)
-    b_prop3 = PylftpInnerConfig._create_property("prop3", Checkers.null, Converters.null)
+class DummyInnerConfig(InnerConfig):
+    c_prop1 = InnerConfig._create_property("prop1", Checkers.null, Converters.null)
+    a_prop2 = InnerConfig._create_property("prop2", Checkers.null, Converters.null)
+    b_prop3 = InnerConfig._create_property("prop3", Checkers.null, Converters.null)
 
     def __init__(self):
         self.c_prop1 = "1"
@@ -56,9 +56,9 @@ class DummyInnerConfig(PylftpInnerConfig):
         self.b_prop3 = "3"
 
 
-class DummyInnerConfig2(PylftpInnerConfig):
-    prop_int = PylftpInnerConfig._create_property("prop_int", Checkers.null, Converters.int)
-    prop_str = PylftpInnerConfig._create_property("prop_str", Checkers.string_nonempty, Converters.null)
+class DummyInnerConfig2(InnerConfig):
+    prop_int = InnerConfig._create_property("prop_int", Checkers.null, Converters.int)
+    prop_str = InnerConfig._create_property("prop_str", Checkers.string_nonempty, Converters.null)
 
     def __init__(self):
         self.prop_int = None
@@ -178,7 +178,7 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertTrue(str(error.exception).startswith("Bad config"))
 
     def test_has_section(self):
-        config = PylftpConfig()
+        config = Config()
         self.assertTrue(config.has_section("general"))
         self.assertTrue(config.has_section("lftp"))
         self.assertTrue(config.has_section("controller"))
@@ -191,18 +191,18 @@ class TestPylftpConfig(unittest.TestCase):
         good_dict = {
             "debug": "True",
         }
-        general = PylftpConfig.General.from_dict(good_dict)
+        general = Config.General.from_dict(good_dict)
         self.assertEqual(True, general.debug)
 
-        self.check_common(PylftpConfig.General,
+        self.check_common(Config.General,
                           good_dict,
                           {
                               "debug"
                           })
 
         # bad values
-        self.check_bad_value_error(PylftpConfig.General, good_dict, "debug", "SomeString")
-        self.check_bad_value_error(PylftpConfig.General, good_dict, "debug", "-1")
+        self.check_bad_value_error(Config.General, good_dict, "debug", "SomeString")
+        self.check_bad_value_error(Config.General, good_dict, "debug", "-1")
 
     def test_lftp(self):
         good_dict = {
@@ -217,7 +217,7 @@ class TestPylftpConfig(unittest.TestCase):
             "num_max_connections_per_dir_file": "6",
             "num_max_total_connections": "7"
         }
-        lftp = PylftpConfig.Lftp.from_dict(good_dict)
+        lftp = Config.Lftp.from_dict(good_dict)
         self.assertEqual("remote.server.com", lftp.remote_address)
         self.assertEqual("remote-user", lftp.remote_username)
         self.assertEqual("/path/on/remote/server", lftp.remote_path)
@@ -229,7 +229,7 @@ class TestPylftpConfig(unittest.TestCase):
         self.assertEqual(6, lftp.num_max_connections_per_dir_file)
         self.assertEqual(7, lftp.num_max_total_connections)
 
-        self.check_common(PylftpConfig.Lftp,
+        self.check_common(Config.Lftp,
                           good_dict,
                           {
                               "remote_address",
@@ -245,15 +245,15 @@ class TestPylftpConfig(unittest.TestCase):
                           })
 
         # bad values
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads", "-1")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_downloads", "0")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download", "-1")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_parallel_files_per_download", "0")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file", "-1")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_root_file", "0")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file", "-1")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_connections_per_dir_file", "0")
-        self.check_bad_value_error(PylftpConfig.Lftp, good_dict, "num_max_total_connections", "-1")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_parallel_downloads", "-1")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_parallel_downloads", "0")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_parallel_files_per_download", "-1")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_parallel_files_per_download", "0")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_connections_per_root_file", "-1")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_connections_per_root_file", "0")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_connections_per_dir_file", "-1")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_connections_per_dir_file", "0")
+        self.check_bad_value_error(Config.Lftp, good_dict, "num_max_total_connections", "-1")
 
     def test_controller(self):
         good_dict = {
@@ -261,12 +261,12 @@ class TestPylftpConfig(unittest.TestCase):
             "interval_ms_local_scan": "10000",
             "interval_ms_downloading_scan": "2000",
         }
-        lftp = PylftpConfig.Controller.from_dict(good_dict)
+        lftp = Config.Controller.from_dict(good_dict)
         self.assertEqual(30000, lftp.interval_ms_remote_scan)
         self.assertEqual(10000, lftp.interval_ms_local_scan)
         self.assertEqual(2000, lftp.interval_ms_downloading_scan)
 
-        self.check_common(PylftpConfig.Controller,
+        self.check_common(Config.Controller,
                           good_dict,
                           {
                               "interval_ms_remote_scan",
@@ -275,29 +275,29 @@ class TestPylftpConfig(unittest.TestCase):
                           })
 
         # bad values
-        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "-1")
-        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_remote_scan", "0")
-        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "-1")
-        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_local_scan", "0")
-        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan", "-1")
-        self.check_bad_value_error(PylftpConfig.Controller, good_dict, "interval_ms_downloading_scan", "0")
+        self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_remote_scan", "-1")
+        self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_remote_scan", "0")
+        self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_local_scan", "-1")
+        self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_local_scan", "0")
+        self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_downloading_scan", "-1")
+        self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_downloading_scan", "0")
 
     def test_web(self):
         good_dict = {
             "port": "1234",
         }
-        web = PylftpConfig.Web.from_dict(good_dict)
+        web = Config.Web.from_dict(good_dict)
         self.assertEqual(1234, web.port)
 
-        self.check_common(PylftpConfig.Web,
+        self.check_common(Config.Web,
                           good_dict,
                           {
                               "port"
                           })
 
         # bad values
-        self.check_bad_value_error(PylftpConfig.Web, good_dict, "port", "-1")
-        self.check_bad_value_error(PylftpConfig.Web, good_dict, "port", "0")
+        self.check_bad_value_error(Config.Web, good_dict, "port", "-1")
+        self.check_bad_value_error(Config.Web, good_dict, "port", "0")
 
     def test_from_file(self):
         # Create empty config file
@@ -328,7 +328,7 @@ class TestPylftpConfig(unittest.TestCase):
         port=88
         """)
         config_file.flush()
-        config = PylftpConfig.from_file(config_file.name)
+        config = Config.from_file(config_file.name)
 
         self.assertEqual(False, config.general.debug)
 
@@ -356,7 +356,7 @@ class TestPylftpConfig(unittest.TestCase):
         """)
         config_file.flush()
         with self.assertRaises(ConfigError) as error:
-            PylftpConfig.from_file(config_file.name)
+            Config.from_file(config_file.name)
         self.assertTrue(str(error.exception).startswith("Unknown section"))
 
         # Remove config file
@@ -366,7 +366,7 @@ class TestPylftpConfig(unittest.TestCase):
     def test_to_file(self):
         config_file_path = tempfile.mktemp(suffix="test_config")
 
-        config = PylftpConfig()
+        config = Config()
         config.general.debug = True
         config.lftp.remote_address = "server.remote.com"
         config.lftp.remote_username = "user-on-remote-server"
@@ -428,7 +428,7 @@ class TestPylftpConfig(unittest.TestCase):
         port=88
         """
         with self.assertRaises(PersistError):
-            PylftpConfig.from_str(content)
+            Config.from_str(content)
 
         # bad value
         content = """
@@ -436,7 +436,7 @@ class TestPylftpConfig(unittest.TestCase):
         port88
         """
         with self.assertRaises(PersistError):
-            PylftpConfig.from_str(content)
+            Config.from_str(content)
 
         # bad line
         content = """
@@ -445,4 +445,4 @@ class TestPylftpConfig(unittest.TestCase):
         what am i doing here
         """
         with self.assertRaises(PersistError):
-            PylftpConfig.from_str(content)
+            Config.from_str(content)

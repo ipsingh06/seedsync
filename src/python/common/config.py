@@ -20,8 +20,8 @@ class ConfigError(PylftpError):
     pass
 
 
-InnerConfig = Dict[str, str]
-OuterConfig = Dict[str, InnerConfig]
+InnerConfigType = Dict[str, str]
+OuterConfigType = Dict[str, InnerConfigType]
 
 
 # Source: https://stackoverflow.com/a/39205612/8571324
@@ -92,7 +92,7 @@ class Checkers:
         return value
 
 
-class PylftpInnerConfig(ABC):
+class InnerConfig(ABC):
     """
     Abstract base class for a config section
     Config values are exposed as properties. They must be set using their native type.
@@ -119,8 +119,8 @@ class PylftpInnerConfig(ABC):
         # noinspection PyProtectedMember
         prop = property(fget=lambda s: s._get_property(name),
                         fset=lambda s, v: s._set_property(name, v, checker))
-        prop_addon = PylftpInnerConfig.PropMetadata(checker=checker, converter=converter)
-        PylftpInnerConfig.__prop_addon_map[prop] = prop_addon
+        prop_addon = InnerConfig.PropMetadata(checker=checker, converter=converter)
+        InnerConfig.__prop_addon_map[prop] = prop_addon
         return prop
 
     def _get_property(self, name: str) -> Any:
@@ -134,7 +134,7 @@ class PylftpInnerConfig(ABC):
             setattr(self, "__" + name, checker(self.__class__, name, value))
 
     @classmethod
-    def from_dict(cls: Type[T], config_dict: InnerConfig) -> T:
+    def from_dict(cls: Type[T], config_dict: InnerConfigType) -> T:
         """
         Construct and return inner config from a dict
         Dict values can be either native types, or str representations
@@ -161,7 +161,7 @@ class PylftpInnerConfig(ABC):
 
         return inner_config
 
-    def as_dict(self) -> InnerConfig:
+    def as_dict(self) -> InnerConfigType:
         """
         Return the dict representation of the inner config
         :return:
@@ -171,7 +171,7 @@ class PylftpInnerConfig(ABC):
         my_property_to_name_map = {getattr(cls, p): p for p in dir(cls) if isinstance(getattr(cls, p), property)}
         # Arrange prop names in order of creation. Use the prop map to get the order
         # Prop map contains all properties of all config classes, so filtering is required
-        all_properties = PylftpInnerConfig.__prop_addon_map.keys()
+        all_properties = InnerConfig.__prop_addon_map.keys()
         for prop in all_properties:
             if prop in my_property_to_name_map.keys():
                 name = my_property_to_name_map[prop]
@@ -198,7 +198,7 @@ class PylftpInnerConfig(ABC):
         :return:
         """
         cls = self.__class__
-        prop_addon = PylftpInnerConfig.__prop_addon_map[getattr(cls, name)]
+        prop_addon = InnerConfig.__prop_addon_map[getattr(cls, name)]
         # Do the conversion if value is of type str
         native_value = prop_addon.converter(cls, name, value) if type(value) is str else value
         # Set the property, which will invoke the checker
@@ -207,12 +207,12 @@ class PylftpInnerConfig(ABC):
 
 
 # Useful aliases
-IC = PylftpInnerConfig
+IC = InnerConfig
 # noinspection PyProtectedMember
-PROP = PylftpInnerConfig._create_property
+PROP = InnerConfig._create_property
 
 
-class PylftpConfig(Persist):
+class Config(Persist):
     """
     Configuration registry
     """
@@ -265,7 +265,7 @@ class PylftpConfig(Persist):
             self.interval_ms_local_scan = None
             self.interval_ms_downloading_scan = None
 
-    class Web(PylftpInnerConfig):
+    class Web(InnerConfig):
         port = PROP("port", Checkers.int_positive, Converters.int)
 
         def __init__(self):
@@ -273,13 +273,13 @@ class PylftpConfig(Persist):
             self.port = None
 
     def __init__(self):
-        self.general = PylftpConfig.General()
-        self.lftp = PylftpConfig.Lftp()
-        self.controller = PylftpConfig.Controller()
-        self.web = PylftpConfig.Web()
+        self.general = Config.General()
+        self.lftp = Config.Lftp()
+        self.controller = Config.Controller()
+        self.web = Config.Web()
 
     @staticmethod
-    def _check_section(dct: OuterConfig, name: str) -> InnerConfig:
+    def _check_section(dct: OuterConfigType, name: str) -> InnerConfigType:
         if name not in dct:
             raise ConfigError("Missing config section: {}".format(name))
         val = dct[name]
@@ -287,14 +287,14 @@ class PylftpConfig(Persist):
         return val
 
     @staticmethod
-    def _check_empty_outer_dict(dct: OuterConfig):
+    def _check_empty_outer_dict(dct: OuterConfigType):
         extra_keys = dct.keys()
         if extra_keys:
             raise ConfigError("Unknown section: {}".format(next(iter(extra_keys))))
 
     @classmethod
     @overrides(Persist)
-    def from_str(cls: "PylftpConfig", content: str) -> "PylftpConfig":
+    def from_str(cls: "Config", content: str) -> "Config":
         config_parser = configparser.ConfigParser()
         try:
             config_parser.read_string(content)
@@ -310,7 +310,7 @@ class PylftpConfig(Persist):
             config_dict[section] = {}
             for option in config_parser.options(section):
                 config_dict[section][option] = config_parser.get(section, option)
-        return PylftpConfig.from_dict(config_dict)
+        return Config.from_dict(config_dict)
 
     @overrides(Persist)
     def to_str(self) -> str:
@@ -326,19 +326,19 @@ class PylftpConfig(Persist):
         return str_io.getvalue()
 
     @staticmethod
-    def from_dict(config_dict: OuterConfig) -> "PylftpConfig":
+    def from_dict(config_dict: OuterConfigType) -> "Config":
         config_dict = dict(config_dict)  # copy that we can modify
-        config = PylftpConfig()
+        config = Config()
 
-        config.general = PylftpConfig.General.from_dict(PylftpConfig._check_section(config_dict, "General"))
-        config.lftp = PylftpConfig.Lftp.from_dict(PylftpConfig._check_section(config_dict, "Lftp"))
-        config.controller = PylftpConfig.Controller.from_dict(PylftpConfig._check_section(config_dict, "Controller"))
-        config.web = PylftpConfig.Web.from_dict(PylftpConfig._check_section(config_dict, "Web"))
+        config.general = Config.General.from_dict(Config._check_section(config_dict, "General"))
+        config.lftp = Config.Lftp.from_dict(Config._check_section(config_dict, "Lftp"))
+        config.controller = Config.Controller.from_dict(Config._check_section(config_dict, "Controller"))
+        config.web = Config.Web.from_dict(Config._check_section(config_dict, "Web"))
 
-        PylftpConfig._check_empty_outer_dict(config_dict)
+        Config._check_empty_outer_dict(config_dict)
         return config
 
-    def as_dict(self) -> OuterConfig:
+    def as_dict(self) -> OuterConfigType:
         # We convert all values back to strings
         # Use an ordered dict to main section order
         config_dict = collections.OrderedDict()
@@ -355,6 +355,6 @@ class PylftpConfig(Persist):
         :return:
         """
         try:
-            return isinstance(getattr(self, name), PylftpInnerConfig)
+            return isinstance(getattr(self, name), InnerConfig)
         except AttributeError:
             return False

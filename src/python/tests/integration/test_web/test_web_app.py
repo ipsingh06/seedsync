@@ -7,7 +7,7 @@ import sys
 
 from webtest import TestApp
 
-from common import overrides, Status, PylftpConfig
+from common import overrides, Status, Config
 from controller import AutoQueuePersist
 from web import WebAppBuilder
 
@@ -38,7 +38,7 @@ class BaseTestWebApp(unittest.TestCase):
         self.context.status = Status()
 
         # Real config
-        self.context.config = PylftpConfig()
+        self.context.config = Config()
 
         # Real auto-queue persist
         self.auto_queue_persist = AutoQueuePersist()

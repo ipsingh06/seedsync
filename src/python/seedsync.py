@@ -12,7 +12,7 @@ from typing import Optional, Type, TypeVar
 import shutil
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, PylftpConfig, PylftpArgs, PylftpError
+from common import ServiceExit, PylftpContext, Constants, Config, PylftpArgs, PylftpError
 from common import ServiceRestart
 from common import Localization, Status, ConfigError, Persist, PersistError
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
@@ -45,7 +45,7 @@ class Seedsync:
         create_default_config = False
         if os.path.isfile(self.config_path):
             try:
-                config = PylftpConfig.from_file(self.config_path)
+                config = Config.from_file(self.config_path)
             except (ConfigError, PersistError):
                 Seedsync.__backup_file(self.config_path)
                 # set config to default
@@ -268,12 +268,12 @@ class Seedsync:
         return logger
 
     @staticmethod
-    def _create_default_config() -> PylftpConfig:
+    def _create_default_config() -> Config:
         """
         Create a config with default values
         :return:
         """
-        config = PylftpConfig()
+        config = Config()
 
         config.general.debug = False
 
@@ -297,7 +297,7 @@ class Seedsync:
         return config
 
     @staticmethod
-    def _detect_incomplete_config(config: PylftpConfig) -> bool:
+    def _detect_incomplete_config(config: Config) -> bool:
         config_dict = config.as_dict()
         for sec_name in config_dict:
             for key in config_dict[sec_name]:

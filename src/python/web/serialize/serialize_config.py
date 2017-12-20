@@ -3,12 +3,12 @@
 import json
 import collections
 
-from common import PylftpConfig
+from common import Config
 
 
 class SerializeConfig:
     @staticmethod
-    def config(config: PylftpConfig) -> str:
+    def config(config: Config) -> str:
         config_dict = config.as_dict()
 
         # Make the section names lower case

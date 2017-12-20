@@ -5,7 +5,7 @@ from .job import Job
 from .context import PylftpContext, PylftpArgs
 from .error import PylftpError, ServiceExit, ServiceRestart
 from .constants import Constants
-from .config import PylftpConfig, ConfigError
+from .config import Config, ConfigError
 from .persist import Persist, PersistError, Serializable
 from .localization import Localization
 from .multiprocessing_logger import MultiprocessingLogger

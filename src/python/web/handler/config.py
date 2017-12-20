@@ -3,13 +3,13 @@
 from bottle import HTTPResponse
 from urllib.parse import unquote
 
-from common import overrides, PylftpConfig, ConfigError
+from common import overrides, Config, ConfigError
 from ..web_app import IHandler, WebApp
 from ..serialize import SerializeConfig
 
 
 class ConfigHandler(IHandler):
-    def __init__(self, config: PylftpConfig):
+    def __init__(self, config: Config):
         self.__config = config
 
     @overrides(IHandler)

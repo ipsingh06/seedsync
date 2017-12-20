@@ -3,13 +3,13 @@
 import unittest
 import json
 
-from common import PylftpConfig
+from common import Config
 from web.serialize import SerializeConfig
 
 
 class TestSerializeConfig(unittest.TestCase):
     def test_section_general(self):
-        config = PylftpConfig()
+        config = Config()
         config.general.debug = True
         out = SerializeConfig.config(config)
         out_dict = json.loads(out)
@@ -17,7 +17,7 @@ class TestSerializeConfig(unittest.TestCase):
         self.assertEqual(True, out_dict["general"]["debug"])
 
     def test_section_lftp(self):
-        config = PylftpConfig()
+        config = Config()
         config.lftp.remote_address = "server.remote.com"
         config.lftp.remote_username = "user-on-remote-server"
         config.lftp.remote_path = "/remote/server/path"
@@ -43,7 +43,7 @@ class TestSerializeConfig(unittest.TestCase):
         self.assertEqual(4, out_dict["lftp"]["num_max_total_connections"])
 
     def test_section_controller(self):
-        config = PylftpConfig()
+        config = Config()
         config.controller.interval_ms_remote_scan = 1234
         config.controller.interval_ms_local_scan = 5678
         config.controller.interval_ms_downloading_scan = 9012
@@ -55,7 +55,7 @@ class TestSerializeConfig(unittest.TestCase):
         self.assertEqual(9012, out_dict["controller"]["interval_ms_downloading_scan"])
 
     def test_section_web(self):
-        config = PylftpConfig()
+        config = Config()
         config.web.port = 8080
         out = SerializeConfig.config(config)
         out_dict = json.loads(out)

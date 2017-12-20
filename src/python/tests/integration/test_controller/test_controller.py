@@ -13,7 +13,7 @@ import sys
 
 import timeout_decorator
 
-from common import overrides, PylftpContext, PylftpConfig, PylftpArgs, PylftpError, Localization, Status
+from common import overrides, PylftpContext, Config, PylftpArgs, PylftpError, Localization, Status
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
@@ -185,7 +185,7 @@ class TestController(unittest.TestCase):
         handler.setFormatter(formatter)
         self.context = PylftpContext(logger=logger,
                                      web_access_logger=logger,
-                                     config=PylftpConfig.from_dict(config_dict),
+                                     config=Config.from_dict(config_dict),
                                      args=ctx_args,
                                      status=Status())
         self.controller_persist = ControllerPersist()
