@@ -2,12 +2,12 @@
 
 from bottle import HTTPResponse
 
-from common import PylftpContext, overrides
+from common import Context, overrides
 from ..web_app import IHandler, WebApp
 
 
 class ServerHandler(IHandler):
-    def __init__(self, context: PylftpContext):
+    def __init__(self, context: Context):
         self.logger = context.logger.getChild("ServerActionHandler")
         self.__request_restart = False
 

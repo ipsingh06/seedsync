@@ -4,7 +4,7 @@ import json
 from abc import ABC, abstractmethod
 from typing import Set
 
-from common import overrides, Constants, PylftpContext, Persist, PersistError, Serializable
+from common import overrides, Constants, Context, Persist, PersistError, Serializable
 from model import IModelListener, ModelFile
 from .controller import Controller
 
@@ -148,7 +148,7 @@ class AutoQueue:
     needed for now
     """
     def __init__(self,
-                 context: PylftpContext,
+                 context: Context,
                  persist: AutoQueuePersist,
                  controller: Controller):
         self.logger = context.logger.getChild("AutoQueue")

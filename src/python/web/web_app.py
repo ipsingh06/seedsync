@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 import bottle
 from bottle import static_file
 
-from common import PylftpContext, overrides
+from common import Context, overrides
 from controller import Controller
 
 
@@ -65,7 +65,7 @@ class WebApp(bottle.Bottle):
     """
     Web app implementation
     """
-    def __init__(self, context: PylftpContext, controller: Controller):
+    def __init__(self, context: Context, controller: Controller):
         super().__init__()
         self.logger = context.logger.getChild("WebApp")
         self.__controller = controller

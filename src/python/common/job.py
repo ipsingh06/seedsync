@@ -6,7 +6,7 @@ import time
 from abc import ABC, abstractmethod
 
 # my libs
-from .context import PylftpContext
+from .context import Context
 from .types import overrides
 
 
@@ -16,7 +16,7 @@ class Job(threading.Thread, ABC):
     """
     _DEFAULT_SLEEP_INTERVAL_IN_SECS = 0.5
 
-    def __init__(self, name: str, context: PylftpContext):
+    def __init__(self, name: str, context: Context):
         super().__init__()
         self.name = name
         self.logger = context.logger

@@ -2,7 +2,7 @@
 
 
 # my libs
-from common import overrides, Job, PylftpContext
+from common import overrides, Job, Context
 from .controller import Controller
 from .auto_queue import AutoQueue
 
@@ -13,7 +13,7 @@ class ControllerJob(Job):
     Handles querying and downloading of files
     """
     def __init__(self,
-                 context: PylftpContext,
+                 context: Context,
                  controller: Controller,
                  auto_queue: AutoQueue):
         super().__init__(name=self.__class__.__name__, context=context)

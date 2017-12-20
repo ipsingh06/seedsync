@@ -1,6 +1,6 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-from common import PylftpContext
+from common import Context
 from controller import Controller, AutoQueuePersist
 from .web_app import WebApp
 from .handler.stream_model import ModelStreamHandler
@@ -16,7 +16,7 @@ class WebAppBuilder:
     Helper class to build WebApp with all the extensions
     """
     def __init__(self,
-                 context: PylftpContext,
+                 context: Context,
                  controller: Controller,
                  auto_queue_persist: AutoQueuePersist):
         self.__context = context

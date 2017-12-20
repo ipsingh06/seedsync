@@ -13,7 +13,7 @@ import sys
 
 import timeout_decorator
 
-from common import overrides, PylftpContext, Config, PylftpArgs, PylftpError, Localization, Status
+from common import overrides, Context, Config, Args, PylftpError, Localization, Status
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
@@ -148,7 +148,7 @@ class TestController(unittest.TestCase):
             f.write("#!/bin/sh\n")
             f.write("python3 {} $*".format(local_script_path))
         os.chmod(local_exe_path, 0o775)
-        ctx_args = PylftpArgs()
+        ctx_args = Args()
         ctx_args.local_path_to_scanfs = local_exe_path
 
         config_dict = {
@@ -183,11 +183,11 @@ class TestController(unittest.TestCase):
         logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
         handler.setFormatter(formatter)
-        self.context = PylftpContext(logger=logger,
-                                     web_access_logger=logger,
-                                     config=Config.from_dict(config_dict),
-                                     args=ctx_args,
-                                     status=Status())
+        self.context = Context(logger=logger,
+                               web_access_logger=logger,
+                               config=Config.from_dict(config_dict),
+                               args=ctx_args,
+                               status=Status())
         self.controller_persist = ControllerPersist()
         self.controller = None
 

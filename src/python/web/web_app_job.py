@@ -8,7 +8,7 @@ from paste import httpserver
 from paste.translogger import TransLogger
 
 from .web_app import WebApp
-from common import overrides, Job, PylftpContext
+from common import overrides, Job, Context
 
 
 class WebAppJob(Job):
@@ -16,7 +16,7 @@ class WebAppJob(Job):
     Web interface service
     :return:
     """
-    def __init__(self, context: PylftpContext, web_app: WebApp):
+    def __init__(self, context: Context, web_app: WebApp):
         super().__init__(name=self.__class__.__name__, context=context)
         self.web_access_logger = context.web_access_logger
         self.__context = context

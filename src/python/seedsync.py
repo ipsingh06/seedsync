@@ -12,7 +12,7 @@ from typing import Optional, Type, TypeVar
 import shutil
 
 # my libs
-from common import ServiceExit, PylftpContext, Constants, Config, PylftpArgs, PylftpError
+from common import ServiceExit, Context, Constants, Config, Args, PylftpError
 from common import ServiceRestart
 from common import Localization, Status, ConfigError, Persist, PersistError
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
@@ -62,7 +62,7 @@ class Seedsync:
         is_debug = args.debug or config.general.debug
 
         # Create context args
-        ctx_args = PylftpArgs()
+        ctx_args = Args()
         ctx_args.local_path_to_scanfs = args.scanfs
         ctx_args.html_path = args.html
         ctx_args.debug = is_debug
@@ -82,11 +82,11 @@ class Seedsync:
         status = Status()
 
         # Create context
-        self.context = PylftpContext(logger=logger,
-                                     web_access_logger=web_access_logger,
-                                     config=config,
-                                     args=ctx_args,
-                                     status=status)
+        self.context = Context(logger=logger,
+                               web_access_logger=web_access_logger,
+                               config=config,
+                               args=ctx_args,
+                               status=status)
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, self.signal)

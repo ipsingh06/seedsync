@@ -9,7 +9,7 @@ from .config import Config
 from .status import Status
 
 
-class PylftpArgs:
+class Args:
     """
     Container for args
     These are settings that aren't part of config but still needed by
@@ -28,7 +28,7 @@ class PylftpArgs:
         return dct
 
 
-class PylftpContext:
+class Context:
     """
     Stores contextual information for the entire application
     """
@@ -36,7 +36,7 @@ class PylftpContext:
                  logger: logging.Logger,
                  web_access_logger: logging.Logger,
                  config: Config,
-                 args: PylftpArgs,
+                 args: Args,
                  status: Status):
         """
         Primary constructor to construct the top-level context
@@ -48,7 +48,7 @@ class PylftpContext:
         self.args = args
         self.status = status
 
-    def create_child_context(self, context_name: str) -> "PylftpContext":
+    def create_child_context(self, context_name: str) -> "Context":
         child_context = copy.copy(self)
         child_context.logger = self.logger.getChild(context_name)
         return child_context
