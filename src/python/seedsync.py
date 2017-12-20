@@ -12,7 +12,7 @@ from typing import Optional, Type, TypeVar
 import shutil
 
 # my libs
-from common import ServiceExit, Context, Constants, Config, Args, PylftpError
+from common import ServiceExit, Context, Constants, Config, Args, AppError
 from common import ServiceRestart
 from common import Localization, Status, ConfigError, Persist, PersistError
 from controller import Controller, ControllerJob, ControllerPersist, AutoQueue, AutoQueuePersist
@@ -156,7 +156,7 @@ class Seedsync:
                 # Catch controller exceptions and keep running, but notify the web server of the error
                 try:
                     controller_job.propagate_exception()
-                except PylftpError as exc:
+                except AppError as exc:
                     self.context.status.server.up = False
                     self.context.status.server.error_msg = str(exc)
                     Seedsync.logger.exception("Caught exception")

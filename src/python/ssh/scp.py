@@ -5,10 +5,10 @@ import logging
 import time
 
 # my libs
-from common import PylftpError
+from common import AppError
 
 
-class ScpError(PylftpError):
+class ScpError(AppError):
     """
     Custom exception that describes the failure of the ssh command
     """

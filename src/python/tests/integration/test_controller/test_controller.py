@@ -13,7 +13,7 @@ import sys
 
 import timeout_decorator
 
-from common import overrides, Context, Config, Args, PylftpError, Localization, Status
+from common import overrides, Context, Config, Args, AppError, Localization, Status
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
 
@@ -223,7 +223,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_address = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
@@ -234,7 +234,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_username = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
@@ -245,7 +245,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
@@ -256,7 +256,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.local_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
@@ -267,7 +267,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_path_to_scan_script = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
-        with self.assertRaises(PylftpError) as error:
+        with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode

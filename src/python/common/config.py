@@ -8,12 +8,12 @@ from distutils.util import strtobool
 from abc import ABC
 from typing import Type, TypeVar, Callable, Any
 
-from .error import PylftpError
+from .error import AppError
 from .persist import Persist, PersistError
 from .types import overrides
 
 
-class ConfigError(PylftpError):
+class ConfigError(AppError):
     """
     Exception indicating a bad config value
     """

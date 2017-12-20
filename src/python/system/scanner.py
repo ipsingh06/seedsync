@@ -5,11 +5,11 @@ import re
 from typing import List
 
 # my libs
-from common import PylftpError
+from common import AppError
 from .file import SystemFile
 
 
-class SystemScannerError(PylftpError):
+class SystemScannerError(AppError):
     """
     Exception indicating a bad config value
     """

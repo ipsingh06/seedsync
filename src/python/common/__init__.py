@@ -3,7 +3,7 @@
 from .types import overrides
 from .job import Job
 from .context import Context, Args
-from .error import PylftpError, ServiceExit, ServiceRestart
+from .error import AppError, ServiceExit, ServiceRestart
 from .constants import Constants
 from .config import Config, ConfigError
 from .persist import Persist, PersistError, Serializable

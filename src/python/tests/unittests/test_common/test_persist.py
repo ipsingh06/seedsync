@@ -5,7 +5,7 @@ import tempfile
 import shutil
 import os
 
-from common import overrides, Persist, PylftpError, Localization
+from common import overrides, Persist, AppError, Localization
 
 
 class DummyPersist(Persist):
@@ -44,7 +44,7 @@ class TestPersist(unittest.TestCase):
 
     def test_from_file_non_existing(self):
         file_path = os.path.join(self.temp_dir, "persist")
-        with self.assertRaises(PylftpError) as context:
+        with self.assertRaises(AppError) as context:
             DummyPersist.from_file(file_path)
         self.assertEqual(Localization.Error.MISSING_FILE.format(file_path), str(context.exception))
 

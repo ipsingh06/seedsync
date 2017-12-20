@@ -4,7 +4,7 @@ import logging
 from typing import List
 
 from .scanner_process import IScanner
-from common import overrides, PylftpError, Localization
+from common import overrides, AppError, Localization
 from system import SystemScanner, SystemFile, SystemScannerError
 
 
@@ -26,5 +26,5 @@ class LocalScanner(IScanner):
             result = self.__scanner.scan()
         except SystemScannerError:
             self.logger.exception("Caught SystemScannerError")
-            raise PylftpError(Localization.Error.LOCAL_SERVER_SCAN)
+            raise AppError(Localization.Error.LOCAL_SERVER_SCAN)
         return result

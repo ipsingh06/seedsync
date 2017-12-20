@@ -5,11 +5,11 @@ from abc import ABC, abstractmethod
 from typing import Set
 
 # my libs
-from common import PylftpError
+from common import AppError
 from .file import ModelFile
 
 
-class ModelError(PylftpError):
+class ModelError(AppError):
     """
     Exception indicating a model error
     """

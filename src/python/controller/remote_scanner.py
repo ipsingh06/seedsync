@@ -6,12 +6,12 @@ from typing import List
 import os
 
 from .scanner_process import IScanner
-from common import overrides, PylftpError, Localization
+from common import overrides, AppError, Localization
 from ssh import Ssh, Scp, ScpError, SshError
 from system import SystemFile
 
 
-class RemoteScannerError(PylftpError):
+class RemoteScannerError(AppError):
     pass
 
 
@@ -50,7 +50,7 @@ class RemoteScanner(IScanner):
             out = self.__ssh.run_command("{} {}".format(self.__remote_path_to_scan_script, self.__remote_path_to_scan))
         except SshError:
             self.logger.exception("Caught an SshError")
-            raise PylftpError(Localization.Error.REMOTE_SERVER_SCAN)
+            raise AppError(Localization.Error.REMOTE_SERVER_SCAN)
         remote_files = pickle.loads(out)
         return remote_files
 
@@ -68,4 +68,4 @@ class RemoteScanner(IScanner):
                             remote_path=self.__remote_path_to_scan_script)
         except ScpError:
             self.logger.exception("Caught scp exception")
-            raise PylftpError(Localization.Error.REMOTE_SERVER_INSTALL)
+            raise AppError(Localization.Error.REMOTE_SERVER_INSTALL)

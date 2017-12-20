@@ -9,11 +9,11 @@ from typing import Callable, Union, List
 import pexpect
 
 # my libs
-from common import PylftpError
+from common import AppError
 from .job_status_parser import LftpJobStatus, LftpJobStatusParser
 
 
-class LftpError(PylftpError):
+class LftpError(AppError):
     """
     Custom exception that describes the failure of the lftp command
     """

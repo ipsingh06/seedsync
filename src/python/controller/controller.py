@@ -12,7 +12,7 @@ import copy
 # my libs
 from .scanner_process import ScannerProcess
 from .model_builder import ModelBuilder
-from common import Context, PylftpError, MultiprocessingLogger
+from common import Context, AppError, MultiprocessingLogger
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
 from lftp import Lftp, LftpError, LftpJobStatus
 from .downloading_scanner import DownloadingScanner
@@ -21,7 +21,7 @@ from .remote_scanner import RemoteScanner
 from .controller_persist import ControllerPersist
 
 
-class ControllerError(PylftpError):
+class ControllerError(AppError):
     """
     Exception indicating a controller error
     """

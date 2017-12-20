@@ -5,11 +5,11 @@ import re
 from typing import List
 import logging
 
-from common import PylftpError
+from common import AppError
 from .job_status import LftpJobStatus
 
 
-class LftpJobStatusParserError(PylftpError):
+class LftpJobStatusParserError(AppError):
     pass
 
 
