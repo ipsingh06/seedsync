@@ -1,6 +1,6 @@
 import { AppPage } from './app.po';
 
-describe('pylftp App', () => {
+describe('seedsync App', () => {
   let page: AppPage;
 
   beforeEach(() => {
