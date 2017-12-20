@@ -9,7 +9,7 @@ from .auto_queue import AutoQueue
 
 class ControllerJob(Job):
     """
-    The Pylftp service
+    The controller service
     Handles querying and downloading of files
     """
     def __init__(self,

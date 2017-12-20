@@ -19,7 +19,5 @@ class ServiceExit(AppError):
 class ServiceRestart(AppError):
     """
     Exception indicating a restart is requested
-    Note: does not extend PylftpError, this is done to differentiate it
-          from errors that the top-level module catches and handles
     """
     pass

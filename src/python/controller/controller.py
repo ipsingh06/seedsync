@@ -30,7 +30,7 @@ class ControllerError(AppError):
 
 class Controller:
     """
-    Top-level class that controls the behaviour of pylftp
+    Top-level class that controls the behaviour of the app
     """
     class Command:
         """

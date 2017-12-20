@@ -6,7 +6,7 @@ class Constants:
     POD class to hold shared constants
     :return:
     """
-    SERVICE_NAME = "pylftp"
+    SERVICE_NAME = "seedsync"
     MAIN_THREAD_SLEEP_INTERVAL_IN_SECS = 0.5
     MAX_LOG_SIZE_IN_BYTES = 10*1024*1024  # 10 MB
     LOG_BACKUP_COUNT = 10

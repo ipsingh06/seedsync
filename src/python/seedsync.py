@@ -24,7 +24,7 @@ T_Persist = TypeVar('T_Persist', bound=Persist)
 
 class Seedsync:
     """
-    Implements the service for pylftp
+    Implements the service for seedsync
     It is run in the main thread (no daemonization)
     """
     __FILE_CONFIG = "settings.cfg"
@@ -103,7 +103,7 @@ class Seedsync:
         self.auto_queue_persist = self._load_persist(AutoQueuePersist, self.auto_queue_persist_path)
 
     def run(self):
-        self.context.logger.info("Starting pylftpd")
+        self.context.logger.info("Starting seedsync")
 
         # Create controller
         controller = Controller(self.context, self.controller_persist)
@@ -169,7 +169,7 @@ class Seedsync:
                 time.sleep(Constants.MAIN_THREAD_SLEEP_INTERVAL_IN_SECS)
 
         except Exception:
-            self.context.logger.info("Exiting pylftp")
+            self.context.logger.info("Exiting Seedsync")
 
             # This sleep is important to allow the jobs to finish setup before we terminate them
             # If we kill too early, the jobs may leave lingering threads around
@@ -210,7 +210,7 @@ class Seedsync:
 
     @staticmethod
     def _parse_args():
-        parser = argparse.ArgumentParser(description="PyLFTP daemon")
+        parser = argparse.ArgumentParser(description="Seedsync daemon")
         parser.add_argument("-c", "--config_dir", required=True, help="Path to config directory")
         parser.add_argument("--logdir", help="Directory for log files")
         parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logs")
@@ -354,8 +354,8 @@ if __name__ == "__main__":
 
     while True:
         try:
-            pylftpd = Seedsync()
-            pylftpd.run()
+            seedsync = Seedsync()
+            seedsync.run()
         except ServiceExit:
             break
         except ServiceRestart:

@@ -65,7 +65,7 @@ class DummyInnerConfig2(InnerConfig):
         self.prop_str = None
 
 
-class TestPylftpInnerConfig(unittest.TestCase):
+class TestInnerConfig(unittest.TestCase):
     def test_property_order(self):
         dummy_config = DummyInnerConfig()
         self.assertEqual(["c_prop1", "a_prop2", "b_prop3"], list(dummy_config.as_dict().keys()))
@@ -95,7 +95,7 @@ class TestPylftpInnerConfig(unittest.TestCase):
         self.assertEqual("Bad config: DummyInnerConfig2.prop_int (cat) must be an integer value", str(e.exception))
 
 
-class TestPylftpConfig(unittest.TestCase):
+class TestConfig(unittest.TestCase):
     def __check_unknown_error(self, cls, good_dict):
         """
         Helper method to check that a config class raises an error on

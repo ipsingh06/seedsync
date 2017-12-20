@@ -25,7 +25,7 @@ OuterConfigType = Dict[str, InnerConfigType]
 
 
 # Source: https://stackoverflow.com/a/39205612/8571324
-T = TypeVar('T', bound='PylftpInnerConfig')
+T = TypeVar('T', bound='InnerConfig')
 
 
 class Converters:
