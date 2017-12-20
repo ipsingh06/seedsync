@@ -11,7 +11,7 @@ builddir:
 	mkdir -p build
 
 py: builddir
-	pyinstaller ${SOURCEDIR}/python/pylftpd.py \
+	pyinstaller ${SOURCEDIR}/python/seedsync.py \
 		-y \
 		-p ${SOURCEDIR}/python \
 		--distpath ${BUILDDIR}/py-dist \

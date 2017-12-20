@@ -22,7 +22,7 @@ from web import WebAppJob, WebAppBuilder
 T_Persist = TypeVar('T_Persist', bound=Persist)
 
 
-class Pylftpd:
+class Seedsync:
     """
     Implements the service for pylftp
     It is run in the main thread (no daemonization)
@@ -41,13 +41,13 @@ class Pylftpd:
 
         # Create/load config
         config = None
-        self.config_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONFIG)
+        self.config_path = os.path.join(args.config_dir, Seedsync.__FILE_CONFIG)
         create_default_config = False
         if os.path.isfile(self.config_path):
             try:
                 config = PylftpConfig.from_file(self.config_path)
             except (ConfigError, PersistError):
-                Pylftpd.__backup_file(self.config_path)
+                Seedsync.__backup_file(self.config_path)
                 # set config to default
                 create_default_config = True
         else:
@@ -55,7 +55,7 @@ class Pylftpd:
 
         if create_default_config:
             # Create default config
-            config = Pylftpd._create_default_config()
+            config = Seedsync._create_default_config()
             config.to_file(self.config_path)
 
         # Determine the true value of debug
@@ -72,7 +72,7 @@ class Pylftpd:
         logger = self._create_logger(name=Constants.SERVICE_NAME,
                                      debug=is_debug,
                                      logdir=args.logdir)
-        Pylftpd.logger = logger
+        Seedsync.logger = logger
         web_access_logger = self._create_logger(name=Constants.WEB_ACCESS_LOG_NAME,
                                                 debug=is_debug,
                                                 logdir=args.logdir)
@@ -96,10 +96,10 @@ class Pylftpd:
         self.context.print_to_log()
 
         # Load the persists
-        self.controller_persist_path = os.path.join(args.config_dir, Pylftpd.__FILE_CONTROLLER_PERSIST)
+        self.controller_persist_path = os.path.join(args.config_dir, Seedsync.__FILE_CONTROLLER_PERSIST)
         self.controller_persist = self._load_persist(ControllerPersist, self.controller_persist_path)
 
-        self.auto_queue_persist_path = os.path.join(args.config_dir, Pylftpd.__FILE_AUTO_QUEUE_PERSIST)
+        self.auto_queue_persist_path = os.path.join(args.config_dir, Seedsync.__FILE_AUTO_QUEUE_PERSIST)
         self.auto_queue_persist = self._load_persist(AutoQueuePersist, self.auto_queue_persist_path)
 
     def run(self):
@@ -129,7 +129,7 @@ class Pylftpd:
         do_start_controller = True
 
         # Initial checks to see if we should bother starting the controller
-        if Pylftpd._detect_incomplete_config(self.context.config):
+        if Seedsync._detect_incomplete_config(self.context.config):
             do_start_controller = False
             self.context.logger.error("Config is incomplete")
             self.context.status.server.up = False
@@ -159,7 +159,7 @@ class Pylftpd:
                 except PylftpError as exc:
                     self.context.status.server.up = False
                     self.context.status.server.error_msg = str(exc)
-                    Pylftpd.logger.exception("Caught exception")
+                    Seedsync.logger.exception("Caught exception")
 
                 # Check if a restart is requested
                 if web_app_builder.server_handler.is_restart_requested():
@@ -277,10 +277,10 @@ class Pylftpd:
 
         config.general.debug = False
 
-        config.lftp.remote_address = Pylftpd.__CONFIG_DUMMY_VALUE
-        config.lftp.remote_username = Pylftpd.__CONFIG_DUMMY_VALUE
-        config.lftp.remote_path = Pylftpd.__CONFIG_DUMMY_VALUE
-        config.lftp.local_path = Pylftpd.__CONFIG_DUMMY_VALUE
+        config.lftp.remote_address = Seedsync.__CONFIG_DUMMY_VALUE
+        config.lftp.remote_username = Seedsync.__CONFIG_DUMMY_VALUE
+        config.lftp.remote_path = Seedsync.__CONFIG_DUMMY_VALUE
+        config.lftp.local_path = Seedsync.__CONFIG_DUMMY_VALUE
         config.lftp.remote_path_to_scan_script = "/tmp/scanfs"
         config.lftp.num_max_parallel_downloads = 2
         config.lftp.num_max_parallel_files_per_download = 4
@@ -301,7 +301,7 @@ class Pylftpd:
         config_dict = config.as_dict()
         for sec_name in config_dict:
             for key in config_dict[sec_name]:
-                if Pylftpd.__CONFIG_DUMMY_VALUE == config_dict[sec_name][key]:
+                if Seedsync.__CONFIG_DUMMY_VALUE == config_dict[sec_name][key]:
                     return True
         return False
 
@@ -319,11 +319,11 @@ class Pylftpd:
             try:
                 return cls.from_file(file_path)
             except PersistError:
-                if Pylftpd.logger:
-                    Pylftpd.logger.exception("Caught exception")
+                if Seedsync.logger:
+                    Seedsync.logger.exception("Caught exception")
 
                 # backup file
-                Pylftpd.__backup_file(file_path)
+                Seedsync.__backup_file(file_path)
 
                 # noinspection PyCallingNonCallable
                 return cls()
@@ -343,8 +343,8 @@ class Pylftpd:
             if not os.path.exists(backup_path):
                 break
             i += 1
-        if Pylftpd.logger:
-            Pylftpd.logger.info("Backing up {} to {}".format(file_path, backup_path))
+        if Seedsync.logger:
+            Seedsync.logger.info("Backing up {} to {}".format(file_path, backup_path))
         shutil.copy(file_path, backup_path)
 
 
@@ -354,15 +354,15 @@ if __name__ == "__main__":
 
     while True:
         try:
-            pylftpd = Pylftpd()
+            pylftpd = Seedsync()
             pylftpd.run()
         except ServiceExit:
             break
         except ServiceRestart:
-            Pylftpd.logger.info("Restarting...")
+            Seedsync.logger.info("Restarting...")
             continue
         except Exception as e:
-            Pylftpd.logger.exception("Caught exception")
+            Seedsync.logger.exception("Caught exception")
             raise
 
-        Pylftpd.logger.info("Exited successfully")
+        Seedsync.logger.info("Exited successfully")
