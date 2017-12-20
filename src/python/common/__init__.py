@@ -1,7 +1,7 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 from .types import overrides
-from .job import PylftpJob
+from .job import Job
 from .context import PylftpContext, PylftpArgs
 from .error import PylftpError, ServiceExit, ServiceRestart
 from .constants import Constants

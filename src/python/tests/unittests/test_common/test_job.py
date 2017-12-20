@@ -5,14 +5,14 @@ from unittest.mock import MagicMock
 import time
 
 
-from common import PylftpJob
+from common import Job
 
 
 class DummyError(Exception):
     pass
 
 
-class DummyFailingJob(PylftpJob):
+class DummyFailingJob(Job):
     def setup(self):
         # noinspection PyAttributeOutsideInit
         self.cleanup_run = False

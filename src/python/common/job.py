@@ -10,7 +10,7 @@ from .context import PylftpContext
 from .types import overrides
 
 
-class PylftpJob(threading.Thread, ABC):
+class Job(threading.Thread, ABC):
     """
     Job thread that handles graceful shutdown
     """
@@ -49,7 +49,7 @@ class PylftpJob(threading.Thread, ABC):
                 self.shutdown_flag.set()
                 break
 
-            time.sleep(PylftpJob._DEFAULT_SLEEP_INTERVAL_IN_SECS)
+            time.sleep(Job._DEFAULT_SLEEP_INTERVAL_IN_SECS)
 
         # ... Clean shutdown code here ...
         self.logger.debug("Calling cleanup for {}".format(self.name))

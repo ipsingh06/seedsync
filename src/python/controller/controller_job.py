@@ -2,12 +2,12 @@
 
 
 # my libs
-from common import overrides, PylftpJob, PylftpContext
+from common import overrides, Job, PylftpContext
 from .controller import Controller
 from .auto_queue import AutoQueue
 
 
-class ControllerJob(PylftpJob):
+class ControllerJob(Job):
     """
     The Pylftp service
     Handles querying and downloading of files
@@ -20,15 +20,15 @@ class ControllerJob(PylftpJob):
         self.__controller = controller
         self.__auto_queue = auto_queue
 
-    @overrides(PylftpJob)
+    @overrides(Job)
     def setup(self):
         self.__controller.start()
 
-    @overrides(PylftpJob)
+    @overrides(Job)
     def execute(self):
         self.__controller.process()
         self.__auto_queue.process()
 
-    @overrides(PylftpJob)
+    @overrides(Job)
     def cleanup(self):
         self.__controller.exit()

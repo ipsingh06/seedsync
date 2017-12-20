@@ -8,10 +8,10 @@ from paste import httpserver
 from paste.translogger import TransLogger
 
 from .web_app import WebApp
-from common import overrides, PylftpJob, PylftpContext
+from common import overrides, Job, PylftpContext
 
 
-class WebAppJob(PylftpJob):
+class WebAppJob(Job):
     """
     Web interface service
     :return:
@@ -24,7 +24,7 @@ class WebAppJob(PylftpJob):
         self.__server = None
         self.__server_thread = None
 
-    @overrides(PylftpJob)
+    @overrides(Job)
     def setup(self):
         # Note: do not use requestlogger.WSGILogger as it breaks SSE
         self.__server = MyWSGIRefServer(self.web_access_logger,
@@ -38,11 +38,11 @@ class WebAppJob(PylftpJob):
                                       })
         self.__server_thread.start()
 
-    @overrides(PylftpJob)
+    @overrides(Job)
     def execute(self):
         self.__app.process()
 
-    @overrides(PylftpJob)
+    @overrides(Job)
     def cleanup(self):
         self.__app.stop()
         self.__server.stop()
