@@ -1,9 +1,18 @@
 <div id="top-sidebar"
      [class.top-sidebar-open]="showSidebar"
      [class.top-sidebar-closed]="!showSidebar">
-    <button id="sidebar-btn-close" class="sidebar-btn" (click)="showSidebar=false">
-        <span class="glyphicon glyphicon-remove"></span>
-    </button>
+
+    <div id="logo">
+        <span class="image">
+            <img src="assets/logo.png" />
+        </span>
+        <span class="text"><b>Seed</b>Sync</span>
+
+        <button id="sidebar-btn-close" class="sidebar-btn" (click)="showSidebar=false">
+            <span class="glyphicon glyphicon-remove"></span>
+        </button>
+    </div>
+
     <sidebar></sidebar>
 </div>
 <div id="top-content">

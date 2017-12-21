@@ -32,6 +32,41 @@
     overflow: auto;
     box-shadow:0 2px 5px 0 rgba(0,0,0,0.16), 0 2px 10px 0 rgba(0,0,0,0.12);
     animation: animateleft 0.4s;
+
+    #logo {
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 5px;
+
+        .image {
+            img {
+                max-height: 32px;
+                max-width: 32px;
+            }
+        }
+
+        .text {
+            flex-grow: 1;
+            padding-left: 5px;
+            font-size: 140%;
+            color: $logo-color;
+            cursor: default;
+            user-select: none;
+            font-family: 'Arial Black', Gadget, sans-serif;
+        }
+
+        #sidebar-btn-close {
+            text-align: right;
+            padding: 0;
+
+            &:active {
+                color: red;
+                background-color: inherit;
+            }
+        }
+    }
 }
 @keyframes animateleft {
     from {
@@ -61,16 +96,6 @@
     float: none;
     cursor: default;
     user-select: none;
-}
-
-#sidebar-btn-close {
-    width: 100%;
-    text-align: right;
-
-    &:active {
-        color: red;
-        background-color: inherit;
-    }
 }
 
 #sidebar-btn-open {
