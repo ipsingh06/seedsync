@@ -4,7 +4,7 @@ services:
   test:
     build: ../tests/e2e
     volumes:
-      - type: volume
+      - type: bind
         source: ../../e2e
         target: /e2e
         read_only: true
@@ -25,12 +25,12 @@ services:
     security_opt:
       - seccomp:unconfined
     volumes:
-      - type: volume
+      - type: bind
         source: ${PATH_TO_INSTALL_DEB}
         target: /install/seedsync.deb
         read_only: true
 
-      - type: volume
+      - type: bind
         source: /sys/fs/cgroup
         target: /sys/fs/cgroup
         read_only: true

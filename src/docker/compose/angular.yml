@@ -4,11 +4,11 @@ services:
     tty: true
     build: ../tests/angular
     volumes:
-      - type: volume
+      - type: bind
         source: ../../angular
         target: /src
         read_only: true
 
-      - type: volume
+      - type: bind
         source: /tmp
         target: /tmp
