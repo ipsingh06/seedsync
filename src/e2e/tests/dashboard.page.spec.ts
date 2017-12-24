@@ -15,11 +15,11 @@ describe('Testing dashboard page', () => {
     it('should have a list of files', () => {
         let golden = [
                 new File("clients.jpg", '', "0 B of 36.5 KB"),
+                new File("crispycat", '', "0 B of 1.53 MB"),
                 new File("documentation.png", '', "0 B of 8.88 KB"),
+                new File("goose", '', "0 B of 2.78 MB"),
                 new File("illusion.jpg", '', "0 B of 81.5 KB"),
-                new File("japanese", '', "0 B of 26 MB"),
                 new File("joke", '', "0 B of 168 KB"),
-                new File("subway", '', "0 B of 123 MB"),
                 new File("testing.gif", '', "0 B of 8.95 MB")
             ];
         expect(page.getFiles()).toEqual(golden);
