@@ -88,7 +88,7 @@ sudo service seedsync restart
 #### SeedSync can't seem to connect to my remote server?
 
 Make sure you have key-based SSH login setup and working properly.
-You may need to look at the logs to determine the exact cause of failure. The logs are available at: <user home directory>/.seedsync/logs/
+You may need to look at the logs to determine the exact cause of failure. The logs are available at: `<user home directory>/.seedsync/logs/`
 
 
 
