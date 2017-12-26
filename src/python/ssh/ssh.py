@@ -19,10 +19,15 @@ class Ssh:
     """
     SSH command utility
     """
-    def __init__(self, host: str, user: str = None, target_dir: str = None):
+    def __init__(self,
+                 host: str,
+                 port: int,
+                 user: str = None,
+                 target_dir: str = None):
         if host is None:
             raise ValueError("Hostname not specified.")
         self.__host = host
+        self.__port = port
         self.__user = user
         self.__target_dir = target_dir
         self.logger = logging.getLogger("Ssh")
@@ -40,7 +45,8 @@ class Ssh:
             raise ValueError("Command cannot be empty")
         command_args = [
             "ssh",
-            "-o", "PasswordAuthentication = no"  # don't ask for password
+            "-o", "PasswordAuthentication = no",  # don't ask for password
+            "-p", str(self.__port)
         ]
         if self.__user:
             command_args.append("{}@{}".format(self.__user, self.__host))

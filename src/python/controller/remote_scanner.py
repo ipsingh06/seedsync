@@ -22,6 +22,7 @@ class RemoteScanner(IScanner):
     def __init__(self,
                  remote_address: str,
                  remote_username: str,
+                 remote_port: int,
                  remote_path_to_scan: str,
                  local_path_to_scan_script: str,
                  remote_path_to_scan_script: str):
@@ -30,8 +31,10 @@ class RemoteScanner(IScanner):
         self.__local_path_to_scan_script = local_path_to_scan_script
         self.__remote_path_to_scan_script = remote_path_to_scan_script
         self.__ssh = Ssh(host=remote_address,
+                         port=remote_port,
                          user=remote_username)
         self.__scp = Scp(host=remote_address,
+                         port=remote_port,
                          user=remote_username)
         self.__first_run = True
 

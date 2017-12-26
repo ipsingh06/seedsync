@@ -158,6 +158,7 @@ class TestController(unittest.TestCase):
             "Lftp": {
                 "remote_address": "localhost",
                 "remote_username": getpass.getuser(),
+                "remote_port": 22,
                 "remote_path": os.path.join(self.temp_dir, "remote"),
                 "local_path": os.path.join(self.temp_dir, "local"),
                 "remote_path_to_scan_script": remote_exe_path,

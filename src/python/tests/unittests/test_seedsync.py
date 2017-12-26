@@ -127,8 +127,15 @@ class TestSeedsync(unittest.TestCase):
         self.assertFalse(args.debug)
 
     def test_default_config(self):
-        # Test that default config is a valid config
         config = Seedsync._create_default_config()
+        # Test that default config doesn't have any uninitialized values
+        config_dict = config.as_dict()
+        for section, inner_config in config_dict.items():
+            for key in inner_config:
+                self.assertIsNotNone(inner_config[key],
+                                     msg="{}.{} is uninitialized".format(section, key))
+
+        # Test that default config is a valid config
         config_dict = config.as_dict()
         config2 = Config.from_dict(config_dict)
         config2_dict = config2.as_dict()

@@ -226,6 +226,7 @@ class Config(Persist):
     class Lftp(IC):
         remote_address = PROP("remote_address", Checkers.string_nonempty, Converters.null)
         remote_username = PROP("remote_username", Checkers.string_nonempty, Converters.null)
+        remote_port = PROP("remote_port", Checkers.int_positive, Converters.int)
         remote_path = PROP("remote_path", Checkers.string_nonempty, Converters.null)
         local_path = PROP("local_path", Checkers.string_nonempty, Converters.null)
         remote_path_to_scan_script = PROP("remote_path_to_scan_script", Checkers.string_nonempty, Converters.null)
@@ -245,6 +246,7 @@ class Config(Persist):
             super().__init__()
             self.remote_address = None
             self.remote_username = None
+            self.remote_port = None
             self.remote_path = None
             self.local_path = None
             self.remote_path_to_scan_script = None

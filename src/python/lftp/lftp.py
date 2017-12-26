@@ -37,7 +37,11 @@ class Lftp:
     # Set this to True to enable verbose command logging
     _LOG_COMMAND_OUTPUT = False
 
-    def __init__(self, address: str, user: str, password: str):
+    def __init__(self,
+                 address: str,
+                 port: int,
+                 user: str,
+                 password: str):
         self.__user = user
         self.__password = password
         self.__address = address
@@ -48,6 +52,7 @@ class Lftp:
         self.__job_status_parser = LftpJobStatusParser()
 
         args = [
+            "-p", str(port),
             "-u", "{},{}".format(self.__user, self.__password),
             "sftp://{}".format(self.__address)
         ]

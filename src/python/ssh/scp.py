@@ -19,10 +19,14 @@ class Scp:
     """
     Scp command utility
     """
-    def __init__(self, host: str, user: str = None):
+    def __init__(self,
+                 host: str,
+                 port: int,
+                 user: str = None):
         if host is None:
             raise ValueError("Hostname not specified.")
         self.__host = host
+        self.__port = port
         self.__user = user
         self.logger = logging.getLogger("Scp")
 
@@ -43,6 +47,7 @@ class Scp:
         command_args = [
             "scp",
             "-o", "PasswordAuthentication = no",  # don't ask for password
+            "-P", str(self.__port),
             local_path
         ]
         if self.__user:

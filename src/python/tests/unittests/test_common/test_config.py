@@ -208,6 +208,7 @@ class TestConfig(unittest.TestCase):
         good_dict = {
             "remote_address": "remote.server.com",
             "remote_username": "remote-user",
+            "remote_port": "3456",
             "remote_path": "/path/on/remote/server",
             "local_path": "/path/on/local/server",
             "remote_path_to_scan_script": "/path/on/remote/server/to/scan/script",
@@ -220,6 +221,7 @@ class TestConfig(unittest.TestCase):
         lftp = Config.Lftp.from_dict(good_dict)
         self.assertEqual("remote.server.com", lftp.remote_address)
         self.assertEqual("remote-user", lftp.remote_username)
+        self.assertEqual(3456, lftp.remote_port)
         self.assertEqual("/path/on/remote/server", lftp.remote_path)
         self.assertEqual("/path/on/local/server", lftp.local_path)
         self.assertEqual("/path/on/remote/server/to/scan/script", lftp.remote_path_to_scan_script)
@@ -234,6 +236,7 @@ class TestConfig(unittest.TestCase):
                           {
                               "remote_address",
                               "remote_username",
+                              "remote_port",
                               "remote_path",
                               "local_path",
                               "remote_path_to_scan_script",
@@ -245,6 +248,8 @@ class TestConfig(unittest.TestCase):
                           })
 
         # bad values
+        self.check_bad_value_error(Config.Lftp, good_dict, "remote_port", "-1")
+        self.check_bad_value_error(Config.Lftp, good_dict, "remote_port", "0")
         self.check_bad_value_error(Config.Lftp, good_dict, "num_max_parallel_downloads", "-1")
         self.check_bad_value_error(Config.Lftp, good_dict, "num_max_parallel_downloads", "0")
         self.check_bad_value_error(Config.Lftp, good_dict, "num_max_parallel_files_per_download", "-1")
@@ -310,6 +315,7 @@ class TestConfig(unittest.TestCase):
         [Lftp]
         remote_address=remote.server.com
         remote_username=remote-user
+        remote_port = 3456
         remote_path=/path/on/remote/server
         local_path=/path/on/local/server
         remote_path_to_scan_script=/path/on/remote/server/to/scan/script
@@ -334,6 +340,7 @@ class TestConfig(unittest.TestCase):
 
         self.assertEqual("remote.server.com", config.lftp.remote_address)
         self.assertEqual("remote-user", config.lftp.remote_username)
+        self.assertEqual(3456, config.lftp.remote_port)
         self.assertEqual("/path/on/remote/server", config.lftp.remote_path)
         self.assertEqual("/path/on/local/server", config.lftp.local_path)
         self.assertEqual("/path/on/remote/server/to/scan/script", config.lftp.remote_path_to_scan_script)
@@ -370,6 +377,7 @@ class TestConfig(unittest.TestCase):
         config.general.debug = True
         config.lftp.remote_address = "server.remote.com"
         config.lftp.remote_username = "user-on-remote-server"
+        config.lftp.remote_port = 3456
         config.lftp.remote_path = "/remote/server/path"
         config.lftp.local_path = "/local/server/path"
         config.lftp.remote_path_to_scan_script = "/remote/server/path/to/script"
@@ -394,6 +402,7 @@ class TestConfig(unittest.TestCase):
         [Lftp]
         remote_address = server.remote.com
         remote_username = user-on-remote-server
+        remote_port = 3456
         remote_path = /remote/server/path
         local_path = /local/server/path
         remote_path_to_scan_script = /remote/server/path/to/script

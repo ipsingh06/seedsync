@@ -90,6 +90,7 @@ class Controller:
 
         # Lftp
         self.__lftp = Lftp(address=self.__context.config.lftp.remote_address,
+                           port=self.__context.config.lftp.remote_port,
                            user=self.__context.config.lftp.remote_username,
                            password="")
         self.__lftp.set_base_logger(self.logger)
@@ -108,6 +109,7 @@ class Controller:
         self.__remote_scanner = RemoteScanner(
             remote_address=self.__context.config.lftp.remote_address,
             remote_username=self.__context.config.lftp.remote_username,
+            remote_port=self.__context.config.lftp.remote_port,
             remote_path_to_scan=self.__context.config.lftp.remote_path,
             local_path_to_scan_script=self.__context.args.local_path_to_scanfs,
             remote_path_to_scan_script=self.__context.config.lftp.remote_path_to_scan_script

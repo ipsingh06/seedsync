@@ -18,7 +18,10 @@ ADD --chown=remoteuser:remoteuser ./files /home/remoteuser/files
 # Install and run ssh server
 RUN apt-get update && apt-get install -y openssh-server
 
+# Change port
+RUN sed -i '/Port 22/c\Port 1234' /etc/ssh/sshd_config
+EXPOSE 1234
+
 RUN mkdir /var/run/sshd
 
-EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]

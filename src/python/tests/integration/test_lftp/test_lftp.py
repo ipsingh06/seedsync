@@ -35,7 +35,7 @@ class TestLftp(unittest.TestCase):
         # Note: password-less ssh needs to be setup
         #       i.e. user's public key needs to be in authorized_keys
         #       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-        self.lftp = Lftp(address="localhost", user=getpass.getuser(), password="")
+        self.lftp = Lftp(address="localhost", port=22, user=getpass.getuser(), password="")
         self.lftp.set_base_remote_dir_path(os.path.join(TestLftp.temp_dir, "remote"))
         self.lftp.set_base_local_dir_path(os.path.join(TestLftp.temp_dir, "local"))
         logger = logging.getLogger("TestLftp")
