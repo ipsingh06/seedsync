@@ -25,7 +25,7 @@ class MultiprocessingLogger:
     def __init__(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("MPLogger")
         self.__queue = multiprocessing.Queue(-1)
-        self.__logger_level = base_logger.level
+        self.__logger_level = base_logger.getEffectiveLevel()
         self.__listener = threading.Thread(name="MPLoggerListener",
                                            target=self.__listener)
         self.__listener_shutdown = threading.Event()

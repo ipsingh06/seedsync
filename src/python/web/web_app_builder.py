@@ -9,6 +9,7 @@ from .handler.controller import ControllerHandler
 from .handler.server import ServerHandler
 from .handler.config import ConfigHandler
 from .handler.auto_queue import AutoQueueHandler
+from .handler.stream_log import LogStreamHandler
 
 
 class WebAppBuilder:
@@ -36,6 +37,9 @@ class WebAppBuilder:
 
         StatusStreamHandler.register(web_app=web_app,
                                      status=self.__context.status)
+
+        LogStreamHandler.register(web_app=web_app,
+                                  logger=self.__context.logger)
 
         self.controller_handler.add_routes(web_app)
         self.server_handler.add_routes(web_app)
