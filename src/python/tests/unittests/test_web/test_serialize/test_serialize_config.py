@@ -20,6 +20,7 @@ class TestSerializeConfig(unittest.TestCase):
         config = Config()
         config.lftp.remote_address = "server.remote.com"
         config.lftp.remote_username = "user-on-remote-server"
+        config.lftp.remote_port = 3456
         config.lftp.remote_path = "/remote/server/path"
         config.lftp.local_path = "/local/server/path"
         config.lftp.remote_path_to_scan_script = "/remote/server/path/to/script"
@@ -33,6 +34,7 @@ class TestSerializeConfig(unittest.TestCase):
         self.assertIn("lftp", out_dict)
         self.assertEqual("server.remote.com", out_dict["lftp"]["remote_address"])
         self.assertEqual("user-on-remote-server", out_dict["lftp"]["remote_username"])
+        self.assertEqual(3456, out_dict["lftp"]["remote_port"])
         self.assertEqual("/remote/server/path", out_dict["lftp"]["remote_path"])
         self.assertEqual("/local/server/path", out_dict["lftp"]["local_path"])
         self.assertEqual("/remote/server/path/to/script", out_dict["lftp"]["remote_path_to_scan_script"])
