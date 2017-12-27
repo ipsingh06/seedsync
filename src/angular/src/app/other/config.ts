@@ -22,6 +22,7 @@ const GeneralRecord = Record(DefaultGeneral);
 interface ILftp {
     remote_address: string;
     remote_username: string;
+    remote_port: number;
     remote_path: string;
     local_path: string;
     remote_path_to_scan_script: string;
@@ -34,6 +35,7 @@ interface ILftp {
 const DefaultLftp: ILftp = {
     remote_address: null,
     remote_username: null,
+    remote_port: null,
     remote_path: null,
     local_path: null,
     remote_path_to_scan_script: null,
@@ -77,10 +79,10 @@ const WebRecord = Record(DefaultWeb);
  * CONFIG
  */
 export interface IConfig {
-    general: IGeneral,
-    lftp: ILftp,
-    controller: IController,
-    web: IWeb
+    general: IGeneral;
+    lftp: ILftp;
+    controller: IController;
+    web: IWeb;
 
 }
 const DefaultConfig: IConfig = {

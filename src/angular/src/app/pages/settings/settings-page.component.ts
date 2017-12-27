@@ -53,6 +53,12 @@ export class SettingsPageComponent {
         },
         {
             type: OptionType.Text,
+            label: "Remote SSH Port",
+            valuePath: ["lftp", "remote_port"],
+            description: "SSH port on the remote server."
+        },
+        {
+            type: OptionType.Text,
             label: "Server Script Path",
             valuePath: ["lftp", "remote_path_to_scan_script"],
             description: "Path on remote server where the scanner script is placed."

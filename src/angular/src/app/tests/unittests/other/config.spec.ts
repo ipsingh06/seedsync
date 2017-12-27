@@ -13,6 +13,7 @@ describe('Testing config record initialization', () => {
             lftp: {
                 remote_address: "remote.server.com",
                 remote_username: "some.user",
+                remote_port: 3456,
                 remote_path: "/some/remote/path",
                 local_path: "/some/local/path",
                 remote_path_to_scan_script: "/another/remote/path",
@@ -39,6 +40,7 @@ describe('Testing config record initialization', () => {
         expect(config.general.debug).toBe(true);
         expect(config.lftp.remote_address).toBe("remote.server.com");
         expect(config.lftp.remote_username).toBe("some.user");
+        expect(config.lftp.remote_port).toBe(3456);
         expect(config.lftp.remote_path).toBe("/some/remote/path");
         expect(config.lftp.local_path).toBe("/some/local/path");
         expect(config.lftp.remote_path_to_scan_script).toBe("/another/remote/path");
