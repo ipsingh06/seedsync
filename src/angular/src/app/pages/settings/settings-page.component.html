@@ -1,23 +1,33 @@
+<ng-template #optionsList let-header="header" let-options="options">
+    <h1>{{header}}</h1>
+    <hr>
+    <div option
+         *ngFor="let option of options"
+         [type]="option.type"
+         [label]="option.label"
+         [description]="option.description"
+         [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
+         (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
+    </div>
+</ng-template>
+
+
 <div id="settings">
     <div id="left">
-        <div option
-             *ngFor="let option of optionsLeft"
-             [type]="option.type"
-             [label]="option.label"
-             [description]="option.description"
-             [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
-             (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
-        </div>
+        <ng-container
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_SERVER">
+        </ng-container>
+        <ng-container
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_DISCOVERY">
+        </ng-container>
     </div>
     <div id="right">
-        <div option
-             *ngFor="let option of optionsRight"
-             [type]="option.type"
-             [label]="option.label"
-             [description]="option.description"
-             [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
-             (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
-        </div>
+        <ng-container
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_CONNECTIONS">
+        </ng-container>
+        <ng-container
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_OTHER">
+        </ng-container>
     </div>
 
     <div id="commands">

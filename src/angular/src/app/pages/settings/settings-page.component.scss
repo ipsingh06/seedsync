@@ -9,6 +9,22 @@
 
     #left, #right {
         width: 100%;
+
+        h1 {
+            font-size: 160%;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 0;
+        }
+        h1:first-child {
+            margin-top: 0;
+        }
+
+        hr {
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-top-width: 3px;
+        }
     }
 
     #commands {

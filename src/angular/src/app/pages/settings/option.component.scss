@@ -17,6 +17,7 @@ label {
 span.description {
     color: darkgrey;
     font-size: 80%;
+    line-height: initial;
     width: 100%;
     white-space: pre-line;  // renders newline as <br />
 }
