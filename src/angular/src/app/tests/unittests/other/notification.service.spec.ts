@@ -134,9 +134,9 @@ describe("Testing notification service", () => {
     }));
 
     it("should sort notifications by timestamp", fakeAsync(() => {
-        function sleepFor( sleepDuration ){
+        function sleepFor( sleepDuration ) {
             const now = new Date().getTime();
-            while (new Date().getTime() < now + sleepDuration){ /* do nothing */ }
+            while (new Date().getTime() < now + sleepDuration) { /* do nothing */ }
         }
 
         // Sleep a little between inits
@@ -166,9 +166,9 @@ describe("Testing notification service", () => {
     }));
 
     it("should sort notifications by level first, then timestamp", fakeAsync(() => {
-        function sleepFor( sleepDuration ){
+        function sleepFor( sleepDuration ) {
             const now = new Date().getTime();
-            while (new Date().getTime() < now + sleepDuration){ /* do nothing */ }
+            while (new Date().getTime() < now + sleepDuration) { /* do nothing */ }
         }
 
         // Sleep a little between inits

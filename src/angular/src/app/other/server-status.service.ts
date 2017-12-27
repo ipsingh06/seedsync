@@ -59,7 +59,7 @@ export class ServerStatusService {
                 }));
 
                 // Retry after a delay
-                setTimeout(() => {this.createSseObserver();}, this.STATUS_STREAM_RETRY_INTERVAL_MS);
+                setTimeout(() => {this.createSseObserver(); }, this.STATUS_STREAM_RETRY_INTERVAL_MS);
             }
         });
     }

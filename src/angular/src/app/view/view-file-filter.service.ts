@@ -24,7 +24,7 @@ class StatusFilterCriteria implements ViewFileFilterCriteria {
     status: ViewFile.Status = null;
 
     meetsCriteria(viewFile: ViewFile): boolean {
-        return this.status == null || this.status == viewFile.status;
+        return this.status == null || this.status === viewFile.status;
     }
 }
 
@@ -46,7 +46,7 @@ class NameFilterCriteria implements ViewFileFilterCriteria {
     }
 
     meetsCriteria(viewFile: ViewFile): boolean {
-        if (this._name == null || this._name == "") return true;
+        if (this._name == null || this._name === "") { return true; }
         const search = viewFile.name.toLowerCase();
         return this._queryCandidates.reduce(
             (a: boolean, b: string) => a || search.indexOf(b) >= 0,
@@ -92,7 +92,7 @@ export class ViewFileFilterService {
      * @param {ViewFile.Status} status, or null for disabled/all
      */
     public filterStatus(status: ViewFile.Status) {
-        if (this._statusFilter.status == status) return;
+        if (this._statusFilter.status === status) { return; }
 
         if (this.isStatusEnabled(status)) {
             this._logger.debug("Setting status filter: %O", status == null ? "all" : status);
@@ -115,15 +115,15 @@ export class ViewFileFilterService {
      * @param {string} name
      */
     public filterName(name: string) {
-        if (this._nameFilter.name == name) return;
+        if (this._nameFilter.name === name) { return; }
 
         this._nameFilter.name = name;
         this._viewFileService.reapplyFilters();
     }
 
     private isStatusEnabled(status: ViewFile.Status) {
-        if (status == null) return true;
-        return this._viewFiles.findIndex(f => f.status == status) >= 0;
+        if (status == null) { return true; }
+        return this._viewFiles.findIndex(f => f.status === status) >= 0;
     }
 
     private updateState() {
@@ -134,11 +134,11 @@ export class ViewFileFilterService {
         const defaultEn = this.isStatusEnabled(ViewFile.Status.DEFAULT);
 
         const allSel = this._statusFilter.status == null;
-        const downloadedSel = this._statusFilter.status == ViewFile.Status.DOWNLOADED;
-        const downloadingSel = this._statusFilter.status == ViewFile.Status.DOWNLOADING;
-        const queuedSel = this._statusFilter.status == ViewFile.Status.QUEUED;
-        const stoppedSel = this._statusFilter.status == ViewFile.Status.STOPPED;
-        const defaultSel = this._statusFilter.status == ViewFile.Status.DEFAULT;
+        const downloadedSel = this._statusFilter.status === ViewFile.Status.DOWNLOADED;
+        const downloadingSel = this._statusFilter.status === ViewFile.Status.DOWNLOADING;
+        const queuedSel = this._statusFilter.status === ViewFile.Status.QUEUED;
+        const stoppedSel = this._statusFilter.status === ViewFile.Status.STOPPED;
+        const defaultSel = this._statusFilter.status === ViewFile.Status.DEFAULT;
 
         const filter: ViewFileFilter = new ViewFileFilter({
             downloadedFilterEnabled: downloadedEn,

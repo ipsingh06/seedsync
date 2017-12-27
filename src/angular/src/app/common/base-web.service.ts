@@ -55,7 +55,7 @@ export abstract class BaseWebService {
                 const prevConnected = this._connected;
                 this._connected = status.connected;
 
-                if (prevConnected != status.connected) {
+                if (prevConnected !== status.connected) {
                     // Connection status changed
                     this.onConnectedChanged(status.connected);
                 }

@@ -49,7 +49,7 @@ export class ConfigService extends BaseWebService {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, `Config has no option named ${section}.${option}`));
             });
-        } else if (valueStr.length == 0) {
+        } else if (valueStr.length === 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(
                     false, null, Localization.Notification.CONFIG_VALUE_BLANK(section, option))
@@ -105,8 +105,7 @@ export class ConfigService extends BaseWebService {
 export let configServiceFactory = (
     _statusService: ServerStatusService,
     _logger: LoggerService,
-    _http: HttpClient) =>
-{
+    _http: HttpClient) => {
   const configService = new ConfigService(_statusService, _logger, _http);
   configService.onInit();
   return configService;

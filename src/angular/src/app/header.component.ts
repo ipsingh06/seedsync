@@ -53,7 +53,7 @@ export class HeaderComponent {
                     // Show it, if different from the existing one
                     if (
                             this._prevServerNotification == null ||
-                            this._prevServerNotification.text != notification.text
+                            this._prevServerNotification.text !== notification.text
                     ) {
                         // Hide existing, if any
                         if (this._prevServerNotification != null) {

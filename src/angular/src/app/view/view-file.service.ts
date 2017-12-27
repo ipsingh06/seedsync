@@ -95,7 +95,7 @@ export class ViewFileService {
      * @private
      */
     private _comparator = (a: ViewFile, b: ViewFile): number => {
-        if (a.status != b.status) {
+        if (a.status !== b.status) {
             const statusPriorities = {
                 [ViewFile.Status.DOWNLOADING]: 0,
                 [ViewFile.Status.QUEUED]: 1,
@@ -104,7 +104,7 @@ export class ViewFileService {
                 [ViewFile.Status.DEFAULT]: 4,
                 [ViewFile.Status.DELETED]: 4  // intermix deleted and default
             };
-            if (statusPriorities[a.status] != statusPriorities[b.status]) {
+            if (statusPriorities[a.status] !== statusPriorities[b.status]) {
                 return statusPriorities[a.status] - statusPriorities[b.status];
             }
         }
@@ -141,14 +141,17 @@ export class ViewFileService {
         // Loop through old model to find deletions
         this._prevModelFiles.keySeq().forEach(
             name => {
-                if (!modelFiles.has(name)) removedNames.push(name);
+                if (!modelFiles.has(name)) { removedNames.push(name); }
             }
         );
         // Loop through new model to find additions and updates
         modelFiles.keySeq().forEach(
             name => {
-                if (!this._prevModelFiles.has(name)) addedNames.push(name);
-                else if (!Immutable.is(modelFiles.get(name), this._prevModelFiles.get(name))) updatedNames.push(name);
+                if (!this._prevModelFiles.has(name)) {
+                    addedNames.push(name);
+                } else if (!Immutable.is(modelFiles.get(name), this._prevModelFiles.get(name))) {
+                    updatedNames.push(name);
+                }
             }
         );
 
@@ -161,7 +164,7 @@ export class ViewFileService {
                 const oldViewFile = newViewFiles.get(index);
                 const newViewFile = ViewFileService.createViewFile(modelFiles.get(name), oldViewFile.isSelected);
                 newViewFiles = newViewFiles.set(index, newViewFile);
-                if (this._comparator(oldViewFile, newViewFile) != 0) {
+                if (this._comparator(oldViewFile, newViewFile) !== 0) {
                     reSort = true;
                 }
             }
@@ -179,7 +182,7 @@ export class ViewFileService {
         removedNames.forEach(
             name => {
                 updateIndices = true;
-                const index = newViewFiles.findIndex(value => value.name == name);
+                const index = newViewFiles.findIndex(value => value.name === name);
                 newViewFiles = newViewFiles.remove(index);
                 this._indices.delete(name);
             }
@@ -229,7 +232,7 @@ export class ViewFileService {
             let unSelectViewFile = viewFiles.get(unSelectIndex);
 
             // Do nothing if file is already selected
-            if (unSelectViewFile.name == file.name) return;
+            if (unSelectViewFile.name === file.name) { return; }
 
             unSelectViewFile = new ViewFile(unSelectViewFile.set("isSelected", false));
             viewFiles = viewFiles.set(unSelectIndex, unSelectViewFile);

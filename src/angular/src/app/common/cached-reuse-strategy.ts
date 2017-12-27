@@ -23,7 +23,7 @@ export class CachedReuseStrategy implements RouteReuseStrategy {
     }
 
     retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle {
-        if (!route.routeConfig) return null;
+        if (!route.routeConfig) { return null; }
         return this.handlers[route.routeConfig.path];
     }
 

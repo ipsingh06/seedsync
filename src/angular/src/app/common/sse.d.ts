@@ -15,7 +15,8 @@ declare module sse {
         /** The user agent has an open connection and is dispatching events as it receives them. */
         OPEN = 1,
 
-        /** The connection is not open, and the user agent is not trying to reconnect. Either there was a fatal error or the close() method was invoked. */
+        /** The connection is not open, and the user agent is not trying to reconnect.
+         * Either there was a fatal error or the close() method was invoked. */
         CLOSED = 2
     }
 
@@ -35,7 +36,9 @@ declare module sse {
         onopen: (event: Event) => any;
         onmessage: (event: IOnMessageEvent) => void;
         onerror: (event: Event) => any;
-        /** The close() method must abort any instances of the fetch algorithm started for this EventSource object, and must set the readyState attribute to CLOSED. */
+        /** The close() method must abort any instances of the fetch algorithm
+         * started for this EventSource object, and must set the readyState
+         * attribute to CLOSED. */
         close: () => void;
         addEventListener: (type: string, h: (event: IOnMessageEvent) => void) => void;
         removeEventListener: (type: string, h: (event: IOnMessageEvent) => void) => void;

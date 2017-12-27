@@ -68,14 +68,14 @@ export class AutoQueueService extends BaseWebService {
         this._logger.debug("add pattern %O", pattern);
 
         // Value check
-        if (pattern == null || pattern.trim().length == 0) {
+        if (pattern == null || pattern.trim().length === 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, Localization.Notification.AUTOQUEUE_PATTERN_EMPTY));
             });
         }
 
         const currentPatterns = this._patterns.getValue();
-        const index = currentPatterns.findIndex(pat => pat.pattern == pattern);
+        const index = currentPatterns.findIndex(pat => pat.pattern === pattern);
         if (index >= 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, `Pattern '${pattern}' already exists.`));
@@ -112,7 +112,7 @@ export class AutoQueueService extends BaseWebService {
         this._logger.debug("remove pattern %O", pattern);
 
         const currentPatterns = this._patterns.getValue();
-        const index = currentPatterns.findIndex(pat => pat.pattern == pattern);
+        const index = currentPatterns.findIndex(pat => pat.pattern === pattern);
         if (index < 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, `Pattern '${pattern}' not found.`));
@@ -127,7 +127,7 @@ export class AutoQueueService extends BaseWebService {
                     if (reaction.success) {
                         // Update our copy and notify clients
                         const patterns = this._patterns.getValue();
-                        const finalIndex = currentPatterns.findIndex(pat => pat.pattern == pattern);
+                        const finalIndex = currentPatterns.findIndex(pat => pat.pattern === pattern);
                         const newPatterns = patterns.remove(finalIndex);
                         this._patterns.next(newPatterns);
                     }
@@ -154,8 +154,7 @@ export class AutoQueueService extends BaseWebService {
 export let autoQueueServiceFactory = (
     _statusService: ServerStatusService,
     _logger: LoggerService,
-    _http: HttpClient) =>
-{
+    _http: HttpClient) => {
   const autoQueueService = new AutoQueueService(_statusService, _logger, _http);
   autoQueueService.onInit();
   return autoQueueService;

@@ -20,14 +20,14 @@ export class NotificationService {
 
     private _comparator = (a: Notification, b: Notification): number => {
         // First sort by level
-        if (a.level != b.level) {
+        if (a.level !== b.level) {
             const statusPriorities = {
                 [Notification.Level.DANGER]: 0,
                 [Notification.Level.WARNING]: 1,
                 [Notification.Level.INFO]: 2,
                 [Notification.Level.SUCCESS]: 3,
             };
-            if (statusPriorities[a.level] != statusPriorities[b.level]) {
+            if (statusPriorities[a.level] !== statusPriorities[b.level]) {
                 return statusPriorities[a.level] - statusPriorities[b.level];
             }
         }

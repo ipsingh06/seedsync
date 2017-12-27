@@ -24,7 +24,7 @@ export class FileSizePipe implements PipeTransform {
   ];
 
   transform(bytes: number = 0, precision: number = 2 ): string {
-    if ( isNaN( parseFloat( String(bytes) )) || ! isFinite( bytes ) ) return "?";
+    if ( isNaN( parseFloat( String(bytes) )) || ! isFinite( bytes ) ) { return "?"; }
 
     let unit = 0;
 

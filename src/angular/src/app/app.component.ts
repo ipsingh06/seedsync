@@ -17,7 +17,7 @@ export class AppComponent {
         //    Store the active route
         router.events.subscribe(() => {
             this.showSidebar = false;
-            this.activeRoute = ROUTE_INFOS.find(value => value.path == router.url);
+            this.activeRoute = ROUTE_INFOS.find(value => value.path === router.url);
         });
     }
 

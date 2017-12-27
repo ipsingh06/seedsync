@@ -5,7 +5,7 @@ import {FormsModule} from "@angular/forms";
 import {RouteReuseStrategy, RouterModule} from "@angular/router";
 
 import {AppComponent} from "./app.component";
-import {environment}    from "../environments/environment";
+import {environment} from "../environments/environment";
 import {LoggerService} from "./common/logger.service";
 import {FileListComponent} from "./pages/files/file-list.component";
 import {FileComponent} from "./pages/files/file.component";
