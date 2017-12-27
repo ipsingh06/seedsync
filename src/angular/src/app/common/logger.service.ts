@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable} from "@angular/core";
 
 @Injectable()
 export class LoggerService {
@@ -10,7 +10,7 @@ export class LoggerService {
     }
 
     get debug() {
-        if(this.level >= LoggerService.Level.DEBUG) {
+        if (this.level >= LoggerService.Level.DEBUG) {
             return console.debug.bind(console);
         } else {
             return () => {};
@@ -18,7 +18,7 @@ export class LoggerService {
     }
 
     get info() {
-        if(this.level >= LoggerService.Level.INFO) {
+        if (this.level >= LoggerService.Level.INFO) {
             return console.log.bind(console);
         } else {
             return () => {};
@@ -26,7 +26,7 @@ export class LoggerService {
     }
 
     get warn() {
-        if(this.level >= LoggerService.Level.WARN) {
+        if (this.level >= LoggerService.Level.WARN) {
             return console.warn.bind(console);
         } else {
             return () => {};
@@ -34,7 +34,7 @@ export class LoggerService {
     }
 
     get error() {
-        if(this.level >= LoggerService.Level.ERROR) {
+        if (this.level >= LoggerService.Level.ERROR) {
             return console.error.bind(console);
         } else {
             return () => {};

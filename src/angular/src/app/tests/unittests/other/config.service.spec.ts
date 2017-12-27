@@ -1,8 +1,8 @@
 import {TestBed} from "@angular/core/testing";
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 import {Subject} from "rxjs/Subject";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {ConfigService} from "../../../other/config.service";
 import {LoggerService} from "../../../common/logger.service";
@@ -19,7 +19,7 @@ class TestConfigService extends ConfigService {
 
     public onConnectedChanged(connected: boolean) {
         // Peek into the first connection
-        if(!this._firstConnection && connected) {
+        if (!this._firstConnection && connected) {
             this.onFirstConnection();
             this._firstConnection = true;
         }
@@ -30,7 +30,7 @@ class TestConfigService extends ConfigService {
     public onFirstConnection() {}
 }
 
-describe('Testing config service', () => {
+describe("Testing config service", () => {
     let httpMock: HttpTestingController;
     let configService: TestConfigService;
     let statusService: ServerStatusServiceStub;
@@ -58,12 +58,12 @@ describe('Testing config service', () => {
         statusService.status.next(new ServerStatus({connected: true}));
     });
 
-    it('should create an instance', () => {
+    it("should create an instance", () => {
         expect(configService).toBeDefined();
     });
 
-    it('should parse config json correctly', () => {
-        let configJson = {
+    it("should parse config json correctly", () => {
+        const configJson = {
             general: {
                 debug: true
             },
@@ -113,7 +113,7 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should get null on get error 404', () => {
+    it("should get null on get error 404", () => {
         httpMock.expectOne("/server/config/get").flush(
         "Not found",
         {status: 404, statusText: "Bad Request"}
@@ -128,7 +128,7 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should get null on get network error', () => {
+    it("should get null on get network error", () => {
         httpMock.expectOne("/server/config/get").error(new ErrorEvent("mock error"));
 
         configService.config.subscribe({
@@ -140,8 +140,8 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should get null on disconnect', () => {
-        let configExpected = [
+    it("should get null on disconnect", () => {
+        const configExpected = [
             new Config({lftp: {remote_address: "first"}}),
             null
         ];
@@ -162,7 +162,7 @@ describe('Testing config service', () => {
         expect(configSubscriberIndex).toBe(2);
     });
 
-    it('should retry GET on disconnect', () => {
+    it("should retry GET on disconnect", () => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
 
@@ -176,7 +176,7 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should send a GET on a set config option', () => {
+    it("should send a GET on a set config option", () => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
 
@@ -195,7 +195,7 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should send correct GET requests on setting config options', () => {
+    it("should send correct GET requests on setting config options", () => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
 
@@ -230,7 +230,7 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should return error on setting non-existing section', () => {
+    it("should return error on setting non-existing section", () => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
 
@@ -247,7 +247,7 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should return error on setting non-existing option', () => {
+    it("should return error on setting non-existing option", () => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
 
@@ -264,7 +264,7 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should return error on empty value', () => {
+    it("should return error on empty value", () => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
 
@@ -281,12 +281,12 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should send updated config on a successful set', () => {
-        let configJson = {general: {debug: false}};
+    it("should send updated config on a successful set", () => {
+        const configJson = {general: {debug: false}};
         // first connect
         httpMock.expectOne("/server/config/get").flush(configJson);
 
-        let configExpected = [
+        const configExpected = [
             new Config({general: {debug: false}}),
             new Config({general: {debug: true}})
         ];
@@ -307,12 +307,12 @@ describe('Testing config service', () => {
         httpMock.verify();
     });
 
-    it('should NOT send updated config on a failed set', () => {
-        let configJson = {general: {debug: false}};
+    it("should NOT send updated config on a failed set", () => {
+        const configJson = {general: {debug: false}};
         // first connect
         httpMock.expectOne("/server/config/get").flush(configJson);
 
-        let configExpected = [
+        const configExpected = [
             new Config({general: {debug: false}})
         ];
         let configSubscriberIndex = 0;

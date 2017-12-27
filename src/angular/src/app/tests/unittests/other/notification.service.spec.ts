@@ -1,6 +1,6 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {NotificationService} from "../../../other/notification.service";
 import {LoggerService} from "../../../common/logger.service";
@@ -10,7 +10,7 @@ class TestNotificationService extends NotificationService {
 
 }
 
-describe('Testing notification service', () => {
+describe("Testing notification service", () => {
     let notificationService: TestNotificationService;
 
     beforeEach(() => {
@@ -25,16 +25,16 @@ describe('Testing notification service', () => {
     });
 
 
-    it('should create an instance', () => {
+    it("should create an instance", () => {
         expect(notificationService).toBeDefined();
     });
 
-    it('should show notification', fakeAsync(() => {
-        let expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
+    it("should show notification", fakeAsync(() => {
+        const expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
 
         notificationService.show(expectedNotification);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         notificationService.notifications.subscribe({
             next: list => {
                 expect(list.size).toBe(1);
@@ -47,14 +47,14 @@ describe('Testing notification service', () => {
         expect(actualCount).toBe(1);
     }));
 
-    it('should hide notification', fakeAsync(() => {
-        let expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
+    it("should hide notification", fakeAsync(() => {
+        const expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
 
         notificationService.show(expectedNotification);
         tick();
         notificationService.hide(expectedNotification);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         notificationService.notifications.subscribe({
             next: list => {
                 expect(list.size).toBe(0);
@@ -67,12 +67,12 @@ describe('Testing notification service', () => {
     }));
 
 
-    it('should only send one update if show is called twice', fakeAsync(() => {
-        let expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
+    it("should only send one update if show is called twice", fakeAsync(() => {
+        const expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
 
         notificationService.show(expectedNotification);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         notificationService.notifications.subscribe({
             next: list => {
                 actualCount++;
@@ -85,14 +85,14 @@ describe('Testing notification service', () => {
         expect(actualCount).toBe(1);
     }));
 
-    it('should only send one update if hide is called twice', fakeAsync(() => {
-        let expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
+    it("should only send one update if hide is called twice", fakeAsync(() => {
+        const expectedNotification = new Notification({level: Notification.Level.DANGER, text: "danger"});
 
         notificationService.show(expectedNotification);
         tick();
         notificationService.hide(expectedNotification);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         notificationService.notifications.subscribe({
             next: list => {
                 actualCount++;
@@ -106,18 +106,18 @@ describe('Testing notification service', () => {
         expect(actualCount).toBe(1);
     }));
 
-    it('should sort notifications by level', fakeAsync(() => {
-        let noteDanger = new Notification({level: Notification.Level.DANGER, text: "danger"});
-        let noteInfo = new Notification({level: Notification.Level.INFO, text: "info"});
-        let noteWarning = new Notification({level: Notification.Level.WARNING, text: "warning"});
-        let noteSuccess = new Notification({level: Notification.Level.SUCCESS, text: "success"});
+    it("should sort notifications by level", fakeAsync(() => {
+        const noteDanger = new Notification({level: Notification.Level.DANGER, text: "danger"});
+        const noteInfo = new Notification({level: Notification.Level.INFO, text: "info"});
+        const noteWarning = new Notification({level: Notification.Level.WARNING, text: "warning"});
+        const noteSuccess = new Notification({level: Notification.Level.SUCCESS, text: "success"});
 
         notificationService.show(noteDanger);
         notificationService.show(noteInfo);
         notificationService.show(noteWarning);
         notificationService.show(noteSuccess);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         notificationService.notifications.subscribe({
             next: list => {
                 expect(list.size).toBe(4);
@@ -133,24 +133,24 @@ describe('Testing notification service', () => {
         expect(actualCount).toBe(1);
     }));
 
-    it('should sort notifications by timestamp', fakeAsync(() => {
+    it("should sort notifications by timestamp", fakeAsync(() => {
         function sleepFor( sleepDuration ){
-            let now = new Date().getTime();
-            while(new Date().getTime() < now + sleepDuration){ /* do nothing */ }
+            const now = new Date().getTime();
+            while (new Date().getTime() < now + sleepDuration){ /* do nothing */ }
         }
 
         // Sleep a little between inits
-        let noteOlder = new Notification({level: Notification.Level.DANGER, text: "older"});
+        const noteOlder = new Notification({level: Notification.Level.DANGER, text: "older"});
         sleepFor(10);
-        let noteNewer = new Notification({level: Notification.Level.DANGER, text: "newer"});
+        const noteNewer = new Notification({level: Notification.Level.DANGER, text: "newer"});
         sleepFor(10);
-        let noteNewest = new Notification({level: Notification.Level.DANGER, text: "newest"});
+        const noteNewest = new Notification({level: Notification.Level.DANGER, text: "newest"});
 
         notificationService.show(noteNewer);
         notificationService.show(noteNewest);
         notificationService.show(noteOlder);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         notificationService.notifications.subscribe({
             next: list => {
                 expect(list.size).toBe(3);
@@ -165,24 +165,24 @@ describe('Testing notification service', () => {
         expect(actualCount).toBe(1);
     }));
 
-    it('should sort notifications by level first, then timestamp', fakeAsync(() => {
+    it("should sort notifications by level first, then timestamp", fakeAsync(() => {
         function sleepFor( sleepDuration ){
-            let now = new Date().getTime();
-            while(new Date().getTime() < now + sleepDuration){ /* do nothing */ }
+            const now = new Date().getTime();
+            while (new Date().getTime() < now + sleepDuration){ /* do nothing */ }
         }
 
         // Sleep a little between inits
-        let noteOlder = new Notification({level: Notification.Level.DANGER, text: "older"});
+        const noteOlder = new Notification({level: Notification.Level.DANGER, text: "older"});
         sleepFor(10);
-        let noteNewer = new Notification({level: Notification.Level.INFO, text: "newer"});
+        const noteNewer = new Notification({level: Notification.Level.INFO, text: "newer"});
         sleepFor(10);
-        let noteNewest = new Notification({level: Notification.Level.INFO, text: "newest"});
+        const noteNewest = new Notification({level: Notification.Level.INFO, text: "newest"});
 
         notificationService.show(noteNewer);
         notificationService.show(noteNewest);
         notificationService.show(noteOlder);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         notificationService.notifications.subscribe({
             next: list => {
                 expect(list.size).toBe(3);

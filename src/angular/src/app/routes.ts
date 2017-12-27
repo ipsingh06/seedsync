@@ -1,4 +1,4 @@
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 export interface RouteInfo {
     path: string;

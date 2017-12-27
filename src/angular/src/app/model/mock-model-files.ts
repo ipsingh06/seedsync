@@ -1,6 +1,6 @@
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
-import {ModelFile} from "./model-file"
+import {ModelFile} from "./model-file";
 
 export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map({
     "[AUTHOR] A Really Cool Video About Cats.mkv": new ModelFile({

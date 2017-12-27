@@ -1,15 +1,15 @@
-import {BrowserModule} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
-import {HttpClientModule} from '@angular/common/http';
-import {FormsModule} from '@angular/forms';
-import {RouteReuseStrategy, RouterModule} from '@angular/router';
+import {BrowserModule} from "@angular/platform-browser";
+import {NgModule} from "@angular/core";
+import {HttpClientModule} from "@angular/common/http";
+import {FormsModule} from "@angular/forms";
+import {RouteReuseStrategy, RouterModule} from "@angular/router";
 
-import {AppComponent} from './app.component';
-import {environment}    from '../environments/environment';
-import {LoggerService} from "./common/logger.service"
-import {FileListComponent} from "./pages/files/file-list.component"
-import {FileComponent} from "./pages/files/file.component"
-import {ModelFileService} from "./model/model-file.service"
+import {AppComponent} from "./app.component";
+import {environment}    from "../environments/environment";
+import {LoggerService} from "./common/logger.service";
+import {FileListComponent} from "./pages/files/file-list.component";
+import {FileComponent} from "./pages/files/file.component";
+import {ModelFileService} from "./model/model-file.service";
 import {ViewFileService} from "./view/view-file.service";
 import {FileSizePipe} from "./common/file-size.pipe";
 import {EtaPipe} from "./common/eta.pipe";
@@ -53,20 +53,20 @@ import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
         FormsModule,
         RouterModule.forRoot([
             {
-                path: '',
-                redirectTo: '/dashboard',
-                pathMatch: 'full'
+                path: "",
+                redirectTo: "/dashboard",
+                pathMatch: "full"
             },
             {
-                path: 'dashboard',
+                path: "dashboard",
                 component: FilesPageComponent
             },
             {
-                path: 'settings',
+                path: "settings",
                 component: SettingsPageComponent
             },
             {
-                path: 'autoqueue',
+                path: "autoqueue",
                 component: AutoQueuePageComponent
             }
         ])

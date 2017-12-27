@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {LoggerService} from "../../common/logger.service";
 import {AutoQueueService} from "../../other/autoqueue.service";
@@ -13,9 +13,9 @@ import {ServerStatus} from "../../other/server-status";
 
 
 @Component({
-    selector: 'autoqueue-page',
-    templateUrl: './autoqueue-page.component.html',
-    styleUrls: ['./autoqueue-page.component.scss'],
+    selector: "autoqueue-page",
+    templateUrl: "./autoqueue-page.component.html",
+    styleUrls: ["./autoqueue-page.component.scss"],
     providers: [],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -41,7 +41,7 @@ export class AutoQueuePageComponent {
         this._statusService.status.subscribe({
             next: (status: ServerStatus) => {
                 this.enabled = status.connected;
-                if(!this.enabled) {
+                if (!this.enabled) {
                     // Clear the input box
                     this.newPattern = "";
                 }
@@ -52,12 +52,12 @@ export class AutoQueuePageComponent {
     onAddPattern() {
         this._autoqueueService.add(this.newPattern).subscribe({
             next: reaction => {
-                if(reaction.success) {
+                if (reaction.success) {
                     // Clear the input box
                     this.newPattern = "";
                 } else {
                     // Show dismissible notification
-                    let notif = new Notification({
+                    const notif = new Notification({
                         level: Notification.Level.DANGER,
                         dismissible: true,
                         text: reaction.errorMessage
@@ -71,11 +71,11 @@ export class AutoQueuePageComponent {
     onRemovePattern(pattern: AutoQueuePattern) {
         this._autoqueueService.remove(pattern.pattern).subscribe({
             next: reaction => {
-                if(reaction.success) {
+                if (reaction.success) {
                     // Nothing to do
                 } else {
                     // Show dismissible notification
-                    let notif = new Notification({
+                    const notif = new Notification({
                         level: Notification.Level.DANGER,
                         dismissible: true,
                         text: reaction.errorMessage

@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform } from "@angular/core";
 
 /*
  * Convert bytes into largest possible unit.
@@ -11,20 +11,20 @@ import { Pipe, PipeTransform } from '@angular/core';
  * Source: https://gist.github.com/JonCatmull/ecdf9441aaa37
  *         336d9ae2c7f9cb7289a#file-file-size-pipe-ts
 */
-@Pipe({name: 'fileSize'})
+@Pipe({name: "fileSize"})
 export class FileSizePipe implements PipeTransform {
 
   private units = [
-    'B',
-    'KB',
-    'MB',
-    'GB',
-    'TB',
-    'PB'
+    "B",
+    "KB",
+    "MB",
+    "GB",
+    "TB",
+    "PB"
   ];
 
-  transform(bytes: number = 0, precision: number = 2 ) : string {
-    if ( isNaN( parseFloat( String(bytes) )) || ! isFinite( bytes ) ) return '?';
+  transform(bytes: number = 0, precision: number = 2 ): string {
+    if ( isNaN( parseFloat( String(bytes) )) || ! isFinite( bytes ) ) return "?";
 
     let unit = 0;
 
@@ -33,6 +33,6 @@ export class FileSizePipe implements PipeTransform {
       unit ++;
     }
 
-    return Number(bytes.toPrecision( + precision )) + ' ' + this.units[ unit ];
+    return Number(bytes.toPrecision( + precision )) + " " + this.units[ unit ];
   }
 }

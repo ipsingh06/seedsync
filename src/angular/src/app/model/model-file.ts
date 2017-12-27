@@ -1,4 +1,4 @@
-import {Record, Set} from 'immutable';
+import {Record, Set} from "immutable";
 
 /**
  * Model file received from the backend
@@ -49,8 +49,8 @@ export class ModelFile extends ModelFileRecord implements IModelFile {
 
     constructor(props) {
         // Create immutable objects for children as well
-        let children: ModelFile[] = [];
-        for(let child of props.children) {
+        const children: ModelFile[] = [];
+        for (const child of props.children) {
             children.push(new ModelFile(child));
         }
         props.children = children;

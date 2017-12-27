@@ -1,23 +1,23 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
-import {LoggerService} from "../../common/logger.service"
+import {LoggerService} from "../../common/logger.service";
 import {ViewFileFilterService} from "../../view/view-file-filter.service";
 import {ViewFileFilter} from "../../view/view-file-filter";
 import {ViewFile} from "../../view/view-file";
 
 @Component({
-    selector: 'file-list-filter',
+    selector: "file-list-filter",
     providers: [],
-    templateUrl: './file-list-filter.component.html',
-    styleUrls: ['./file-list-filter.component.scss'],
+    templateUrl: "./file-list-filter.component.html",
+    styleUrls: ["./file-list-filter.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class FileListFilterComponent {
     public filter: Observable<ViewFileFilter>;
 
-    public filterName: string = "";
+    public filterName = "";
 
     constructor(private _logger: LoggerService,
                 private viewFileFilterService: ViewFileFilterService) {

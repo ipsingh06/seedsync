@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable} from "@angular/core";
 import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {Observable} from "rxjs/Observable";
 
@@ -52,10 +52,10 @@ export abstract class BaseWebService {
             next: status => {
                 // Change the status BEFORE notifying derived class so that if
                 // it calls any methods on us, we have the latest state
-                let prevConnected = this._connected;
+                const prevConnected = this._connected;
                 this._connected = status.connected;
 
-                if(prevConnected != status.connected) {
+                if (prevConnected != status.connected) {
                     // Connection status changed
                     this.onConnectedChanged(status.connected);
                 }
@@ -77,9 +77,9 @@ export abstract class BaseWebService {
      */
     protected sendRequest(url: string): Observable<WebReaction> {
         return Observable.create(observer => {
-            if(this._connected) {
+            if (this._connected) {
                 // We are connected to server, send the request
-                this._http.get(url, {responseType: 'text'})
+                this._http.get(url, {responseType: "text"})
                     .subscribe(
                     data => {
                         this._logger.debug("%s http response: %s", url, data);

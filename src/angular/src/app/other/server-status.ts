@@ -1,4 +1,4 @@
-import {Record} from 'immutable';
+import {Record} from "immutable";
 
 /**
  * ServerStatus immutable
@@ -10,7 +10,7 @@ interface IServerStatus {
     server: {
         up: boolean;
         errorMessage: string;
-    }
+    };
 }
 const DefaultServerStatus: IServerStatus = {
     connected: null,
@@ -24,7 +24,7 @@ const ServerStatusRecord = Record(DefaultServerStatus);
 export class ServerStatus extends ServerStatusRecord implements IServerStatus {
     connected: boolean;
 
-    server : {
+    server: {
         up: boolean;
         errorMessage: string;
     };
@@ -42,5 +42,5 @@ export interface ServerStatusJson {
     server: {
         up: boolean;
         error_msg: string;
-    }
+    };
 }

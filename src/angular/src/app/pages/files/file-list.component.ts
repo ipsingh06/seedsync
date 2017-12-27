@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
 import {List} from "immutable";
@@ -8,10 +8,10 @@ import {ViewFile} from "../../view/view-file";
 import {LoggerService} from "../../common/logger.service";
 
 @Component({
-    selector: 'file-list',
+    selector: "file-list",
     providers: [],
-    templateUrl: './file-list.component.html',
-    styleUrls: ['./file-list.component.scss'],
+    templateUrl: "./file-list.component.html",
+    styleUrls: ["./file-list.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
@@ -30,11 +30,11 @@ export class FileListComponent {
      * @param item
      */
     static identify(index: number, item: ViewFile): string {
-        return item.name
+        return item.name;
     }
 
     onSelect(file: ViewFile): void {
-        if(file.isSelected) {
+        if (file.isSelected) {
             this.viewFileService.unsetSelected();
         } else {
             this.viewFileService.setSelected(file);

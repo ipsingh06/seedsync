@@ -1,17 +1,17 @@
-import {Component} from '@angular/core';
-import {Router} from '@angular/router';
+import {Component} from "@angular/core";
+import {Router} from "@angular/router";
 import {ROUTE_INFOS, RouteInfo} from "./routes";
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss']
+    selector: "app-root",
+    templateUrl: "./app.component.html",
+    styleUrls: ["./app.component.scss"]
 })
 export class AppComponent {
-    showSidebar: boolean = false;
+    showSidebar = false;
     activeRoute: RouteInfo;
 
-    constructor(router:Router) {
+    constructor(router: Router) {
         // Navigation listener
         //    Close the sidebar
         //    Store the active route
@@ -21,5 +21,5 @@ export class AppComponent {
         });
     }
 
-    title = 'app';
+    title = "app";
 }

@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient} from '@angular/common/http';
+import {HttpClient} from "@angular/common/http";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
 import {BaseWebService, WebReaction} from "../common/base-web.service";
@@ -43,10 +43,10 @@ export class AutoQueueService extends BaseWebService {
         this._logger.debug("Getting autoqueue patterns...");
         this.sendRequest(this.AUTOQUEUE_GET_URL).subscribe({
             next: reaction => {
-                if(reaction.success) {
-                    let parsed: AutoQueuePatternJson[] = JSON.parse(reaction.data);
-                    let newPatterns: AutoQueuePattern[] = [];
-                    for(let patternJson of parsed) {
+                if (reaction.success) {
+                    const parsed: AutoQueuePatternJson[] = JSON.parse(reaction.data);
+                    const newPatterns: AutoQueuePattern[] = [];
+                    for (const patternJson of parsed) {
                         newPatterns.push(new AutoQueuePattern({
                             pattern: patternJson.pattern
                         }));
@@ -68,29 +68,29 @@ export class AutoQueueService extends BaseWebService {
         this._logger.debug("add pattern %O", pattern);
 
         // Value check
-        if(pattern == null || pattern.trim().length == 0) {
+        if (pattern == null || pattern.trim().length == 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, Localization.Notification.AUTOQUEUE_PATTERN_EMPTY));
             });
         }
 
-        let currentPatterns = this._patterns.getValue();
-        let index = currentPatterns.findIndex(pat => pat.pattern == pattern);
-        if(index >= 0) {
+        const currentPatterns = this._patterns.getValue();
+        const index = currentPatterns.findIndex(pat => pat.pattern == pattern);
+        if (index >= 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, `Pattern '${pattern}' already exists.`));
             });
         } else {
             // Double-encode the value
-            let patternEncoded = encodeURIComponent(encodeURIComponent(pattern));
-            let url = this.AUTOQUEUE_ADD_URL(patternEncoded);
-            let obs = this.sendRequest(url);
+            const patternEncoded = encodeURIComponent(encodeURIComponent(pattern));
+            const url = this.AUTOQUEUE_ADD_URL(patternEncoded);
+            const obs = this.sendRequest(url);
             obs.subscribe({
                 next: reaction => {
-                    if(reaction.success) {
+                    if (reaction.success) {
                         // Update our copy and notify clients
-                        let patterns = this._patterns.getValue();
-                        let newPatterns = patterns.push(
+                        const patterns = this._patterns.getValue();
+                        const newPatterns = patterns.push(
                             new AutoQueuePattern({
                                 pattern: pattern
                             })
@@ -111,24 +111,24 @@ export class AutoQueueService extends BaseWebService {
     public remove(pattern: string): Observable<WebReaction> {
         this._logger.debug("remove pattern %O", pattern);
 
-        let currentPatterns = this._patterns.getValue();
-        let index = currentPatterns.findIndex(pat => pat.pattern == pattern);
-        if(index < 0) {
+        const currentPatterns = this._patterns.getValue();
+        const index = currentPatterns.findIndex(pat => pat.pattern == pattern);
+        if (index < 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, `Pattern '${pattern}' not found.`));
             });
         } else {
             // Double-encode the value
-            let patternEncoded = encodeURIComponent(encodeURIComponent(pattern));
-            let url = this.AUTOQUEUE_REMOVE_URL(patternEncoded);
-            let obs = this.sendRequest(url);
+            const patternEncoded = encodeURIComponent(encodeURIComponent(pattern));
+            const url = this.AUTOQUEUE_REMOVE_URL(patternEncoded);
+            const obs = this.sendRequest(url);
             obs.subscribe({
                 next: reaction => {
-                    if(reaction.success) {
+                    if (reaction.success) {
                         // Update our copy and notify clients
-                        let patterns = this._patterns.getValue();
-                        let finalIndex = currentPatterns.findIndex(pat => pat.pattern == pattern);
-                        let newPatterns = patterns.remove(finalIndex);
+                        const patterns = this._patterns.getValue();
+                        const finalIndex = currentPatterns.findIndex(pat => pat.pattern == pattern);
+                        const newPatterns = patterns.remove(finalIndex);
                         this._patterns.next(newPatterns);
                     }
                 }
@@ -138,7 +138,7 @@ export class AutoQueueService extends BaseWebService {
     }
 
     protected onConnectedChanged(connected: boolean): void {
-        if(connected) {
+        if (connected) {
             // Retry the get
             this.getPatterns();
         } else {
@@ -156,7 +156,7 @@ export let autoQueueServiceFactory = (
     _logger: LoggerService,
     _http: HttpClient) =>
 {
-  let autoQueueService = new AutoQueueService(_statusService, _logger, _http);
+  const autoQueueService = new AutoQueueService(_statusService, _logger, _http);
   autoQueueService.onInit();
   return autoQueueService;
 };

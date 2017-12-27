@@ -1,14 +1,14 @@
-import {Injectable} from '@angular/core';
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
-import {ModelFile} from '../model/model-file'
+import {ModelFile} from "../model/model-file";
 import {ModelFileReaction, ModelFileService} from "../model/model-file.service";
-import {ViewFile} from "./view-file"
-import {MOCK_MODEL_FILES} from "../model/mock-model-files"
+import {ViewFile} from "./view-file";
+import {MOCK_MODEL_FILES} from "../model/mock-model-files";
 
 
 /**
@@ -95,7 +95,7 @@ export class ViewFileService {
      * @private
      */
     private _comparator = (a: ViewFile, b: ViewFile): number => {
-        if(a.status != b.status) {
+        if (a.status != b.status) {
             const statusPriorities = {
                 [ViewFile.Status.DOWNLOADING]: 0,
                 [ViewFile.Status.QUEUED]: 1,
@@ -104,18 +104,18 @@ export class ViewFileService {
                 [ViewFile.Status.DEFAULT]: 4,
                 [ViewFile.Status.DELETED]: 4  // intermix deleted and default
             };
-            if(statusPriorities[a.status] != statusPriorities[b.status]) {
+            if (statusPriorities[a.status] != statusPriorities[b.status]) {
                 return statusPriorities[a.status] - statusPriorities[b.status];
             }
         }
         return a.name.localeCompare(b.name);
-    };
+    }
 
     constructor(private _logger: LoggerService,
                 private modelFileService: ModelFileService) {
-        let _viewFileService = this;
+        const _viewFileService = this;
 
-        if(!this.USE_MOCK_MODEL) {
+        if (!this.USE_MOCK_MODEL) {
             this.modelFileService.files.subscribe({
                 next: modelFiles => _viewFileService.buildViewFromModelFiles(modelFiles)
             });
@@ -135,20 +135,20 @@ export class ViewFileService {
         // A more scalable solution would be to subscribe to domain model updates
         let newViewFiles = this._files;
 
-        let addedNames: string[] = [];
-        let removedNames: string[] = [];
-        let updatedNames: string[] = [];
+        const addedNames: string[] = [];
+        const removedNames: string[] = [];
+        const updatedNames: string[] = [];
         // Loop through old model to find deletions
         this._prevModelFiles.keySeq().forEach(
             name => {
-                if(!modelFiles.has(name)) removedNames.push(name)
+                if (!modelFiles.has(name)) removedNames.push(name);
             }
         );
         // Loop through new model to find additions and updates
         modelFiles.keySeq().forEach(
             name => {
-                if(!this._prevModelFiles.has(name)) addedNames.push(name);
-                else if(!Immutable.is(modelFiles.get(name), this._prevModelFiles.get(name))) updatedNames.push(name);
+                if (!this._prevModelFiles.has(name)) addedNames.push(name);
+                else if (!Immutable.is(modelFiles.get(name), this._prevModelFiles.get(name))) updatedNames.push(name);
             }
         );
 
@@ -157,11 +157,11 @@ export class ViewFileService {
         // Do the updates first before indices change (re-sort may be required)
         updatedNames.forEach(
             name => {
-                let index = this._indices.get(name);
-                let oldViewFile = newViewFiles.get(index);
-                let newViewFile = ViewFileService.createViewFile(modelFiles.get(name), oldViewFile.isSelected);
+                const index = this._indices.get(name);
+                const oldViewFile = newViewFiles.get(index);
+                const newViewFile = ViewFileService.createViewFile(modelFiles.get(name), oldViewFile.isSelected);
                 newViewFiles = newViewFiles.set(index, newViewFile);
-                if(this._comparator(oldViewFile, newViewFile) != 0) {
+                if (this._comparator(oldViewFile, newViewFile) != 0) {
                     reSort = true;
                 }
             }
@@ -170,27 +170,27 @@ export class ViewFileService {
         addedNames.forEach(
             name => {
                 reSort = true;
-                let viewFile = ViewFileService.createViewFile(modelFiles.get(name));
+                const viewFile = ViewFileService.createViewFile(modelFiles.get(name));
                 newViewFiles = newViewFiles.push(viewFile);
-                this._indices.set(name, newViewFiles.size-1);
+                this._indices.set(name, newViewFiles.size - 1);
             }
         );
         // Do the removes (no re-sort required)
         removedNames.forEach(
             name => {
                 updateIndices = true;
-                let index = newViewFiles.findIndex(value => value.name == name);
+                const index = newViewFiles.findIndex(value => value.name == name);
                 newViewFiles = newViewFiles.remove(index);
                 this._indices.delete(name);
             }
         );
 
-        if(reSort) {
+        if (reSort) {
             this._logger.debug("Re-sorting view files");
             updateIndices = true;
             newViewFiles = newViewFiles.sort(this._comparator).toList();
         }
-        if(updateIndices) {
+        if (updateIndices) {
             this._indices.clear();
             newViewFiles.forEach(
                 (value, index) => this._indices.set(value.name, index)
@@ -222,24 +222,24 @@ export class ViewFileService {
         //       but that would duplicate state and can introduce
         //       bugs, so we just search instead
         let viewFiles = this._files;
-        let unSelectIndex = viewFiles.findIndex(value => value.isSelected);
+        const unSelectIndex = viewFiles.findIndex(value => value.isSelected);
 
         // Unset the previously selected file, if any
-        if(unSelectIndex >= 0) {
+        if (unSelectIndex >= 0) {
             let unSelectViewFile = viewFiles.get(unSelectIndex);
 
             // Do nothing if file is already selected
-            if(unSelectViewFile.name == file.name) return;
+            if (unSelectViewFile.name == file.name) return;
 
-            unSelectViewFile = new ViewFile(unSelectViewFile.set('isSelected', false));
+            unSelectViewFile = new ViewFile(unSelectViewFile.set("isSelected", false));
             viewFiles = viewFiles.set(unSelectIndex, unSelectViewFile);
         }
 
         // Set the new selected file
-        if(this._indices.has(file.name)) {
-            let index = this._indices.get(file.name);
+        if (this._indices.has(file.name)) {
+            const index = this._indices.get(file.name);
             let viewFile = viewFiles.get(index);
-            viewFile = new ViewFile(viewFile.set('isSelected', true));
+            viewFile = new ViewFile(viewFile.set("isSelected", true));
             viewFiles = viewFiles.set(index, viewFile);
         } else {
             this._logger.error("Can't find file to select: " + file.name);
@@ -256,13 +256,13 @@ export class ViewFileService {
     public unsetSelected() {
         // Unset the previously selected file, if any
         let viewFiles = this._files;
-        let unSelectIndex = viewFiles.findIndex(value => value.isSelected);
+        const unSelectIndex = viewFiles.findIndex(value => value.isSelected);
 
         // Unset the previously selected file, if any
-        if(unSelectIndex >= 0) {
+        if (unSelectIndex >= 0) {
             let unSelectViewFile = viewFiles.get(unSelectIndex);
 
-            unSelectViewFile = new ViewFile(unSelectViewFile.set('isSelected', false));
+            unSelectViewFile = new ViewFile(unSelectViewFile.set("isSelected", false));
             viewFiles = viewFiles.set(unSelectIndex, unSelectViewFile);
 
             // Send update
@@ -311,15 +311,15 @@ export class ViewFileService {
     private static createViewFile(modelFile: ModelFile, isSelected: boolean = false): ViewFile {
         // Use zero for unknown sizes
         let localSize: number = modelFile.local_size;
-        if(localSize == null) {
+        if (localSize == null) {
             localSize = 0;
         }
         let remoteSize: number = modelFile.remote_size;
-        if(remoteSize == null) {
+        if (remoteSize == null) {
             remoteSize = 0;
         }
         let percentDownloaded: number = null;
-        if(remoteSize > 0) {
+        if (remoteSize > 0) {
             percentDownloaded = Math.trunc(100.0 * localSize / remoteSize);
         } else {
             percentDownloaded = 100;
@@ -327,9 +327,9 @@ export class ViewFileService {
 
         // Translate the status
         let status = null;
-        switch(modelFile.state) {
+        switch (modelFile.state) {
             case ModelFile.State.DEFAULT: {
-                if(localSize > 0 && remoteSize > 0) {
+                if (localSize > 0 && remoteSize > 0) {
                     status = ViewFile.Status.STOPPED;
                 } else {
                     status = ViewFile.Status.DEFAULT;
@@ -354,11 +354,11 @@ export class ViewFileService {
             }
         }
 
-        let isQueueable: boolean = [ViewFile.Status.DEFAULT,
+        const isQueueable: boolean = [ViewFile.Status.DEFAULT,
                                     ViewFile.Status.STOPPED,
                                     ViewFile.Status.DELETED].includes(status)
                                     && remoteSize > 0;
-        let isStoppable: boolean = [ViewFile.Status.QUEUED,
+        const isStoppable: boolean = [ViewFile.Status.QUEUED,
                                     ViewFile.Status.DOWNLOADING].includes(status);
 
         return new ViewFile({
@@ -374,7 +374,7 @@ export class ViewFileService {
             isSelected: isSelected,
             isQueueable: isQueueable,
             isStoppable: isStoppable
-        })
+        });
     }
 
     /**
@@ -387,12 +387,12 @@ export class ViewFileService {
                          action: (file: ModelFile) => Observable<ModelFileReaction>)
             : Observable<ViewFileReaction> {
         return Observable.create(observer => {
-            if(!this._prevModelFiles.has(file.name)) {
+            if (!this._prevModelFiles.has(file.name)) {
                 // File not found, exit early
                 this._logger.error("File to queue not found: " + file.name);
                 observer.next(new ViewFileReaction(false, `File '${file.name}' not found`));
             } else {
-                let modelFile = this._prevModelFiles.get(file.name);
+                const modelFile = this._prevModelFiles.get(file.name);
                 action(modelFile).subscribe(data => {
                     this._logger.debug("Received model reaction: %O", data);
                     observer.next(new ViewFileReaction(data.success, data.errorMessage));
@@ -407,7 +407,7 @@ export class ViewFileService {
 
         // Filtered files
         let filteredFiles = this._files;
-        if(this._filterCriteria != null) {
+        if (this._filterCriteria != null) {
             filteredFiles = Immutable.List<ViewFile>(
                 this._files.filter(f => this._filterCriteria.meetsCriteria(f))
             );

@@ -1,12 +1,12 @@
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {Config} from "../../../other/config";
 
-describe('Testing config record initialization', () => {
+describe("Testing config record initialization", () => {
     let config: Config;
 
     beforeEach(() => {
-        let configJson = {
+        const configJson = {
             general: {
                 debug: true
             },
@@ -36,7 +36,7 @@ describe('Testing config record initialization', () => {
     });
 
 
-    it('should initialize with correct values', () => {
+    it("should initialize with correct values", () => {
         expect(config.general.debug).toBe(true);
         expect(config.lftp.remote_address).toBe("remote.server.com");
         expect(config.lftp.remote_username).toBe("some.user");
@@ -55,11 +55,11 @@ describe('Testing config record initialization', () => {
         expect(config.web.port).toBe(8800);
     });
 
-    it('should be immutable', () => {
+    it("should be immutable", () => {
         expect(config instanceof Immutable.Record).toBe(true);
     });
 
-    it('should have immutable members', () => {
+    it("should have immutable members", () => {
         expect(config.general instanceof Immutable.Record).toBe(true);
         expect(config.lftp instanceof Immutable.Record).toBe(true);
         expect(config.controller instanceof Immutable.Record).toBe(true);

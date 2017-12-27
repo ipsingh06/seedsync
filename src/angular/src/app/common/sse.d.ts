@@ -2,7 +2,7 @@
 // Specification: http://dev.w3.org/html5/eventsource/
 // Definitions by: Yannik Hampe <https://github.com/yankee42>
 
-declare const EventSource : sse.IEventSourceStatic;
+declare const EventSource: sse.IEventSourceStatic;
 
 declare module sse {
 

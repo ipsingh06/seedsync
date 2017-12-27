@@ -1,4 +1,4 @@
-import {Component} from '@angular/core'
+import {Component} from "@angular/core";
 
 import {ROUTE_INFOS} from "./routes";
 import {ServerStatusService} from "./other/server-status.service";
@@ -7,9 +7,9 @@ import {ServerCommandService} from "./other/server-command.service";
 import {LoggerService} from "./common/logger.service";
 
 @Component({
-    selector: 'sidebar',
-    templateUrl: './sidebar.component.html',
-    styleUrls: ['./sidebar.component.scss']
+    selector: "sidebar",
+    templateUrl: "./sidebar.component.html",
+    styleUrls: ["./sidebar.component.scss"]
 })
 
 export class SidebarComponent {
@@ -35,7 +35,7 @@ export class SidebarComponent {
     onCommandRestart() {
         this._commandService.restart().subscribe({
             next: reaction => {
-                if(reaction.success) {
+                if (reaction.success) {
                     this._logger.info(reaction.data);
                 } else {
                     this._logger.error(reaction.errorMessage);

@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {HttpClient} from "@angular/common/http";
 
@@ -39,9 +39,8 @@ export class ServerCommandService extends BaseWebService {
 export let serverCommandServiceFactory = (
     _statusService: ServerStatusService,
     _logger: LoggerService,
-    _http: HttpClient) =>
-{
-  let serverCommandService = new ServerCommandService(_statusService, _logger, _http);
+    _http: HttpClient) => {
+  const serverCommandService = new ServerCommandService(_statusService, _logger, _http);
   serverCommandService.onInit();
   return serverCommandService;
 };

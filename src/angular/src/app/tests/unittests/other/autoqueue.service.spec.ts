@@ -1,8 +1,8 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 import {Subject} from "rxjs/Subject";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {LoggerService} from "../../../common/logger.service";
 import {ServerStatus} from "../../../other/server-status";
@@ -15,7 +15,7 @@ class ServerStatusServiceStub {
 }
 
 
-describe('Testing autoqueue service', () => {
+describe("Testing autoqueue service", () => {
     let httpMock: HttpTestingController;
     let aqService: AutoQueueService;
     let statusService: ServerStatusServiceStub;
@@ -43,12 +43,12 @@ describe('Testing autoqueue service', () => {
         statusService.status.next(new ServerStatus({connected: true}));
     });
 
-    it('should create an instance', () => {
+    it("should create an instance", () => {
         expect(aqService).toBeDefined();
     });
 
-    it('should parse patterns json correctly', fakeAsync(() => {
-        let patternsJson = [
+    it("should parse patterns json correctly", fakeAsync(() => {
+        const patternsJson = [
             {"pattern": "one"},
             {"pattern": "tw o"},
             {"pattern": "th'ree"},
@@ -57,7 +57,7 @@ describe('Testing autoqueue service', () => {
         ];
         httpMock.expectOne("/server/autoqueue/get").flush(patternsJson);
 
-        let expectedPatterns = [
+        const expectedPatterns = [
             new AutoQueuePattern({pattern: "one"}),
             new AutoQueuePattern({pattern: "tw o"}),
             new AutoQueuePattern({pattern: "th'ree"}),
@@ -65,11 +65,11 @@ describe('Testing autoqueue service', () => {
             new AutoQueuePattern({pattern: "fi%ve"})
         ];
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(patterns.size).toBe(5);
-                for(let i=0; i<patterns.size; i++) {
+                for (let i = 0; i < patterns.size; i++) {
                     expect(Immutable.is(patterns.get(i), expectedPatterns[i])).toBe(true);
                 }
                 actualCount++;
@@ -81,13 +81,13 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should get empty list on get error 404', fakeAsync(() => {
+    it("should get empty list on get error 404", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush(
         "Not found",
         {status: 404, statusText: "Bad Request"}
         );
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(patterns.size).toBe(0);
@@ -101,10 +101,10 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should get empty list on get network error', fakeAsync(() => {
+    it("should get empty list on get network error", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").error(new ErrorEvent("mock error"));
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(patterns.size).toBe(0);
@@ -118,18 +118,18 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should get empty list on disconnect', fakeAsync(() => {
-        let patternsJson = [
+    it("should get empty list on disconnect", fakeAsync(() => {
+        const patternsJson = [
             {"pattern": "one"}
         ];
         httpMock.expectOne("/server/autoqueue/get").flush(patternsJson);
 
-        let expectedPatterns = [
+        const expectedPatterns = [
             Immutable.List([new AutoQueuePattern({pattern: "one"})]),
             Immutable.List([])
         ];
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(Immutable.is(patterns, expectedPatterns[actualCount++])).toBe(true);
@@ -146,7 +146,7 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should retry GET on disconnect', fakeAsync(() => {
+    it("should retry GET on disconnect", fakeAsync(() => {
         // first connect
         httpMock.expectOne("/server/autoqueue/get").flush("[]");
 
@@ -166,10 +166,10 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should send a GET on add pattern', fakeAsync(() => {
+    it("should send a GET on add pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([]);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.add("one").subscribe({
             next: reaction => {
                expect(reaction.success).toBe(true);
@@ -184,7 +184,7 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should send correct GET requests on add pattern', fakeAsync(() => {
+    it("should send correct GET requests on add pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([]);
 
         aqService.add("test").subscribe({next: value => {}});
@@ -201,12 +201,12 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should return error on adding existing pattern', fakeAsync(() => {
+    it("should return error on adding existing pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
             {"pattern": "one"}
         ]);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.add("one").subscribe({
             next: reaction => {
                expect(reaction.success).toBe(false);
@@ -222,10 +222,10 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should return error on adding empty pattern', fakeAsync(() => {
+    it("should return error on adding empty pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([]);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.add("").subscribe({
             next: reaction => {
                expect(reaction.success).toBe(false);
@@ -255,16 +255,16 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should send updated patterns after an add pattern', fakeAsync(() => {
+    it("should send updated patterns after an add pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([]);
 
 
-        let expectedPatterns = [
+        const expectedPatterns = [
             Immutable.List([]),
             Immutable.List([new AutoQueuePattern({pattern: "one"})])
         ];
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(Immutable.is(patterns, expectedPatterns[actualCount++])).toBe(true);
@@ -280,16 +280,16 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should NOT send updated patterns after a failed add', fakeAsync(() => {
+    it("should NOT send updated patterns after a failed add", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
             new AutoQueuePattern({pattern: "one"})
         ]);
 
-        let expectedPatterns = [
+        const expectedPatterns = [
             Immutable.List([new AutoQueuePattern({pattern: "one"})])
         ];
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(Immutable.is(patterns, expectedPatterns[actualCount++])).toBe(true);
@@ -305,12 +305,12 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should send a GET on remove pattern', fakeAsync(() => {
+    it("should send a GET on remove pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
             new AutoQueuePattern({pattern: "one"})
         ]);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.remove("one").subscribe({
             next: reaction => {
                expect(reaction.success).toBe(true);
@@ -325,7 +325,7 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should send correct GET requests on remove pattern', fakeAsync(() => {
+    it("should send correct GET requests on remove pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
             new AutoQueuePattern({pattern: "test"}),
             new AutoQueuePattern({pattern: "test space"}),
@@ -348,11 +348,11 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should return error on removing non-existing pattern', fakeAsync(() => {
+    it("should return error on removing non-existing pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
         ]);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.remove("one").subscribe({
             next: reaction => {
                expect(reaction.success).toBe(false);
@@ -368,11 +368,11 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should return error on removing empty pattern', fakeAsync(() => {
+    it("should return error on removing empty pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
         ]);
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.remove("").subscribe({
             next: reaction => {
                expect(reaction.success).toBe(false);
@@ -402,14 +402,14 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should send updated patterns after a remove pattern', fakeAsync(() => {
+    it("should send updated patterns after a remove pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
             new AutoQueuePattern({pattern: "one"}),
             new AutoQueuePattern({pattern: "two"})
         ]);
 
 
-        let expectedPatterns = [
+        const expectedPatterns = [
             Immutable.List([
                 new AutoQueuePattern({pattern: "one"}),
                 new AutoQueuePattern({pattern: "two"})
@@ -419,7 +419,7 @@ describe('Testing autoqueue service', () => {
             ])
         ];
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(Immutable.is(patterns, expectedPatterns[actualCount++])).toBe(true);
@@ -435,16 +435,16 @@ describe('Testing autoqueue service', () => {
         httpMock.verify();
     }));
 
-    it('should NOT send updated patterns after a failed remove', fakeAsync(() => {
+    it("should NOT send updated patterns after a failed remove", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([
             new AutoQueuePattern({pattern: "one"})
         ]);
 
-        let expectedPatterns = [
+        const expectedPatterns = [
             Immutable.List([new AutoQueuePattern({pattern: "one"})])
         ];
 
-        let actualCount: number = 0;
+        let actualCount = 0;
         aqService.patterns.subscribe({
             next: patterns => {
                 expect(Immutable.is(patterns, expectedPatterns[actualCount++])).toBe(true);

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
 import {LoggerService} from "../../common/logger.service";
@@ -16,9 +16,9 @@ import {
 } from "./options-list";
 
 @Component({
-    selector: 'settings-page',
-    templateUrl: './settings-page.component.html',
-    styleUrls: ['./settings-page.component.scss'],
+    selector: "settings-page",
+    templateUrl: "./settings-page.component.html",
+    styleUrls: ["./settings-page.component.scss"],
     providers: [],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -54,7 +54,7 @@ export class SettingsPageComponent {
     ngOnInit() {
         this._statusService.status.subscribe({
             next: (status: ServerStatus) => {
-                if(!status.connected) {
+                if (!status.connected) {
                     // Server went down, hide the config restart notification
                     this._notifService.hide(this._configRestartNotif);
                 }
@@ -69,11 +69,11 @@ export class SettingsPageComponent {
         this._configService.set(section, option, value).subscribe({
             next: reaction => {
                 const notifKey = section + "." + option;
-                if(reaction.success) {
+                if (reaction.success) {
                     this._logger.info(reaction.data);
 
                     // Hide bad value notification, if any
-                    if(this._badValueNotifs.has(notifKey)) {
+                    if (this._badValueNotifs.has(notifKey)) {
                         this._notifService.hide(this._badValueNotifs.get(notifKey));
                         this._badValueNotifs.delete(notifKey);
                     }
@@ -82,12 +82,12 @@ export class SettingsPageComponent {
                     this._notifService.show(this._configRestartNotif);
                 } else {
                     // Show bad value notification
-                    let notif = new Notification({
+                    const notif = new Notification({
                         level: Notification.Level.DANGER,
                         dismissible: true,
                         text: reaction.errorMessage
                     });
-                    if(this._badValueNotifs.has(notifKey)) {
+                    if (this._badValueNotifs.has(notifKey)) {
                         this._notifService.hide(this._badValueNotifs.get(notifKey));
                     }
                     this._notifService.show(notif);
@@ -102,7 +102,7 @@ export class SettingsPageComponent {
     onCommandRestart() {
         this._commandService.restart().subscribe({
             next: reaction => {
-                if(reaction.success) {
+                if (reaction.success) {
                     this._logger.info(reaction.data);
                 } else {
                     this._logger.error(reaction.errorMessage);

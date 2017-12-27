@@ -1,12 +1,12 @@
-import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from '@angular/core';
+import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from "@angular/core";
 
 import {ViewFile} from "../../view/view-file";
 
 @Component({
-    selector: '[file]',
+    selector: "[file]",
     providers: [],
-    templateUrl: './file.component.html',
-    styleUrls: ['./file.component.scss'],
+    templateUrl: "./file.component.html",
+    styleUrls: ["./file.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 

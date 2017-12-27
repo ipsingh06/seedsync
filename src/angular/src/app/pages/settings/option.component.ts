@@ -1,11 +1,11 @@
-import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from '@angular/core';
+import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from "@angular/core";
 import {Subject} from "rxjs/Subject";
 
 @Component({
-    selector: '[option]',
+    selector: "[option]",
     providers: [],
-    templateUrl: './option.component.html',
-    styleUrls: ['./option.component.scss'],
+    templateUrl: "./option.component.html",
+    styleUrls: ["./option.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 

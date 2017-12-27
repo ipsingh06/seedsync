@@ -1,12 +1,12 @@
-import {Injectable, NgZone} from '@angular/core';
+import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
-import {ModelFile} from './model-file'
+import {ModelFile} from "./model-file";
 import {SseUtil} from "../common/sse.util";
 
 
@@ -54,7 +54,7 @@ export class ModelFileService {
         this.createSseObserver();
     }
 
-    private createSseObserver(){
+    private createSseObserver() {
         const observable = Observable.create(observer => {
             const eventSource = new EventSource(this.MODEL_STREAM_URL);
             SseUtil.addSseListener("init", eventSource, observer);
@@ -78,7 +78,7 @@ export class ModelFileService {
                 this._files.next(this._files.getValue().clear());
 
                 // Retry after a delay
-                setTimeout(() => {this.createSseObserver()}, this.MODEL_STREAM_RETRY_INTERVAL_MS);
+                setTimeout(() => {this.createSseObserver(); }, this.MODEL_STREAM_RETRY_INTERVAL_MS);
             }
         });
     }
@@ -90,45 +90,45 @@ export class ModelFileService {
      */
     private parseEvent(name: string, data: string) {
         this._logger.debug("Received event: " + name);
-        if(name == "init") {
+        if (name === "init") {
             // Init event receives an array of ModelFiles
-            let parsed = JSON.parse(data);
-            let newFiles: ModelFile[] = [];
-            for(let file of parsed) {
+            const parsed = JSON.parse(data);
+            const newFiles: ModelFile[] = [];
+            for (const file of parsed) {
                 newFiles.push(new ModelFile(file));
             }
             // Replace the entire model
-            let newMap = Immutable.Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
+            const newMap = Immutable.Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
             this._files.next(newMap);
             this._logger.debug("New model: %O", this._files.getValue().toJS());
-        } else if(name == "added") {
+        } else if (name === "added") {
             // Added event receives old and new ModelFiles
             // Only new file is relevant
-            let parsed: {new_file: any} = JSON.parse(data);
-            let file = new ModelFile(parsed.new_file);
-            if(this._files.getValue().has(file.name)) {
-                this._logger.error("ModelFile named " + file.name + " already exists")
+            const parsed: {new_file: any} = JSON.parse(data);
+            const file = new ModelFile(parsed.new_file);
+            if (this._files.getValue().has(file.name)) {
+                this._logger.error("ModelFile named " + file.name + " already exists");
             } else {
                 this._files.next(this._files.getValue().set(file.name, file));
                 this._logger.debug("Added file: %O", file.toJS());
             }
-        } else if(name == "removed") {
+        } else if (name === "removed") {
             // Removed event receives old and new ModelFiles
             // Only old file is relevant
-            let parsed: {old_file: any} = JSON.parse(data);
-            let file = new ModelFile(parsed.old_file);
-            if(this._files.getValue().has(file.name)) {
+            const parsed: {old_file: any} = JSON.parse(data);
+            const file = new ModelFile(parsed.old_file);
+            if (this._files.getValue().has(file.name)) {
                 this._files.next(this._files.getValue().remove(file.name));
                 this._logger.debug("Removed file: %O", file.toJS());
             } else {
                 this._logger.error("Failed to find ModelFile named " + file.name);
             }
-        } else if(name == "updated") {
+        } else if (name === "updated") {
             // Updated event received old and new ModelFiles
             // We will only use the new one here
-            let parsed: {new_file: any} = JSON.parse(data);
-            let file = new ModelFile(parsed.new_file);
-            if(this._files.getValue().has(file.name)) {
+            const parsed: {new_file: any} = JSON.parse(data);
+            const file = new ModelFile(parsed.new_file);
+            if (this._files.getValue().has(file.name)) {
                 this._files.next(this._files.getValue().set(file.name, file));
                 this._logger.debug("Updated file: %O", file.toJS());
             } else {
@@ -137,7 +137,7 @@ export class ModelFileService {
         }
     }
 
-    get files() : Observable<Immutable.Map<string, ModelFile>> {
+    get files(): Observable<Immutable.Map<string, ModelFile>> {
         return this._files.asObservable();
     }
 
@@ -148,7 +148,7 @@ export class ModelFileService {
      */
     public queue(file: ModelFile): Observable<ModelFileReaction> {
         this._logger.debug("Queue model file: " + file.name);
-        let url: string = "/server/command/queue/" + file.name;
+        const url: string = "/server/command/queue/" + file.name;
         return this.sendRequest(url);
     }
 
@@ -159,7 +159,7 @@ export class ModelFileService {
      */
     public stop(file: ModelFile): Observable<ModelFileReaction> {
         this._logger.debug("Stop model file: " + file.name);
-        let url: string = "/server/command/stop/" + file.name;
+        const url: string = "/server/command/stop/" + file.name;
         return this.sendRequest(url);
     }
 
@@ -170,7 +170,7 @@ export class ModelFileService {
      */
     private sendRequest(url: string): Observable<ModelFileReaction> {
         return Observable.create(observer => {
-            this._http.get(url, {responseType: 'text'}).subscribe(
+            this._http.get(url, {responseType: "text"}).subscribe(
                 data => {
                     this._logger.debug("Http response: " + data);
                     observer.next(new ModelFileReaction(true, null));

@@ -1,7 +1,7 @@
-import {Injectable} from '@angular/core';
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient} from '@angular/common/http';
+import {HttpClient} from "@angular/common/http";
 
 import {Config, IConfig} from "./config";
 import {LoggerService} from "../common/logger.service";
@@ -17,7 +17,7 @@ import {Localization} from "../common/localization";
 export class ConfigService extends BaseWebService {
     private readonly CONFIG_GET_URL = "/server/config/get";
     private readonly CONFIG_SET_URL =
-        (section, option, value) => `/server/config/set/${section}/${option}/${value}`;
+        (section, option, value) => `/server/config/set/${section}/${option}/${value}`
 
     private _config: BehaviorSubject<Config> = new BehaviorSubject(null);
 
@@ -43,13 +43,13 @@ export class ConfigService extends BaseWebService {
      * @returns {WebReaction}
      */
     public set(section: string, option: string, value: any): Observable<WebReaction> {
-        let valueStr: string = value;
-        let currentConfig = this._config.getValue();
-        if(!currentConfig.has(section) || !currentConfig.get(section).has(option)) {
+        const valueStr: string = value;
+        const currentConfig = this._config.getValue();
+        if (!currentConfig.has(section) || !currentConfig.get(section).has(option)) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(false, null, `Config has no option named ${section}.${option}`));
             });
-        } else if(valueStr.length == 0) {
+        } else if (valueStr.length == 0) {
             return Observable.create(observer => {
                 observer.next(new WebReaction(
                     false, null, Localization.Notification.CONFIG_VALUE_BLANK(section, option))
@@ -57,15 +57,15 @@ export class ConfigService extends BaseWebService {
             });
         } else {
             // Double-encode the value
-            let valueEncoded = encodeURIComponent(encodeURIComponent(valueStr));
-            let url = this.CONFIG_SET_URL(section, option, valueEncoded);
-            let obs = this.sendRequest(url);
+            const valueEncoded = encodeURIComponent(encodeURIComponent(valueStr));
+            const url = this.CONFIG_SET_URL(section, option, valueEncoded);
+            const obs = this.sendRequest(url);
             obs.subscribe({
                 next: reaction => {
-                    if(reaction.success) {
+                    if (reaction.success) {
                         // Update our copy and notify clients
-                        let config = this._config.getValue();
-                        let newConfig = new Config(config.updateIn([section, option], (_) => value));
+                        const config = this._config.getValue();
+                        const newConfig = new Config(config.updateIn([section, option], (_) => value));
                         this._config.next(newConfig);
                     }
                 }
@@ -75,7 +75,7 @@ export class ConfigService extends BaseWebService {
     }
 
     protected onConnectedChanged(connected: boolean): void {
-        if(connected) {
+        if (connected) {
             // Retry the get
             this.getConfig();
         } else {
@@ -88,8 +88,8 @@ export class ConfigService extends BaseWebService {
         this._logger.debug("Getting config...");
         this.sendRequest(this.CONFIG_GET_URL).subscribe({
             next: reaction => {
-                if(reaction.success) {
-                    let config_json: IConfig = JSON.parse(reaction.data);
+                if (reaction.success) {
+                    const config_json: IConfig = JSON.parse(reaction.data);
                     this._config.next(new Config(config_json));
                 } else {
                     this._config.next(null);
@@ -107,7 +107,7 @@ export let configServiceFactory = (
     _logger: LoggerService,
     _http: HttpClient) =>
 {
-  let configService = new ConfigService(_statusService, _logger, _http);
+  const configService = new ConfigService(_statusService, _logger, _http);
   configService.onInit();
   return configService;
 };

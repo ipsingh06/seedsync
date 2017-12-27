@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 
-import * as Immutable from 'immutable';
+import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
-import {ViewFile} from "./view-file"
+import {ViewFile} from "./view-file";
 import {ViewFileFilterCriteria, ViewFileService} from "./view-file.service";
 import {ViewFileFilter} from "./view-file-filter";
 
@@ -38,7 +38,7 @@ class NameFilterCriteria implements ViewFileFilterCriteria {
 
     set name(name: string) {
         this._name = name;
-        let query = this._name.toLowerCase();
+        const query = this._name.toLowerCase();
         this._queryCandidates = [
             query,
             query.replace(/\s/g, "."),
@@ -46,8 +46,8 @@ class NameFilterCriteria implements ViewFileFilterCriteria {
     }
 
     meetsCriteria(viewFile: ViewFile): boolean {
-        if(this._name == null || this._name == "") return true;
-        let search = viewFile.name.toLowerCase();
+        if (this._name == null || this._name == "") return true;
+        const search = viewFile.name.toLowerCase();
         return this._queryCandidates.reduce(
             (a: boolean, b: string) => a || search.indexOf(b) >= 0,
             false  // initial value
@@ -92,9 +92,9 @@ export class ViewFileFilterService {
      * @param {ViewFile.Status} status, or null for disabled/all
      */
     public filterStatus(status: ViewFile.Status) {
-        if(this._statusFilter.status == status) return;
+        if (this._statusFilter.status == status) return;
 
-        if(this.isStatusEnabled(status)) {
+        if (this.isStatusEnabled(status)) {
             this._logger.debug("Setting status filter: %O", status == null ? "all" : status);
             this._statusFilter.status = status;
             // Note: updateState() will be called when filters are reapplied
@@ -115,32 +115,32 @@ export class ViewFileFilterService {
      * @param {string} name
      */
     public filterName(name: string) {
-        if(this._nameFilter.name == name) return;
+        if (this._nameFilter.name == name) return;
 
         this._nameFilter.name = name;
         this._viewFileService.reapplyFilters();
     }
 
     private isStatusEnabled(status: ViewFile.Status) {
-        if(status == null) return true;
+        if (status == null) return true;
         return this._viewFiles.findIndex(f => f.status == status) >= 0;
     }
 
     private updateState() {
-        let downloadedEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADED);
-        let downloadingEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADING);
-        let queuedEn = this.isStatusEnabled(ViewFile.Status.QUEUED);
-        let stoppedEn = this.isStatusEnabled(ViewFile.Status.STOPPED);
-        let defaultEn = this.isStatusEnabled(ViewFile.Status.DEFAULT);
+        const downloadedEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADED);
+        const downloadingEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADING);
+        const queuedEn = this.isStatusEnabled(ViewFile.Status.QUEUED);
+        const stoppedEn = this.isStatusEnabled(ViewFile.Status.STOPPED);
+        const defaultEn = this.isStatusEnabled(ViewFile.Status.DEFAULT);
 
-        let allSel = this._statusFilter.status == null;
-        let downloadedSel = this._statusFilter.status == ViewFile.Status.DOWNLOADED;
-        let downloadingSel = this._statusFilter.status == ViewFile.Status.DOWNLOADING;
-        let queuedSel = this._statusFilter.status == ViewFile.Status.QUEUED;
-        let stoppedSel = this._statusFilter.status == ViewFile.Status.STOPPED;
-        let defaultSel = this._statusFilter.status == ViewFile.Status.DEFAULT;
+        const allSel = this._statusFilter.status == null;
+        const downloadedSel = this._statusFilter.status == ViewFile.Status.DOWNLOADED;
+        const downloadingSel = this._statusFilter.status == ViewFile.Status.DOWNLOADING;
+        const queuedSel = this._statusFilter.status == ViewFile.Status.QUEUED;
+        const stoppedSel = this._statusFilter.status == ViewFile.Status.STOPPED;
+        const defaultSel = this._statusFilter.status == ViewFile.Status.DEFAULT;
 
-        let filter: ViewFileFilter = new ViewFileFilter({
+        const filter: ViewFileFilter = new ViewFileFilter({
             downloadedFilterEnabled: downloadedEn,
             downloadingFilterEnabled: downloadingEn,
             queuedFilterEnabled: queuedEn,
