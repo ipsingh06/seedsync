@@ -3,16 +3,15 @@ import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 
 import {LoggerService} from "../common/logger.service";
-import {SseUtil} from "../common/sse.util";
 import {Localization} from "../common/localization";
 import {ServerStatus, ServerStatusJson} from "./server-status";
+import {BaseStreamService} from "../common/base-stream.service";
 
 
 @Injectable()
-export class ServerStatusService {
+export class ServerStatusService extends BaseStreamService {
 
     private readonly STATUS_STREAM_URL = "/server/status-stream";
-    private readonly STATUS_STREAM_RETRY_INTERVAL_MS = 3000;
 
     private _status: BehaviorSubject<ServerStatus> =
         new BehaviorSubject(new ServerStatus({
@@ -23,45 +22,30 @@ export class ServerStatusService {
         }));
 
     constructor(private _logger: LoggerService,
-                private _zone: NgZone) {
-        this.init();
+                _zone: NgZone) {
+        super(_zone);
+
+        this.streamUrl = this.STATUS_STREAM_URL;
+
+        super.registerEvent("status");
     }
 
-    private init() {
-        this.createSseObserver();
+    protected onEvent(eventName: string, data: string) {
+        this.parseStatus(data);
     }
 
-    private createSseObserver() {
-        // Observable-SSE code from https://stackoverflow.com/a/36827897/8571324
-        const observable = Observable.create(observer => {
-            const eventSource = new EventSource(this.STATUS_STREAM_URL);
-            SseUtil.addSseListener("status", eventSource, observer);
+    protected onError(err: any) {
+        // Log the error
+        this._logger.error("Error in status stream: %O", err);
 
-            eventSource.onerror = x => this._zone.run(() => observer.error(x));
-
-            return () => {
-                eventSource.close();
-            };
-        });
-        observable.subscribe({
-            next: (x) => this.parseStatus(x["data"]),
-            error: err => {
-                // Log the error
-                this._logger.error("SSE Error: %O", err);
-
-                // Notify the clients
-                this._status.next(new ServerStatus({
-                    connected: false,
-                    server: {
-                        up: false,
-                        errorMessage: Localization.Error.SERVER_DISCONNECTED
-                    }
-                }));
-
-                // Retry after a delay
-                setTimeout(() => {this.createSseObserver(); }, this.STATUS_STREAM_RETRY_INTERVAL_MS);
+        // Notify the clients
+        this._status.next(new ServerStatus({
+            connected: false,
+            server: {
+                up: false,
+                errorMessage: Localization.Error.SERVER_DISCONNECTED
             }
-        });
+        }));
     }
 
     /**
@@ -84,3 +68,21 @@ export class ServerStatusService {
         return this._status.asObservable();
     }
 }
+
+/**
+ * ServerStatusService factory and provider
+ */
+export let serverStatusServiceFactory = (
+        _logger: LoggerService,
+        _zone: NgZone) => {
+    const serverStatusService = new ServerStatusService(_logger, _zone);
+    serverStatusService.onInit();
+    return serverStatusService;
+};
+
+// noinspection JSUnusedGlobalSymbols
+export let ServerStatusServiceProvider = {
+    provide: ServerStatusService,
+    useFactory: serverStatusServiceFactory,
+    deps: [LoggerService, NgZone]
+};

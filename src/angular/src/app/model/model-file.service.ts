@@ -7,7 +7,7 @@ import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
 import {ModelFile} from "./model-file";
-import {SseUtil} from "../common/sse.util";
+import {BaseStreamService} from "../common/base-stream.service";
 
 
 /**
@@ -36,51 +36,36 @@ export class ModelFileReaction {
  *            -apps-using-rxjs-observable-data-services-pitfalls-to-avoid
  */
 @Injectable()
-export class ModelFileService {
+export class ModelFileService extends BaseStreamService {
 
     private readonly MODEL_STREAM_URL = "/server/model-stream";
-    private readonly MODEL_STREAM_RETRY_INTERVAL_MS = 3000;
 
     private _files: BehaviorSubject<Immutable.Map<string, ModelFile>> =
         new BehaviorSubject(Immutable.Map<string, ModelFile>());
 
     constructor(private _logger: LoggerService,
                 private _http: HttpClient,
-                private _zone: NgZone) {
-        this.init();
+                _zone: NgZone) {
+        super(_zone);
+
+        this.streamUrl = this.MODEL_STREAM_URL;
+
+        super.registerEvent("init");
+        super.registerEvent("added");
+        super.registerEvent("removed");
+        super.registerEvent("updated");
     }
 
-    private init() {
-        this.createSseObserver();
+    protected onEvent(eventName: string, data: string) {
+        this.parseEvent(eventName, data);
     }
 
-    private createSseObserver() {
-        const observable = Observable.create(observer => {
-            const eventSource = new EventSource(this.MODEL_STREAM_URL);
-            SseUtil.addSseListener("init", eventSource, observer);
-            SseUtil.addSseListener("added", eventSource, observer);
-            SseUtil.addSseListener("removed", eventSource, observer);
-            SseUtil.addSseListener("updated", eventSource, observer);
+    protected onError(err: any) {
+        // Log the error
+        this._logger.error("Error in model stream: %O", err);
 
-            eventSource.onerror = x => this._zone.run(() => observer.error(x));
-
-            return () => {
-                eventSource.close();
-            };
-        });
-        observable.subscribe({
-            next: (x) => this.parseEvent(x["event"], x["data"]),
-            error: err => {
-                // Log the error
-                this._logger.error("SSE Error: %O", err);
-
-                // Update clients by clearing the model
-                this._files.next(this._files.getValue().clear());
-
-                // Retry after a delay
-                setTimeout(() => {this.createSseObserver(); }, this.MODEL_STREAM_RETRY_INTERVAL_MS);
-            }
-        });
+        // Update clients by clearing the model
+        this._files.next(this._files.getValue().clear());
     }
 
     /**
@@ -193,3 +178,22 @@ export class ModelFileService {
         });
     }
 }
+
+/**
+ * ModelFileService factory and provider
+ */
+export let modelFileServiceFactory = (
+        _logger: LoggerService,
+        _http: HttpClient,
+        _zone: NgZone) => {
+    const modelFileService = new ModelFileService(_logger, _http, _zone);
+    modelFileService.onInit();
+    return modelFileService;
+};
+
+// noinspection JSUnusedGlobalSymbols
+export let ModelFileServiceProvider = {
+    provide: ModelFileService,
+    useFactory: modelFileServiceFactory,
+    deps: [LoggerService, HttpClient, NgZone]
+};

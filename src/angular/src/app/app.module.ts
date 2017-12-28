@@ -9,7 +9,7 @@ import {environment} from "../environments/environment";
 import {LoggerService} from "./common/logger.service";
 import {FileListComponent} from "./pages/files/file-list.component";
 import {FileComponent} from "./pages/files/file.component";
-import {ModelFileService} from "./model/model-file.service";
+import {ModelFileServiceProvider} from "./model/model-file.service";
 import {ViewFileService} from "./view/view-file.service";
 import {FileSizePipe} from "./common/file-size.pipe";
 import {EtaPipe} from "./common/eta.pipe";
@@ -21,7 +21,7 @@ import {FilesPageComponent} from "./pages/files/files-page.component";
 import {HeaderComponent} from "./header.component";
 import {SidebarComponent} from "./sidebar.component";
 import {SettingsPageComponent} from "./pages/settings/settings-page.component";
-import {ServerStatusService} from "./other/server-status.service";
+import {ServerStatusServiceProvider} from "./other/server-status.service";
 import {ConfigServiceProvider} from "./other/config.service";
 import {OptionComponent} from "./pages/settings/option.component";
 import {NotificationService} from "./other/notification.service";
@@ -73,10 +73,10 @@ import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
     ],
     providers: [{provide: RouteReuseStrategy, useClass: CachedReuseStrategy},
                 LoggerService,
-                ModelFileService,
+                ModelFileServiceProvider,
                 ViewFileService,
                 ViewFileFilterService,
-                ServerStatusService,
+                ServerStatusServiceProvider,
                 ConfigServiceProvider,
                 NotificationService,
                 ServerCommandServiceProvider,
