@@ -3,7 +3,6 @@ import {Observable} from "rxjs/Observable";
 
 import * as Immutable from "immutable";
 
-import {LoggerService} from "../../common/logger.service";
 import {AutoQueueService} from "../../other/autoqueue.service";
 import {AutoQueuePattern} from "../../other/autoqueue-pattern";
 import {Notification} from "../../other/notification";
@@ -27,8 +26,7 @@ export class AutoQueuePageComponent implements OnInit {
 
     public enabled: boolean;
 
-    constructor(private _logger: LoggerService,
-                private _autoqueueService: AutoQueueService,
+    constructor(private _autoqueueService: AutoQueueService,
                 private _notifService: NotificationService,
                 private _statusService: ServerStatusService) {
         this.patterns = _autoqueueService.patterns;

@@ -13,7 +13,7 @@
                [disabled]="value == null"
                [ngModel]="value"
                (ngModelChange)="onChange($event)" />
-        <span *ngIf="description != null"
+        <span *ngIf="description"
               class="description">{{description}}</span>
     </label>
 
@@ -26,7 +26,7 @@
                [ngModel]="value"
            (ngModelChange)="onChange($event)" />
         <span class="name">{{label}}</span>
-        <span *ngIf="description != null"
+        <span *ngIf="description"
               class="description">{{description}}</span>
     </label>
 </div>

@@ -14,6 +14,9 @@ class ServerStatusServiceStub {
     status: Subject<ServerStatus> = new Subject();
 }
 
+// noinspection JSUnusedLocalSymbols
+const DoNothing = {next: reaction => {}};
+
 
 describe("Testing autoqueue service", () => {
     let httpMock: HttpTestingController;
@@ -187,15 +190,15 @@ describe("Testing autoqueue service", () => {
     it("should send correct GET requests on add pattern", fakeAsync(() => {
         httpMock.expectOne("/server/autoqueue/get").flush([]);
 
-        aqService.add("test").subscribe({next: value => {}});
+        aqService.add("test").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/add/test").flush("{}");
-        aqService.add("test space").subscribe({next: value => {}});
+        aqService.add("test space").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/add/test%2520space").flush("{}");
-        aqService.add("test/slash").subscribe({next: value => {}});
+        aqService.add("test/slash").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/add/test%252Fslash").flush("{}");
-        aqService.add("test\"doublequote").subscribe({next: value => {}});
+        aqService.add("test\"doublequote").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/add/test%2522doublequote").flush("{}");
-        aqService.add("/test/leadingslash").subscribe({next: value => {}});
+        aqService.add("/test/leadingslash").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/add/%252Ftest%252Fleadingslash").flush("{}");
 
         httpMock.verify();
@@ -271,7 +274,7 @@ describe("Testing autoqueue service", () => {
             }
         });
 
-        aqService.add("one").subscribe({next: reaction => {}});
+        aqService.add("one").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/add/one").flush("{}");
 
         tick();
@@ -296,7 +299,7 @@ describe("Testing autoqueue service", () => {
             }
         });
 
-        aqService.add("one").subscribe({next: reaction => {}});
+        aqService.add("one").subscribe(DoNothing);
         httpMock.expectNone("/server/autoqueue/add/one");
 
         tick();
@@ -334,15 +337,15 @@ describe("Testing autoqueue service", () => {
             new AutoQueuePattern({pattern: "/test/leadingslash"})
         ]);
 
-        aqService.remove("test").subscribe({next: value => {}});
+        aqService.remove("test").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/remove/test").flush("{}");
-        aqService.remove("test space").subscribe({next: value => {}});
+        aqService.remove("test space").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/remove/test%2520space").flush("{}");
-        aqService.remove("test/slash").subscribe({next: value => {}});
+        aqService.remove("test/slash").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/remove/test%252Fslash").flush("{}");
-        aqService.remove("test\"doublequote").subscribe({next: value => {}});
+        aqService.remove("test\"doublequote").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/remove/test%2522doublequote").flush("{}");
-        aqService.remove("/test/leadingslash").subscribe({next: value => {}});
+        aqService.remove("/test/leadingslash").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/remove/%252Ftest%252Fleadingslash").flush("{}");
 
         httpMock.verify();
@@ -426,7 +429,7 @@ describe("Testing autoqueue service", () => {
             }
         });
 
-        aqService.remove("one").subscribe({next: reaction => {}});
+        aqService.remove("one").subscribe(DoNothing);
         httpMock.expectOne("/server/autoqueue/remove/one").flush("{}");
 
         tick();
@@ -451,7 +454,7 @@ describe("Testing autoqueue service", () => {
             }
         });
 
-        aqService.remove("two").subscribe({next: reaction => {}});
+        aqService.remove("two").subscribe(DoNothing);
         httpMock.expectNone("/server/autoqueue/remove/two");
 
         tick();

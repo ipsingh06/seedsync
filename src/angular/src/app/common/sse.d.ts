@@ -10,13 +10,16 @@ declare module sse {
     enum ReadyState {
 
         /** The connection has not yet been established, or it was closed and the user agent is reconnecting. */
+        // noinspection JSUnusedGlobalSymbols
         CONNECTING = 0,
 
         /** The user agent has an open connection and is dispatching events as it receives them. */
+        // noinspection JSUnusedGlobalSymbols
         OPEN = 1,
 
         /** The connection is not open, and the user agent is not trying to reconnect.
          * Either there was a fatal error or the close() method was invoked. */
+        // noinspection JSUnusedGlobalSymbols
         CLOSED = 2
     }
 

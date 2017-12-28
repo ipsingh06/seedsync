@@ -48,6 +48,7 @@ export class ViewFile extends ViewFileRecord implements IViewFile {
     status: ViewFile.Status;
     downloadingSpeed: number;
     eta: number;
+    // noinspection JSUnusedGlobalSymbols
     fullPath: string;
     isSelected: boolean;
     isQueueable: boolean;

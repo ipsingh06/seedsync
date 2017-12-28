@@ -4,7 +4,6 @@ import {BehaviorSubject} from "rxjs/Rx";
 
 import * as Immutable from "immutable";
 
-import {LoggerService} from "../common/logger.service";
 import {Notification} from "./notification";
 
 
@@ -35,7 +34,7 @@ export class NotificationService {
         return b.timestamp - a.timestamp;
     }
 
-    constructor(private _logger: LoggerService) {}
+    constructor() {}
 
     get notifications(): Observable<Immutable.List<Notification>> {
         return this._notificationsSubject.asObservable();

@@ -24,6 +24,7 @@ export class FileListComponent {
         this.files = viewFileService.filteredFiles;
     }
 
+    // noinspection JSUnusedLocalSymbols
     /**
      * Used for trackBy in ngFor
      * @param index

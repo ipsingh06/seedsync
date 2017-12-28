@@ -5,7 +5,6 @@ import * as Immutable from "immutable";
 
 import {LoggerService} from "./common/logger.service";
 import {ServerStatusService} from "./other/server-status.service";
-import {ServerStatus} from "./other/server-status";
 import {Notification} from "./other/notification";
 import {NotificationService} from "./other/notification.service";
 

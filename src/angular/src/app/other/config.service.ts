@@ -111,6 +111,7 @@ export let configServiceFactory = (
   return configService;
 };
 
+// noinspection JSUnusedGlobalSymbols
 export let ConfigServiceProvider = {
     provide: ConfigService,
     useFactory: configServiceFactory,

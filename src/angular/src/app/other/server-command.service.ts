@@ -20,6 +20,7 @@ export class ServerCommandService extends BaseWebService {
         super(_statusService, _logger, _http);
     }
 
+    // noinspection JSUnusedLocalSymbols
     protected onConnectedChanged(connected: boolean): void {
         // Nothing to do
     }
@@ -45,6 +46,7 @@ export let serverCommandServiceFactory = (
   return serverCommandService;
 };
 
+// noinspection JSUnusedGlobalSymbols
 export let ServerCommandServiceProvider = {
     provide: ServerCommandService,
     useFactory: serverCommandServiceFactory,

@@ -182,7 +182,7 @@ describe("Testing base web service", () => {
 
     it("should NOT issue a GET for sendRequest when disconnected", () => {
         // Keep service disconnected
-        baseWebService.sendRequest("/server/request").subscribe({next: value => {}});
+        baseWebService.sendRequest("/server/request").subscribe({next: () => {}});
         httpMock.expectNone("/server/request");
         httpMock.verify();
     });

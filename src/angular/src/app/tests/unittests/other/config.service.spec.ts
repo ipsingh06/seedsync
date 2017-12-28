@@ -14,6 +14,9 @@ class ServerStatusServiceStub {
     status: Subject<ServerStatus> = new Subject();
 }
 
+// noinspection JSUnusedLocalSymbols
+const DoNothing = {next: reaction => {}};
+
 class TestConfigService extends ConfigService {
     private _firstConnection = false;
 
@@ -200,31 +203,31 @@ describe("Testing config service", () => {
         httpMock.expectOne("/server/config/get").flush("{}");
 
         // boolean
-        configService.set("general", "debug", true).subscribe({next: reaction => {}});
+        configService.set("general", "debug", true).subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/true").flush("{}");
-        configService.set("general", "debug", false).subscribe({next: reaction => {}});
+        configService.set("general", "debug", false).subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/false").flush("{}");
 
         // integer
-        configService.set("general", "debug", 0).subscribe({next: reaction => {}});
+        configService.set("general", "debug", 0).subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/0").flush("{}");
-        configService.set("general", "debug", 1000).subscribe({next: reaction => {}});
+        configService.set("general", "debug", 1000).subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/1000").flush("{}");
-        configService.set("general", "debug", -1000).subscribe({next: reaction => {}});
+        configService.set("general", "debug", -1000).subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/-1000").flush("{}");
 
         // string
-        configService.set("general", "debug", "test").subscribe({next: reaction => {}});
+        configService.set("general", "debug", "test").subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/test").flush("{}");
-        configService.set("general", "debug", "test space").subscribe({next: reaction => {}});
+        configService.set("general", "debug", "test space").subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/test%2520space").flush("{}");
-        configService.set("general", "debug", "test/slash").subscribe({next: reaction => {}});
+        configService.set("general", "debug", "test/slash").subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/test%252Fslash").flush("{}");
         configService.set("general", "debug", "test\"doublequote").subscribe(
-            {next: reaction => {}}
+            DoNothing
         );
         httpMock.expectOne("/server/config/set/general/debug/test%2522doublequote").flush("{}");
-        configService.set("general", "debug", "/test/leadingslash").subscribe({next: reaction => {}});
+        configService.set("general", "debug", "/test/leadingslash").subscribe(DoNothing);
         httpMock.expectOne("/server/config/set/general/debug/%252Ftest%252Fleadingslash").flush("{}");
 
         httpMock.verify();
@@ -298,7 +301,7 @@ describe("Testing config service", () => {
         });
 
         // issue the set
-        configService.set("general", "debug", true).subscribe({next: reaction => {}});
+        configService.set("general", "debug", true).subscribe(DoNothing);
 
         // set request
         httpMock.expectOne("/server/config/set/general/debug/true").flush("");
@@ -323,7 +326,7 @@ describe("Testing config service", () => {
         });
 
         // issue the set
-        configService.set("general", "debug", true).subscribe({next: reaction => {}});
+        configService.set("general", "debug", true).subscribe(DoNothing);
 
         // set request
         httpMock.expectOne("/server/config/set/general/debug/true").flush(

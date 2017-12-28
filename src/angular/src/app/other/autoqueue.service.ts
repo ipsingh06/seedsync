@@ -160,6 +160,7 @@ export let autoQueueServiceFactory = (
   return autoQueueService;
 };
 
+// noinspection JSUnusedGlobalSymbols
 export let AutoQueueServiceProvider = {
     provide: AutoQueueService,
     useFactory: autoQueueServiceFactory,

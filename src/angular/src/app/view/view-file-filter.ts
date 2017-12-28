@@ -44,6 +44,7 @@ export class ViewFileFilter extends ViewFileFilterRecord implements IViewFileFil
     downloadingFilterEnabled: boolean;
     queuedFilterEnabled: boolean;
     stoppedFilterEnabled: boolean;
+    // noinspection JSUnusedGlobalSymbols
     defaultFilterEnabled: boolean;
 
     allFilterSelected: boolean;
@@ -51,6 +52,7 @@ export class ViewFileFilter extends ViewFileFilterRecord implements IViewFileFil
     downloadingFilterSelected: boolean;
     queuedFilterSelected: boolean;
     stoppedFilterSelected: boolean;
+    // noinspection JSUnusedGlobalSymbols
     defaultFilterSelected: boolean;
 
     constructor(props) {

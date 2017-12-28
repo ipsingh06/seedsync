@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, Component} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
-import {LoggerService} from "../../common/logger.service";
 import {ViewFileFilterService} from "../../view/view-file-filter.service";
 import {ViewFileFilter} from "../../view/view-file-filter";
 import {ViewFile} from "../../view/view-file";
@@ -19,8 +18,7 @@ export class FileListFilterComponent {
 
     public filterName = "";
 
-    constructor(private _logger: LoggerService,
-                private viewFileFilterService: ViewFileFilterService) {
+    constructor(private viewFileFilterService: ViewFileFilterService) {
         this.filter = this.viewFileFilterService.filter;
     }
 
@@ -44,6 +42,7 @@ export class FileListFilterComponent {
         this.viewFileFilterService.filterStatus(ViewFile.Status.STOPPED);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     onFilterDefault() {
         this.viewFileFilterService.filterStatus(ViewFile.Status.DEFAULT);
     }
