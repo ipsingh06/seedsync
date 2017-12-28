@@ -3,7 +3,7 @@ import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from "@
 import {ViewFile} from "../../view/view-file";
 
 @Component({
-    selector: "[file]",
+    selector: "app-file",
     providers: [],
     templateUrl: "./file.component.html",
     styleUrls: ["./file.component.scss"],

@@ -6,10 +6,12 @@
         <div class="eta">ETA</div>
         <div class="size">Size</div>
     </div>
-    <div file [file]="file"
-         *ngFor="let file of files | async; trackBy: identify"
-         (click)="onSelect(file)"
-         (queueEvent)="onQueue($event)"
-         (stopEvent)="onStop($event)">
+    <div *ngFor="let file of files | async; trackBy: identify">
+        <app-file
+            [file]="file"
+            (click)="onSelect(file)"
+            (queueEvent)="onQueue($event)"
+            (stopEvent)="onStop($event)">
+        </app-file>
     </div>
 </div>

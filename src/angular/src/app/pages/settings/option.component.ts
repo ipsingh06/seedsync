@@ -2,7 +2,7 @@ import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter, OnInit}
 import {Subject} from "rxjs/Subject";
 
 @Component({
-    selector: "[option]",
+    selector: "app-option",
     providers: [],
     templateUrl: "./option.component.html",
     styleUrls: ["./option.component.scss"],

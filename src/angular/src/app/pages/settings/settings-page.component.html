@@ -1,13 +1,14 @@
 <ng-template #optionsList let-header="header" let-options="options">
     <h1>{{header}}</h1>
     <hr>
-    <div option
-         *ngFor="let option of options"
-         [type]="option.type"
-         [label]="option.label"
-         [description]="option.description"
-         [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
-         (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
+    <div *ngFor="let option of options">
+        <app-option
+            [type]="option.type"
+            [label]="option.label"
+            [description]="option.description"
+            [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
+            (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
+        </app-option>
     </div>
 </ng-template>
 
