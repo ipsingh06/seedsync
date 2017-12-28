@@ -33,7 +33,7 @@ class Scp:
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("Scp")
 
-    def copy(self, local_path:str, remote_path:str):
+    def copy(self, local_path: str, remote_path: str):
         """
         Copies local file at local_path to remote remote_path
         :param local_path:

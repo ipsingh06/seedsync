@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 import bottle
 from bottle import static_file
 
-from common import Context, overrides
+from common import Context
 from controller import Controller
 
 

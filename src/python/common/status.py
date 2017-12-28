@@ -25,6 +25,8 @@ class BaseStatus:
     """
     Provides functionality to dynamically create properties
     """
+
+    # noinspection PyProtectedMember
     @classmethod
     def _create_property(cls, name: str) -> property:
         return property(fget=lambda s: s._get_property(name),

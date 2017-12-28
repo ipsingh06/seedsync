@@ -42,7 +42,7 @@ class Job(threading.Thread, ABC):
             # noinspection PyBroadException
             try:
                 self.execute()
-            except Exception as e:
+            except Exception:
                 self.exc_info = sys.exc_info()
                 self.logger.exception("Caught exception in job {}".format(self.name))
                 # break out of run loop and proceed to cleanup

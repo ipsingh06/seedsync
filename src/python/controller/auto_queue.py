@@ -239,4 +239,4 @@ class AutoQueue:
         :return:
         """
         return file.remote_size is not None and \
-                file.state == ModelFile.State.DEFAULT
+            file.state == ModelFile.State.DEFAULT

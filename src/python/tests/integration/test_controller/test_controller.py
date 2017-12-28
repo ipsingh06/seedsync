@@ -224,6 +224,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_address = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
+        # noinspection PyUnusedLocal
         with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
@@ -235,6 +236,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_username = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
+        # noinspection PyUnusedLocal
         with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
@@ -246,6 +248,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
+        # noinspection PyUnusedLocal
         with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
@@ -257,6 +260,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.local_path = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
+        # noinspection PyUnusedLocal
         with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()
@@ -268,6 +272,7 @@ class TestController(unittest.TestCase):
         self.context.config.lftp.remote_path_to_scan_script = "<bad>"
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
+        # noinspection PyUnusedLocal
         with self.assertRaises(AppError) as error:
             while True:
                 self.controller.process()

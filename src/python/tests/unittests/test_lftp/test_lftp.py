@@ -9,9 +9,10 @@ import tempfile
 import unittest
 import time
 
-from lftp import Lftp, LftpJobStatus, LftpError
+from lftp import Lftp, LftpJobStatus
 
 
+# noinspection PyPep8Naming
 class TestLftp(unittest.TestCase):
     temp_dir = None
 

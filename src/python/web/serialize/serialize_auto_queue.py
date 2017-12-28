@@ -1,7 +1,6 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 import json
-import collections
 from typing import List
 
 from controller import AutoQueuePattern
