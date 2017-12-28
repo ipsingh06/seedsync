@@ -1,7 +1,7 @@
 import {Component} from "@angular/core";
 
 @Component({
-    selector: "files-page",
+    selector: "app-files-page",
     templateUrl: "./files-page.component.html"
 })
 

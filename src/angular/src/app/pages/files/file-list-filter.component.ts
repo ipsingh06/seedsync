@@ -7,7 +7,7 @@ import {ViewFileFilter} from "../../view/view-file-filter";
 import {ViewFile} from "../../view/view-file";
 
 @Component({
-    selector: "file-list-filter",
+    selector: "app-file-list-filter",
     providers: [],
     templateUrl: "./file-list-filter.component.html",
     styleUrls: ["./file-list-filter.component.scss"],

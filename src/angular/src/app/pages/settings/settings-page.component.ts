@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component} from "@angular/core";
+import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
 import {LoggerService} from "../../common/logger.service";
@@ -16,14 +16,14 @@ import {
 } from "./options-list";
 
 @Component({
-    selector: "settings-page",
+    selector: "app-settings-page",
     templateUrl: "./settings-page.component.html",
     styleUrls: ["./settings-page.component.scss"],
     providers: [],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class SettingsPageComponent {
+export class SettingsPageComponent implements OnInit {
     public OPTIONS_CONTEXT_SERVER = OPTIONS_CONTEXT_SERVER;
     public OPTIONS_CONTEXT_DISCOVERY = OPTIONS_CONTEXT_DISCOVERY;
     public OPTIONS_CONTEXT_CONNECTIONS = OPTIONS_CONTEXT_CONNECTIONS;

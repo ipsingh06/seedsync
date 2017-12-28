@@ -31,7 +31,7 @@
     </div>
 
     <div id="commands">
-        <div class="button" click-stop-propagation [attr.disabled]="commandsEnabled ? null : true"
+        <div class="button" appClickStopPropagation [attr.disabled]="commandsEnabled ? null : true"
              (click)="!commandsEnabled || onCommandRestart()">
             <span class="icon glyphicon glyphicon-refresh"></span>
             <span class="text">Restart</span>

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component} from "@angular/core";
+import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
 import * as Immutable from "immutable";
@@ -13,14 +13,14 @@ import {ServerStatus} from "../../other/server-status";
 
 
 @Component({
-    selector: "autoqueue-page",
+    selector: "app-autoqueue-page",
     templateUrl: "./autoqueue-page.component.html",
     styleUrls: ["./autoqueue-page.component.scss"],
     providers: [],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class AutoQueuePageComponent {
+export class AutoQueuePageComponent implements OnInit {
 
     public patterns: Observable<Immutable.List<AutoQueuePattern>>;
     public newPattern: string;

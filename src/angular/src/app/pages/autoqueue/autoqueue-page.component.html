@@ -5,14 +5,14 @@
     </span>
     <div *ngFor="let pattern of patterns | async"
          class="pattern">
-        <div class="button" click-stop-propagation
+        <div class="button" appClickStopPropagation
              (click)="onRemovePattern(pattern)">
             <span class="glyphicon glyphicon-minus"></span>
         </div>
         <span class="text">{{pattern.pattern}}</span>
     </div>
     <div id="add-pattern">
-        <div class="button" click-stop-propagation
+        <div class="button" appClickStopPropagation
              (click)="!newPattern || onAddPattern()"
              [attr.disabled]="newPattern ? null : true">
             <span class="glyphicon glyphicon-plus"></span>

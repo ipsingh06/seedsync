@@ -8,7 +8,7 @@ import {ViewFile} from "../../view/view-file";
 import {LoggerService} from "../../common/logger.service";
 
 @Component({
-    selector: "file-list",
+    selector: "app-file-list",
     providers: [],
     templateUrl: "./file-list.component.html",
     styleUrls: ["./file-list.component.scss"],

@@ -1,4 +1,4 @@
-import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter} from "@angular/core";
+import {Component, Input, Output, ChangeDetectionStrategy, EventEmitter, OnInit} from "@angular/core";
 import {Subject} from "rxjs/Subject";
 
 @Component({
@@ -9,7 +9,7 @@ import {Subject} from "rxjs/Subject";
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class OptionComponent {
+export class OptionComponent implements OnInit {
     @Input() type: OptionType;
     @Input() label: string;
     @Input() value: any;

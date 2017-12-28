@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {Component, OnInit} from "@angular/core";
 
 import {ROUTE_INFOS} from "./routes";
 import {ServerStatusService} from "./other/server-status.service";
@@ -7,12 +7,12 @@ import {ServerCommandService} from "./other/server-command.service";
 import {LoggerService} from "./common/logger.service";
 
 @Component({
-    selector: "sidebar",
+    selector: "app-sidebar",
     templateUrl: "./sidebar.component.html",
     styleUrls: ["./sidebar.component.scss"]
 })
 
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
     routeInfos = ROUTE_INFOS;
 
     public commandsEnabled: boolean;

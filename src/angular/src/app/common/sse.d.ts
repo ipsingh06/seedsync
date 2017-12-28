@@ -21,6 +21,7 @@ declare module sse {
     }
 
     interface IEventSourceStatic {
+        // noinspection TsLint
         new (url: string, eventSourceInitDict?: IEventSourceInit): IEventSourceStatic;
         /** The serialisation of this EventSource object's url. */
         url: string;
