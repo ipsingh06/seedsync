@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 import {HttpClient} from "@angular/common/http";
@@ -7,7 +7,6 @@ import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
 import {BaseWebService, WebReaction} from "../common/base-web.service";
-import {ServerStatusService} from "./server-status.service";
 import {AutoQueuePattern, AutoQueuePatternJson} from "./autoqueue-pattern";
 import {Localization} from "../common/localization";
 
@@ -25,10 +24,10 @@ export class AutoQueueService extends BaseWebService {
     private _patterns: BehaviorSubject<Immutable.List<AutoQueuePattern>> =
             new BehaviorSubject(Immutable.List([]));
 
-    constructor(_statusService: ServerStatusService,
-                _logger: LoggerService,
-                _http: HttpClient) {
-        super(_statusService, _logger, _http);
+    constructor(_logger: LoggerService,
+                _http: HttpClient,
+                _zone: NgZone) {
+        super(_logger, _http, _zone);
     }
 
     /**
@@ -152,10 +151,10 @@ export class AutoQueueService extends BaseWebService {
  * AutoQueueService factory and provider
  */
 export let autoQueueServiceFactory = (
-    _statusService: ServerStatusService,
     _logger: LoggerService,
-    _http: HttpClient) => {
-  const autoQueueService = new AutoQueueService(_statusService, _logger, _http);
+    _http: HttpClient,
+    _zone: NgZone) => {
+  const autoQueueService = new AutoQueueService(_logger, _http, _zone);
   autoQueueService.onInit();
   return autoQueueService;
 };
@@ -164,5 +163,5 @@ export let autoQueueServiceFactory = (
 export let AutoQueueServiceProvider = {
     provide: AutoQueueService,
     useFactory: autoQueueServiceFactory,
-    deps: [ServerStatusService, LoggerService, HttpClient]
+    deps: [LoggerService, HttpClient, NgZone]
 };

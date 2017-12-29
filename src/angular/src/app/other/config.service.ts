@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 import {HttpClient} from "@angular/common/http";
@@ -6,7 +6,6 @@ import {HttpClient} from "@angular/common/http";
 import {Config, IConfig} from "./config";
 import {LoggerService} from "../common/logger.service";
 import {BaseWebService, WebReaction} from "../common/base-web.service";
-import {ServerStatusService} from "./server-status.service";
 import {Localization} from "../common/localization";
 
 
@@ -21,10 +20,10 @@ export class ConfigService extends BaseWebService {
 
     private _config: BehaviorSubject<Config> = new BehaviorSubject(null);
 
-    constructor(_statusService: ServerStatusService,
-                _logger: LoggerService,
-                _http: HttpClient) {
-        super(_statusService, _logger, _http);
+    constructor(_logger: LoggerService,
+                _http: HttpClient,
+                _zone: NgZone) {
+        super(_logger, _http, _zone);
     }
 
     /**
@@ -103,10 +102,10 @@ export class ConfigService extends BaseWebService {
  * ConfigService factory and provider
  */
 export let configServiceFactory = (
-    _statusService: ServerStatusService,
     _logger: LoggerService,
-    _http: HttpClient) => {
-  const configService = new ConfigService(_statusService, _logger, _http);
+    _http: HttpClient,
+    _zone: NgZone) => {
+  const configService = new ConfigService(_logger, _http, _zone);
   configService.onInit();
   return configService;
 };
@@ -115,5 +114,5 @@ export let configServiceFactory = (
 export let ConfigServiceProvider = {
     provide: ConfigService,
     useFactory: configServiceFactory,
-    deps: [ServerStatusService, LoggerService, HttpClient]
+    deps: [LoggerService, HttpClient, NgZone]
 };

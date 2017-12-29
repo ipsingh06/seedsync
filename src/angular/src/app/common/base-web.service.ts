@@ -1,10 +1,10 @@
-import {Injectable} from "@angular/core";
+import {Injectable, NgZone} from "@angular/core";
 import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 import {Observable} from "rxjs/Observable";
 
-import {ServerStatusService} from "../other/server-status.service";
 import {LoggerService} from "./logger.service";
 import {Localization} from "./localization";
+import {BaseStreamService} from "./base-stream.service";
 
 /**
  * WebReaction encapsulates the response for an action
@@ -33,34 +33,49 @@ export class WebReaction {
  * is a connection.
  */
 @Injectable()
-export abstract class BaseWebService {
+export abstract class BaseWebService extends BaseStreamService {
+
+    // Use this stream to check for connection status
+    private readonly STATUS_STREAM_URL = "/server/status-stream";
 
     private _connected: boolean;
 
-    constructor(private _statusService: ServerStatusService,
-                protected _logger: LoggerService,
-                private _http: HttpClient) {
+    constructor(protected _logger: LoggerService,
+                private _http: HttpClient,
+                _zone: NgZone) {
+        super(_zone);
+
         // We start off assuming we are not connected
         this._connected = false;
+
+        this.streamUrl = this.STATUS_STREAM_URL;
+        super.registerEvent("status");
     }
 
     /**
      * Call this method to finish initialization
      */
     public onInit() {
-        this._statusService.status.subscribe({
-            next: status => {
-                // Change the status BEFORE notifying derived class so that if
-                // it calls any methods on us, we have the latest state
-                const prevConnected = this._connected;
-                this._connected = status.connected;
+        super.onInit();
+    }
 
-                if (prevConnected !== status.connected) {
-                    // Connection status changed
-                    this.onConnectedChanged(status.connected);
-                }
-            }
-        });
+
+    protected onEvent(eventName: string, data: string) {
+        if(!this._connected) {
+            // Change the status BEFORE notifying derived class so that if
+            // it calls any methods on us, we have the latest state
+            this._connected = true;
+            this.onConnectedChanged(this._connected);
+        }
+    }
+
+    protected onError(err: any) {
+        if(this._connected) {
+            // Change the status BEFORE notifying derived class so that if
+            // it calls any methods on us, we have the latest state
+            this._connected = false;
+            this.onConnectedChanged(this._connected);
+        }
     }
 
     /**

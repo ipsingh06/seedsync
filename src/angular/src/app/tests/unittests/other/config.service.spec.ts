@@ -1,4 +1,4 @@
-import {TestBed} from "@angular/core/testing";
+import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 import {Subject} from "rxjs/Subject";
 
@@ -6,13 +6,10 @@ import * as Immutable from "immutable";
 
 import {ConfigService} from "../../../other/config.service";
 import {LoggerService} from "../../../common/logger.service";
-import {ServerStatus} from "../../../other/server-status";
-import {ServerStatusService} from "../../../other/server-status.service";
 import {Config} from "../../../other/config";
+import {EventSourceFactory} from "../../../common/base-stream.service";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
 
-class ServerStatusServiceStub {
-    status: Subject<ServerStatus> = new Subject();
-}
 
 // noinspection JSUnusedLocalSymbols
 const DoNothing = {next: reaction => {}};
@@ -36,9 +33,10 @@ class TestConfigService extends ConfigService {
 describe("Testing config service", () => {
     let httpMock: HttpTestingController;
     let configService: TestConfigService;
-    let statusService: ServerStatusServiceStub;
 
-    beforeEach(() => {
+    let mockEventSource: MockEventSource;
+
+    beforeEach(fakeAsync(() => {
         TestBed.configureTestingModule({
             imports: [
                 HttpClientTestingModule
@@ -46,20 +44,26 @@ describe("Testing config service", () => {
             providers: [
                 LoggerService,
                 { provide: ConfigService, useClass: TestConfigService },
-                { provide: ServerStatusService, useClass: ServerStatusServiceStub },
             ]
         });
 
+        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
+            (url: string) => {
+                mockEventSource = createMockEventSource(url);
+                return mockEventSource;
+            }
+        );
+
         httpMock = TestBed.get(HttpTestingController);
         configService = TestBed.get(ConfigService);
-        statusService = TestBed.get(ServerStatusService);
 
         // Finish test config init
         configService.onInit();
 
         // Connect the service
-        statusService.status.next(new ServerStatus({connected: true}));
-    });
+        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        tick();
+    }));
 
     it("should create an instance", () => {
         expect(configService).toBeDefined();
@@ -143,7 +147,7 @@ describe("Testing config service", () => {
         httpMock.verify();
     });
 
-    it("should get null on disconnect", () => {
+    it("should get null on disconnect", fakeAsync(() => {
         const configExpected = [
             new Config({lftp: {remote_address: "first"}}),
             null
@@ -159,25 +163,30 @@ describe("Testing config service", () => {
         });
 
         // status disconnect
-        statusService.status.next(new ServerStatus({connected: false}));
+        mockEventSource.onerror(new Event("bad event"));
+        tick();
 
         httpMock.verify();
         expect(configSubscriberIndex).toBe(2);
-    });
+        tick(4000);
+    }));
 
-    it("should retry GET on disconnect", () => {
+    it("should retry GET on disconnect", fakeAsync(() => {
         // first connect
         httpMock.expectOne("/server/config/get").flush("{}");
 
+
         // status disconnect
-        statusService.status.next(new ServerStatus({connected: false}));
+        mockEventSource.onerror(new Event("bad event"));
+        tick(4000);
 
         // status reconnect
-        statusService.status.next(new ServerStatus({connected: true}));
+        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        tick();
         httpMock.expectOne("/server/config/get").flush("{}");
 
         httpMock.verify();
-    });
+    }));
 
     it("should send a GET on a set config option", () => {
         // first connect

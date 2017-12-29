@@ -1,23 +1,19 @@
-import {TestBed} from "@angular/core/testing";
+import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
-import {Subject} from "rxjs/Subject";
 
 import {LoggerService} from "../../../common/logger.service";
-import {ServerStatus} from "../../../other/server-status";
-import {ServerStatusService} from "../../../other/server-status.service";
 import {ServerCommandService} from "../../../other/server-command.service";
-
-class ServerStatusServiceStub {
-    status: Subject<ServerStatus> = new Subject();
-}
+import {EventSourceFactory} from "../../../common/base-stream.service";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
 
 
 describe("Testing server command service", () => {
     let httpMock: HttpTestingController;
-    let statusService: ServerStatusServiceStub;
     let commandService: ServerCommandService;
 
-    beforeEach(() => {
+    let mockEventSource: MockEventSource;
+
+    beforeEach(fakeAsync(() => {
         TestBed.configureTestingModule({
             imports: [
                 HttpClientTestingModule
@@ -25,20 +21,26 @@ describe("Testing server command service", () => {
             providers: [
                 LoggerService,
                 ServerCommandService,
-                {provide: ServerStatusService, useClass: ServerStatusServiceStub},
             ]
         });
 
+        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
+            (url: string) => {
+                mockEventSource = createMockEventSource(url);
+                return mockEventSource;
+            }
+        );
+
         httpMock = TestBed.get(HttpTestingController);
         commandService = TestBed.get(ServerCommandService);
-        statusService = TestBed.get(ServerStatusService);
 
         // Finish test config init
         commandService.onInit();
 
         // Connect the service
-        statusService.status.next(new ServerStatus({connected: true}));
-    });
+        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        tick();
+    }));
 
     it("should create an instance", () => {
         expect(commandService).toBeDefined();

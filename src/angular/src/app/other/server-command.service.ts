@@ -1,10 +1,9 @@
-import {Injectable} from "@angular/core";
+import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {HttpClient} from "@angular/common/http";
 
 import {BaseWebService, WebReaction} from "../common/base-web.service";
 import {LoggerService} from "../common/logger.service";
-import {ServerStatusService} from "./server-status.service";
 
 
 /**
@@ -14,10 +13,10 @@ import {ServerStatusService} from "./server-status.service";
 export class ServerCommandService extends BaseWebService {
     private readonly RESTART_URL = "/server/command/restart";
 
-    constructor(_statusService: ServerStatusService,
-                _logger: LoggerService,
-                _http: HttpClient) {
-        super(_statusService, _logger, _http);
+    constructor(_logger: LoggerService,
+                _http: HttpClient,
+                _zone: NgZone) {
+        super(_logger, _http, _zone);
     }
 
     // noinspection JSUnusedLocalSymbols
@@ -38,10 +37,10 @@ export class ServerCommandService extends BaseWebService {
  * ConfigService factory and provider
  */
 export let serverCommandServiceFactory = (
-    _statusService: ServerStatusService,
     _logger: LoggerService,
-    _http: HttpClient) => {
-  const serverCommandService = new ServerCommandService(_statusService, _logger, _http);
+    _http: HttpClient,
+    _zone: NgZone) => {
+  const serverCommandService = new ServerCommandService(_logger, _http, _zone);
   serverCommandService.onInit();
   return serverCommandService;
 };
@@ -50,5 +49,5 @@ export let serverCommandServiceFactory = (
 export let ServerCommandServiceProvider = {
     provide: ServerCommandService,
     useFactory: serverCommandServiceFactory,
-    deps: [ServerStatusService, LoggerService, HttpClient]
+    deps: [LoggerService, HttpClient, NgZone]
 };

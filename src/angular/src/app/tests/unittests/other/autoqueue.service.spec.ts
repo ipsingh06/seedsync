@@ -1,18 +1,13 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
-import {Subject} from "rxjs/Subject";
 
 import * as Immutable from "immutable";
 
 import {LoggerService} from "../../../common/logger.service";
-import {ServerStatus} from "../../../other/server-status";
-import {ServerStatusService} from "../../../other/server-status.service";
 import {AutoQueueService} from "../../../other/autoqueue.service";
 import {AutoQueuePattern} from "../../../other/autoqueue-pattern";
-
-class ServerStatusServiceStub {
-    status: Subject<ServerStatus> = new Subject();
-}
+import {EventSourceFactory} from "../../../common/base-stream.service";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
 
 // noinspection JSUnusedLocalSymbols
 const DoNothing = {next: reaction => {}};
@@ -21,9 +16,10 @@ const DoNothing = {next: reaction => {}};
 describe("Testing autoqueue service", () => {
     let httpMock: HttpTestingController;
     let aqService: AutoQueueService;
-    let statusService: ServerStatusServiceStub;
 
-    beforeEach(() => {
+    let mockEventSource: MockEventSource;
+
+    beforeEach(fakeAsync(() => {
         TestBed.configureTestingModule({
             imports: [
                 HttpClientTestingModule
@@ -31,20 +27,26 @@ describe("Testing autoqueue service", () => {
             providers: [
                 LoggerService,
                 AutoQueueService,
-                {provide: ServerStatusService, useClass: ServerStatusServiceStub},
             ]
         });
 
+        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
+            (url: string) => {
+                mockEventSource = createMockEventSource(url);
+                return mockEventSource;
+            }
+        );
+
         httpMock = TestBed.get(HttpTestingController);
         aqService = TestBed.get(AutoQueueService);
-        statusService = TestBed.get(ServerStatusService);
 
         // Finish test config init
         aqService.onInit();
 
         // Connect the service
-        statusService.status.next(new ServerStatus({connected: true}));
-    });
+        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        tick();
+    }));
 
     it("should create an instance", () => {
         expect(aqService).toBeDefined();
@@ -142,11 +144,12 @@ describe("Testing autoqueue service", () => {
         tick();
 
         // status disconnect
-        statusService.status.next(new ServerStatus({connected: false}));
-
+        mockEventSource.onerror(new Event("bad event"));
         tick();
+
         expect(actualCount).toBe(2);
         httpMock.verify();
+        tick(4000);
     }));
 
     it("should retry GET on disconnect", fakeAsync(() => {
@@ -156,16 +159,15 @@ describe("Testing autoqueue service", () => {
         tick();
 
         // status disconnect
-        statusService.status.next(new ServerStatus({connected: false}));
-
-        tick();
+        mockEventSource.onerror(new Event("bad event"));
+        tick(4000);
 
         // status reconnect
-        statusService.status.next(new ServerStatus({connected: true}));
-        httpMock.expectOne("/server/autoqueue/get").flush("[]");
-
+        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
         tick();
 
+        httpMock.expectOne("/server/autoqueue/get").flush("[]");
+        tick();
         httpMock.verify();
     }));
 
