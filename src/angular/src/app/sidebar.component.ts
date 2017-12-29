@@ -1,10 +1,9 @@
 import {Component, OnInit} from "@angular/core";
 
 import {ROUTE_INFOS} from "./routes";
-import {ServerStatusService} from "./other/server-status.service";
-import {ServerStatus} from "./other/server-status";
 import {ServerCommandService} from "./other/server-command.service";
 import {LoggerService} from "./common/logger.service";
+import {ConnectedService} from "./other/connected.service";
 
 @Component({
     selector: "app-sidebar",
@@ -18,16 +17,16 @@ export class SidebarComponent implements OnInit {
     public commandsEnabled: boolean;
 
     constructor(private _logger: LoggerService,
-                private _statusService: ServerStatusService,
+                private _connectedService: ConnectedService,
                 private _commandService: ServerCommandService) {
         this.commandsEnabled = false;
     }
 
     // noinspection JSUnusedGlobalSymbols
     ngOnInit() {
-        this._statusService.status.subscribe({
-            next: (status: ServerStatus) => {
-                this.commandsEnabled = status.connected;
+        this._connectedService.connected.subscribe({
+            next: (connected: boolean) => {
+                this.commandsEnabled = connected;
             }
         });
     }

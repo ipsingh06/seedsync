@@ -15,7 +15,6 @@ export class ServerStatusService extends BaseStreamService {
 
     private _status: BehaviorSubject<ServerStatus> =
         new BehaviorSubject(new ServerStatus({
-            connected: false,
             server: {
                 up: false
             }
@@ -40,7 +39,6 @@ export class ServerStatusService extends BaseStreamService {
 
         // Notify the clients
         this._status.next(new ServerStatus({
-            connected: false,
             server: {
                 up: false,
                 errorMessage: Localization.Error.SERVER_DISCONNECTED
@@ -55,7 +53,6 @@ export class ServerStatusService extends BaseStreamService {
     private parseStatus(data: string) {
         const statusJson: ServerStatusJson = JSON.parse(data);
         const status = new ServerStatus({
-            connected: true,
             server: {
                 up: statusJson.server.up,
                 errorMessage: statusJson.server.error_msg

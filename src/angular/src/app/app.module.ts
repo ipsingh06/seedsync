@@ -29,6 +29,7 @@ import {ServerCommandServiceProvider} from "./other/server-command.service";
 import {AutoQueuePageComponent} from "./pages/autoqueue/autoqueue-page.component";
 import {AutoQueueServiceProvider} from "./other/autoqueue.service";
 import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
+import {ConnectedServiceProvider} from "./other/connected.service";
 
 @NgModule({
     declarations: [
@@ -80,7 +81,8 @@ import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
                 ConfigServiceProvider,
                 NotificationService,
                 ServerCommandServiceProvider,
-                AutoQueueServiceProvider],
+                AutoQueueServiceProvider,
+                ConnectedServiceProvider],
     bootstrap: [AppComponent]
 })
 export class AppModule {

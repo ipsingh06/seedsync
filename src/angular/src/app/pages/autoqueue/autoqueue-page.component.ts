@@ -7,8 +7,7 @@ import {AutoQueueService} from "../../other/autoqueue.service";
 import {AutoQueuePattern} from "../../other/autoqueue-pattern";
 import {Notification} from "../../other/notification";
 import {NotificationService} from "../../other/notification.service";
-import {ServerStatusService} from "../../other/server-status.service";
-import {ServerStatus} from "../../other/server-status";
+import {ConnectedService} from "../../other/connected.service";
 
 
 @Component({
@@ -28,7 +27,7 @@ export class AutoQueuePageComponent implements OnInit {
 
     constructor(private _autoqueueService: AutoQueueService,
                 private _notifService: NotificationService,
-                private _statusService: ServerStatusService) {
+                private _connectedService: ConnectedService) {
         this.patterns = _autoqueueService.patterns;
         this.newPattern = "";
         this.enabled = false;
@@ -36,9 +35,9 @@ export class AutoQueuePageComponent implements OnInit {
 
     // noinspection JSUnusedGlobalSymbols
     ngOnInit() {
-        this._statusService.status.subscribe({
-            next: (status: ServerStatus) => {
-                this.enabled = status.connected;
+        this._connectedService.connected.subscribe({
+            next: (connected: boolean) => {
+                this.enabled = connected;
                 if (!this.enabled) {
                     // Clear the input box
                     this.newPattern = "";

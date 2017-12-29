@@ -61,7 +61,6 @@ describe("Testing server status service", () => {
         // Initial status
         tick();
         expect(count).toBe(1);
-        expect(latestStatus.connected).toBe(false);
         expect(latestStatus.server.up).toBe(false);
 
         // New status
@@ -73,7 +72,6 @@ describe("Testing server status service", () => {
         })});
         tick();
         expect(count).toBe(2);
-        expect(latestStatus.connected).toBe(true);
         expect(latestStatus.server.up).toBe(true);
 
         // Status update
@@ -85,7 +83,6 @@ describe("Testing server status service", () => {
         })});
         tick();
         expect(count).toBe(3);
-        expect(latestStatus.connected).toBe(true);
         expect(latestStatus.server.up).toBe(false);
         expect(latestStatus.server.errorMessage).toBe("uh oh spaghettios");
     }));
@@ -115,7 +112,6 @@ describe("Testing server status service", () => {
         mockEventSource.onerror(new Event("bad event"));
         tick();
         expect(count).toBe(2);
-        expect(latestStatus.connected).toBe(false);
         expect(latestStatus.server.up).toBe(false);
 
         tick(4000);

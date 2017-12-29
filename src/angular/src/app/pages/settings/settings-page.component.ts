@@ -7,13 +7,12 @@ import {Config} from "../../other/config";
 import {Notification} from "../../other/notification";
 import {Localization} from "../../common/localization";
 import {NotificationService} from "../../other/notification.service";
-import {ServerStatusService} from "../../other/server-status.service";
 import {ServerCommandService} from "../../other/server-command.service";
-import {ServerStatus} from "../../other/server-status";
 import {
     OPTIONS_CONTEXT_CONNECTIONS, OPTIONS_CONTEXT_DISCOVERY, OPTIONS_CONTEXT_OTHER,
     OPTIONS_CONTEXT_SERVER
 } from "./options-list";
+import {ConnectedService} from "../../other/connected.service";
 
 @Component({
     selector: "app-settings-page",
@@ -39,7 +38,7 @@ export class SettingsPageComponent implements OnInit {
     constructor(private _logger: LoggerService,
                 private _configService: ConfigService,
                 private _notifService: NotificationService,
-                private _statusService: ServerStatusService,
+                private _connectedService: ConnectedService,
                 private _commandService: ServerCommandService) {
         this.config = _configService.config;
         this.commandsEnabled = false;
@@ -52,15 +51,15 @@ export class SettingsPageComponent implements OnInit {
 
     // noinspection JSUnusedGlobalSymbols
     ngOnInit() {
-        this._statusService.status.subscribe({
-            next: (status: ServerStatus) => {
-                if (!status.connected) {
+        this._connectedService.connected.subscribe({
+            next: (connected: boolean) => {
+                if (!connected) {
                     // Server went down, hide the config restart notification
                     this._notifService.hide(this._configRestartNotif);
                 }
 
                 // Enable/disable commands based on server connection
-                this.commandsEnabled = status.connected;
+                this.commandsEnabled = connected;
             }
         });
     }
