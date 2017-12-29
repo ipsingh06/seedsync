@@ -53,7 +53,7 @@ export class ModelFile extends ModelFileRecord implements IModelFile {
         for (const child of props.children) {
             children.push(new ModelFile(child));
         }
-        props.children = children;
+        props.children = Set<ModelFile>(children);
 
         // State mapping
         props.state = ModelFile.State[props.state.toUpperCase()];
