@@ -8,21 +8,7 @@ import * as Immutable from "immutable";
 import {LoggerService} from "../common/logger.service";
 import {ModelFile} from "./model-file";
 import {BaseStreamService} from "../common/base-stream.service";
-
-
-/**
- * ModelFileReaction encapsulates the response for an action
- * executed on the ModelFileService
- */
-export class ModelFileReaction {
-    readonly success: boolean;
-    readonly errorMessage: string;
-
-    constructor(success: boolean, errorMessage: string) {
-        this.success = success;
-        this.errorMessage = errorMessage;
-    }
-}
+import {WebReaction} from "../common/base-web.service";
 
 
 /**
@@ -129,9 +115,9 @@ export class ModelFileService extends BaseStreamService {
     /**
      * Queue a file for download
      * @param {ModelFile} file
-     * @returns {Observable<ModelFileReaction>}
+     * @returns {Observable<WebReaction>}
      */
-    public queue(file: ModelFile): Observable<ModelFileReaction> {
+    public queue(file: ModelFile): Observable<WebReaction> {
         this._logger.debug("Queue model file: " + file.name);
         // Double-encode the value
         const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
@@ -142,9 +128,9 @@ export class ModelFileService extends BaseStreamService {
     /**
      * Stop a file
      * @param {ModelFile} file
-     * @returns {Observable<ModelFileReaction>}
+     * @returns {Observable<WebReaction>}
      */
-    public stop(file: ModelFile): Observable<ModelFileReaction> {
+    public stop(file: ModelFile): Observable<WebReaction> {
         this._logger.debug("Stop model file: " + file.name);
         // Double-encode the value
         const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
@@ -155,14 +141,14 @@ export class ModelFileService extends BaseStreamService {
     /**
      * Helper method to send backend a request and generate a ModelFileReaction response
      * @param {string} url
-     * @returns {Observable<ModelFileReaction>}
+     * @returns {Observable<WebReaction>}
      */
-    private sendRequest(url: string): Observable<ModelFileReaction> {
+    private sendRequest(url: string): Observable<WebReaction> {
         return Observable.create(observer => {
             this._http.get(url, {responseType: "text"}).subscribe(
                 data => {
                     this._logger.debug("Http response: " + data);
-                    observer.next(new ModelFileReaction(true, null));
+                    observer.next(new WebReaction(true, data, null));
                 },
                 (err: HttpErrorResponse) => {
                     let errorMessage = null;
@@ -176,7 +162,7 @@ export class ModelFileService extends BaseStreamService {
                         this._logger.error("Http request returned code %d, body was: %O", err.status, err.error);
                         errorMessage = err.error;
                     }
-                    observer.next(new ModelFileReaction(false, errorMessage));
+                    observer.next(new WebReaction(false, null, errorMessage));
                 }
             );
         });
