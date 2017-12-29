@@ -4,7 +4,7 @@ import {HttpClientTestingModule, HttpTestingController} from "@angular/common/ht
 import {LoggerService} from "../../../common/logger.service";
 import {ServerCommandService} from "../../../other/server-command.service";
 import {EventSourceFactory} from "../../../common/base-stream.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 
 
 describe("Testing server command service", () => {

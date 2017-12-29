@@ -5,7 +5,7 @@ import * as Immutable from "immutable";
 
 import {ModelFileService} from "../../../model/model-file.service";
 import {LoggerService} from "../../../common/logger.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 import {EventSourceFactory} from "../../../common/base-stream.service";
 import {ModelFile} from "../../../model/model-file";
 

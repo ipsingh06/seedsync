@@ -1,3 +1,5 @@
+declare let spyOn: any;
+
 export class MockEventSource {
     url: string;
     onerror: (event: Event) => any;

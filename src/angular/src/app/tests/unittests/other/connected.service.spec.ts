@@ -2,7 +2,7 @@ import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 
 import {ConnectedService} from "../../../other/connected.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 import {EventSourceFactory} from "../../../common/base-stream.service";
 import {LoggerService} from "../../../common/logger.service";
 

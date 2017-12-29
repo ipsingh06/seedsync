@@ -1,7 +1,7 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 
 import {BaseStreamService, EventSourceFactory} from "../../../common/base-stream.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 
 
 class TestBaseStreamService extends BaseStreamService {

@@ -7,7 +7,7 @@ import {LoggerService} from "../../../common/logger.service";
 import {AutoQueueService} from "../../../other/autoqueue.service";
 import {AutoQueuePattern} from "../../../other/autoqueue-pattern";
 import {EventSourceFactory} from "../../../common/base-stream.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 
 // noinspection JSUnusedLocalSymbols
 const DoNothing = {next: reaction => {}};

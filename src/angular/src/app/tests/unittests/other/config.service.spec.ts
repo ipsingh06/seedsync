@@ -8,7 +8,7 @@ import {ConfigService} from "../../../other/config.service";
 import {LoggerService} from "../../../common/logger.service";
 import {Config} from "../../../other/config";
 import {EventSourceFactory} from "../../../common/base-stream.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 
 
 // noinspection JSUnusedLocalSymbols

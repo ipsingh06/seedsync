@@ -1,10 +1,7 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
-import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
-
-import * as Immutable from "immutable";
 
 import {ServerStatusService} from "../../../other/server-status.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 import {LoggerService} from "../../../common/logger.service";
 import {EventSourceFactory} from "../../../common/base-stream.service";
 import {ServerStatus} from "../../../other/server-status";

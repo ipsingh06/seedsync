@@ -4,7 +4,7 @@ import {Observable} from "rxjs/Observable";
 
 import {BaseWebService, WebReaction} from "../../../common/base-web.service";
 import {LoggerService} from "../../../common/logger.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 import {EventSourceFactory} from "../../../common/base-stream.service";
 
 
