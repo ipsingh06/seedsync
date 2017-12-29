@@ -57,19 +57,9 @@ export abstract class BaseStreamService {
             next: (x) => this.onEvent(x["event"], x["data"]),
             error: err => {
                 this.onError(err);
-                this.rescheduleCreateSseObserver();
+                setTimeout(() => {this.createSseObserver(); }, this.STREAM_RETRY_INTERVAL_MS);
             }
         });
-    }
-
-    /**
-     * This is a separate method to fix a problem in testing
-     * For some reason after a call to setTimeout the spy on createEventSource gets
-     * removed.
-     */
-    protected rescheduleCreateSseObserver() {
-        // Retry after a delay
-        setTimeout(() => {this.createSseObserver(); }, this.STREAM_RETRY_INTERVAL_MS);
     }
 
     /**

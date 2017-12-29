@@ -1,9 +1,7 @@
-import {TestBed} from "@angular/core/testing";
-import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
-import {Subject} from "rxjs/Subject";
-import {Observable} from "rxjs/Observable";
+import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 
 import {BaseStreamService, EventSourceFactory} from "../../../common/base-stream.service";
+import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source.ts";
 
 
 class TestBaseStreamService extends BaseStreamService {
@@ -17,10 +15,6 @@ class TestBaseStreamService extends BaseStreamService {
         super.registerEvent(eventName);
     }
 
-    public rescheduleCreateSseObserver() {
-        // Do nothing
-    }
-
     protected onEvent(eventName: string, data: string) {
         console.log(eventName, data);
         this.eventList.push({name: eventName, data: data});
@@ -32,8 +26,8 @@ class TestBaseStreamService extends BaseStreamService {
 
 describe("Testing base stream service", () => {
     let baseStreamService: TestBaseStreamService;
-    let sseSpy: any;
-    let eventListeners: any;
+
+    let mockEventSource: MockEventSource;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -44,20 +38,12 @@ describe("Testing base stream service", () => {
             ]
         });
 
-        eventListeners = [];
-        sseSpy = jasmine.createSpyObj(
-            'sseSpy',
-            [
-                'addEventListener',
-                'close'
-            ]
-        );
-        sseSpy.addEventListener.and.callFake(
-            (name, listener) => {
-                eventListeners.push({name: name, listener: listener});
+        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
+            (url: string) => {
+                mockEventSource = createMockEventSource(url);
+                return mockEventSource;
             }
         );
-        spyOn(EventSourceFactory, 'createEventSource').and.returnValue(sseSpy);
 
         baseStreamService = TestBed.get(TestBaseStreamService);
         baseStreamService.testStreamUrl = "/stream/url/for/service";
@@ -72,25 +58,25 @@ describe("Testing base stream service", () => {
     });
 
     it("should construct an event source with correct url", () => {
-        expect(EventSourceFactory.createEventSource).toHaveBeenCalledWith("/stream/url/for/service");
+        expect(mockEventSource.url).toBe("/stream/url/for/service");
     });
 
     it("should register all events with the event source", () => {
-        expect(sseSpy.addEventListener).toHaveBeenCalledTimes(3);
-        expect(eventListeners.length).toBe(3);
-        expect(eventListeners[0]["name"]).toBe("event1");
-        expect(eventListeners[1]["name"]).toBe("event2");
-        expect(eventListeners[2]["name"]).toBe("event3");
+        expect(mockEventSource.addEventListener).toHaveBeenCalledTimes(3);
+        expect(mockEventSource.eventListeners.size).toBe(3);
+        expect(mockEventSource.eventListeners.has("event1")).toBe(true);
+        expect(mockEventSource.eventListeners.has("event2")).toBe(true);
+        expect(mockEventSource.eventListeners.has("event3")).toBe(true);
     });
 
     it("should set an error handler on the event source", () => {
-        expect(sseSpy.onerror).toBeDefined();
+        expect(mockEventSource.onerror).toBeDefined();
     });
 
     it("forwards event name and data", () => {
-        eventListeners[2]["listener"]({data: "data3"});
-        eventListeners[0]["listener"]({data: "data1"});
-        eventListeners[1]["listener"]({data: "data2"});
+        mockEventSource.eventListeners.get("event3")({data: "data3"});
+        mockEventSource.eventListeners.get("event1")({data: "data1"});
+        mockEventSource.eventListeners.get("event2")({data: "data2"});
         expect(baseStreamService.eventList.length).toBe(3);
         expect(baseStreamService.eventList).toEqual(
             [
@@ -101,12 +87,11 @@ describe("Testing base stream service", () => {
         )
     });
 
-    it("should forward errors", () => {
+    it("should forward errors", fakeAsync(() => {
         spyOn(baseStreamService, 'onError');
-        spyOn(baseStreamService, 'rescheduleCreateSseObserver');
-        sseSpy.onerror({msg: "error msg", code: 55});
-        expect(baseStreamService.onError).toHaveBeenCalledWith({msg: "error msg", code: 55});
-        expect(baseStreamService.rescheduleCreateSseObserver).toHaveBeenCalledTimes(1);
-    });
+        mockEventSource.onerror(new Event("bad event"));
+        expect(baseStreamService.onError).toHaveBeenCalledWith(new Event("bad event"));
+        tick(4000);
+    }));
 
 });
