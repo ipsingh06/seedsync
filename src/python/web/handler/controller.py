@@ -1,6 +1,7 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 from threading import Event
+from urllib.parse import unquote
 
 from bottle import HTTPResponse
 
@@ -52,6 +53,9 @@ class ControllerHandler(IHandler):
         :param file_name:
         :return:
         """
+        # value is double encoded
+        file_name = unquote(file_name)
+
         command = Controller.Command(Controller.Command.Action.QUEUE, file_name)
         callback = WebResponseActionCallback()
         command.add_callback(callback)
@@ -68,6 +72,9 @@ class ControllerHandler(IHandler):
         :param file_name:
         :return:
         """
+        # value is double encoded
+        file_name = unquote(file_name)
+
         command = Controller.Command(Controller.Command.Action.STOP, file_name)
         callback = WebResponseActionCallback()
         command.add_callback(callback)

@@ -133,7 +133,9 @@ export class ModelFileService extends BaseStreamService {
      */
     public queue(file: ModelFile): Observable<ModelFileReaction> {
         this._logger.debug("Queue model file: " + file.name);
-        const url: string = "/server/command/queue/" + file.name;
+        // Double-encode the value
+        const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
+        const url: string = "/server/command/queue/" + fileNameEncoded;
         return this.sendRequest(url);
     }
 
@@ -144,7 +146,9 @@ export class ModelFileService extends BaseStreamService {
      */
     public stop(file: ModelFile): Observable<ModelFileReaction> {
         this._logger.debug("Stop model file: " + file.name);
-        const url: string = "/server/command/stop/" + file.name;
+        // Double-encode the value
+        const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
+        const url: string = "/server/command/stop/" + fileNameEncoded;
         return this.sendRequest(url);
     }
 
