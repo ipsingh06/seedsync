@@ -1,14 +1,13 @@
 import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient, HttpErrorResponse} from "@angular/common/http";
+import {HttpClient} from "@angular/common/http";
 
 import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
 import {ModelFile} from "./model-file";
-import {BaseStreamService} from "../common/base-stream.service";
-import {WebReaction} from "../common/base-web.service";
+import {BaseStreamService, WebReaction} from "../common/base-stream.service";
 
 
 /**
@@ -29,10 +28,10 @@ export class ModelFileService extends BaseStreamService {
     private _files: BehaviorSubject<Immutable.Map<string, ModelFile>> =
         new BehaviorSubject(Immutable.Map<string, ModelFile>());
 
-    constructor(private _logger: LoggerService,
-                private _http: HttpClient,
+    constructor(_logger: LoggerService,
+                _http: HttpClient,
                 _zone: NgZone) {
-        super(_zone);
+        super(_logger, _http, _zone);
 
         this.streamUrl = this.MODEL_STREAM_URL;
 
@@ -136,36 +135,6 @@ export class ModelFileService extends BaseStreamService {
         const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
         const url: string = "/server/command/stop/" + fileNameEncoded;
         return this.sendRequest(url);
-    }
-
-    /**
-     * Helper method to send backend a request and generate a ModelFileReaction response
-     * @param {string} url
-     * @returns {Observable<WebReaction>}
-     */
-    private sendRequest(url: string): Observable<WebReaction> {
-        return Observable.create(observer => {
-            this._http.get(url, {responseType: "text"}).subscribe(
-                data => {
-                    this._logger.debug("Http response: " + data);
-                    observer.next(new WebReaction(true, data, null));
-                },
-                (err: HttpErrorResponse) => {
-                    let errorMessage = null;
-                    if (err.error instanceof Error) {
-                        // A client-side or network error occurred. Handle it accordingly.
-                        this._logger.error("Http client error: " + err.error.message);
-                        errorMessage = "HTTP client-side error";
-                    } else {
-                        // The backend returned an unsuccessful response code.
-                        // The response body may contain clues as to what went wrong,
-                        this._logger.error("Http request returned code %d, body was: %O", err.status, err.error);
-                        errorMessage = err.error;
-                    }
-                    observer.next(new WebReaction(false, null, errorMessage));
-                }
-            );
-        });
     }
 }
 

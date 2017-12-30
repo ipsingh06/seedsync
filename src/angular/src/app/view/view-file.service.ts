@@ -9,7 +9,7 @@ import {ModelFile} from "../model/model-file";
 import {ModelFileService} from "../model/model-file.service";
 import {ViewFile} from "./view-file";
 import {MOCK_MODEL_FILES} from "../model/mock-model-files";
-import {WebReaction} from "../common/base-web.service";
+import {WebReaction} from "../common/base-stream.service";
 
 
 /**

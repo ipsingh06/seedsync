@@ -1,7 +1,9 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
+import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 import {BaseStreamService, EventSourceFactory} from "../../../common/base-stream.service";
 import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
+import {LoggerService} from "../../../common/logger.service";
 
 
 class TestBaseStreamService extends BaseStreamService {
@@ -32,8 +34,10 @@ describe("Testing base stream service", () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
+                HttpClientTestingModule
             ],
             providers: [
+                LoggerService,
                 TestBaseStreamService,
             ]
         });

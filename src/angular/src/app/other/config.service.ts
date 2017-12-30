@@ -5,8 +5,9 @@ import {HttpClient} from "@angular/common/http";
 
 import {Config, IConfig} from "./config";
 import {LoggerService} from "../common/logger.service";
-import {BaseWebService, WebReaction} from "../common/base-web.service";
+import {BaseWebService} from "../common/base-web.service";
 import {Localization} from "../common/localization";
+import {WebReaction} from "../common/base-stream.service";
 
 
 /**

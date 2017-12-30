@@ -1,6 +1,7 @@
 import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
+import {HttpClient} from "@angular/common/http";
 
 import {LoggerService} from "../common/logger.service";
 import {Localization} from "../common/localization";
@@ -20,9 +21,10 @@ export class ServerStatusService extends BaseStreamService {
             }
         }));
 
-    constructor(private _logger: LoggerService,
+    constructor(_logger: LoggerService,
+                _http: HttpClient,
                 _zone: NgZone) {
-        super(_zone);
+        super(_logger, _http, _zone);
 
         this.streamUrl = this.STATUS_STREAM_URL;
 
@@ -71,8 +73,9 @@ export class ServerStatusService extends BaseStreamService {
  */
 export let serverStatusServiceFactory = (
         _logger: LoggerService,
+        _http: HttpClient,
         _zone: NgZone) => {
-    const serverStatusService = new ServerStatusService(_logger, _zone);
+    const serverStatusService = new ServerStatusService(_logger, _http, _zone);
     serverStatusService.onInit();
     return serverStatusService;
 };
@@ -81,5 +84,5 @@ export let serverStatusServiceFactory = (
 export let ServerStatusServiceProvider = {
     provide: ServerStatusService,
     useFactory: serverStatusServiceFactory,
-    deps: [LoggerService, NgZone]
+    deps: [LoggerService, HttpClient, NgZone]
 };

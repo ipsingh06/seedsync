@@ -323,6 +323,9 @@ describe("Testing model file service", () => {
     }));
 
     it("should send a GET on queue command", fakeAsync(() => {
+        // Connect the service
+        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+
         let modelFile = new ModelFile({
             name: "File.One",
             is_dir: false,
@@ -350,6 +353,9 @@ describe("Testing model file service", () => {
     }));
 
     it("should send correct GET requests on queue command", fakeAsync(() => {
+        // Connect the service
+        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+
         let modelFile;
 
         modelFile = new ModelFile({
@@ -394,6 +400,9 @@ describe("Testing model file service", () => {
     }));
 
     it("should send a GET on stop command", fakeAsync(() => {
+        // Connect the service
+        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+
         let modelFile = new ModelFile({
             name: "File.One",
             is_dir: false,
@@ -421,6 +430,9 @@ describe("Testing model file service", () => {
     }));
 
     it("should send correct GET requests on stop command", fakeAsync(() => {
+        // Connect the service
+        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+
         let modelFile;
 
         modelFile = new ModelFile({

@@ -6,9 +6,10 @@ import {HttpClient} from "@angular/common/http";
 import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
-import {BaseWebService, WebReaction} from "../common/base-web.service";
+import {BaseWebService} from "../common/base-web.service";
 import {AutoQueuePattern, AutoQueuePatternJson} from "./autoqueue-pattern";
 import {Localization} from "../common/localization";
+import {WebReaction} from "../common/base-stream.service";
 
 
 /**

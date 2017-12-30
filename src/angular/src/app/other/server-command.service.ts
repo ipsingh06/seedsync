@@ -2,8 +2,9 @@ import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {HttpClient} from "@angular/common/http";
 
-import {BaseWebService, WebReaction} from "../common/base-web.service";
+import {BaseWebService} from "../common/base-web.service";
 import {LoggerService} from "../common/logger.service";
+import {WebReaction} from "../common/base-stream.service";
 
 
 /**

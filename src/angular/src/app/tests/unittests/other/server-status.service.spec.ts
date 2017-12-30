@@ -1,4 +1,5 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
+import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 import {ServerStatusService} from "../../../other/server-status.service";
 import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
@@ -14,7 +15,9 @@ describe("Testing server status service", () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [],
+            imports: [
+                HttpClientTestingModule
+            ],
             providers: [
                 LoggerService,
                 ServerStatusService
