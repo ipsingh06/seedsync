@@ -22,18 +22,11 @@ class StatusListener(IStatusListener, StreamQueue[Status]):
 
 
 class StatusStreamHandler(IStreamHandler):
-    _EVENT_BLOCK_INTERVAL_IN_MS = 500
-
     def __init__(self, status: Status):
         self.status = status
         self.serialize = SerializeStatus()
         self.status_listener = StatusListener(status)
         self.first_run = True
-
-    @staticmethod
-    @overrides(IStreamHandler)
-    def get_path() -> str:
-        return "/server/status-stream"
 
     @overrides(IStreamHandler)
     def setup(self):
@@ -46,8 +39,8 @@ class StatusStreamHandler(IStreamHandler):
             status = self.status.copy()
             return self.serialize.status(status)
         else:
-            status = self.status_listener.get_next_event(timeout_in_ms=StatusStreamHandler._EVENT_BLOCK_INTERVAL_IN_MS)
-            if status:
+            status = self.status_listener.get_next_event()
+            if status is not None:
                 return self.serialize.status(status)
             else:
                 return None

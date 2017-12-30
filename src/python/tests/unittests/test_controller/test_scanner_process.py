@@ -88,25 +88,3 @@ class TestScannerProcess(unittest.TestCase):
         result = queue.get()
         self.assertEqual([SystemFile("third", 3, True)], result.files)
         self.process.terminate()
-
-    @timeout_decorator.timeout(5)
-    def test_scan_interval(self):
-        """Check that result timestamp diffs are close to the specified interval (within 20%)"""
-        queue = Queue()
-        scanner = DummyScanner()
-
-        self.process = ScannerProcess(queue, scanner, 100)
-        self.process.start()
-        result1 = queue.get()
-        result2 = queue.get()
-        delta_in_ms = int((result2.timestamp - result1.timestamp).total_seconds()*1000)
-        self.assertTrue(80 <= delta_in_ms <= 120)
-        self.process.terminate()
-
-        self.process = ScannerProcess(queue, scanner, 500)
-        self.process.start()
-        result1 = queue.get()
-        result2 = queue.get()
-        delta_in_ms = int((result2.timestamp - result1.timestamp).total_seconds()*1000)
-        self.assertTrue(400 <= delta_in_ms <= 600)
-        self.process.terminate()

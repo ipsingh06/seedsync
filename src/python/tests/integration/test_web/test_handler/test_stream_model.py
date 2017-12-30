@@ -14,14 +14,14 @@ class TestModelStreamHandler(BaseTestWebApp):
         # Schedule server stop
         Timer(0.5, self.web_app.stop).start()
 
-        self.test_app.get("/server/model-stream")
+        self.test_app.get("/server/stream")
         self.controller.get_model_files_and_add_listener.assert_called_once_with(unittest.mock.ANY)
 
     def test_stream_model_removes_listener(self):
         # Schedule server stop
         Timer(0.5, self.web_app.stop).start()
 
-        self.test_app.get("/server/model-stream")
+        self.test_app.get("/server/stream")
         self.controller.remove_model_listener.assert_called_once_with(self.model_listener)
 
     @patch("web.handler.stream_model.SerializeModel")
@@ -36,7 +36,7 @@ class TestModelStreamHandler(BaseTestWebApp):
         # Initial model
         self.model_files = [ModelFile("a", True), ModelFile("b", False)]
 
-        self.test_app.get("/server/model-stream")
+        self.test_app.get("/server/stream")
         mock_serialize.model.assert_called_once_with([ModelFile("a", True), ModelFile("b", False)])
 
     @patch("web.handler.stream_model.SerializeModel")
@@ -66,7 +66,7 @@ class TestModelStreamHandler(BaseTestWebApp):
             self.model_listener.file_updated(old_file, new_file)
         Timer(0.5, send_updates).start()
 
-        self.test_app.get("/server/model-stream")
+        self.test_app.get("/server/stream")
         self.assertEqual(3, len(mock_serialize.update_event.call_args_list))
         call1, call2, call3 = mock_serialize.update_event.call_args_list
         self.assertEqual(SerializeModel.UpdateEvent.Change.ADDED, call1[0][0].change)

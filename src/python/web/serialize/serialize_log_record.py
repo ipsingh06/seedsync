@@ -12,7 +12,7 @@ class SerializeLogRecord(Serialize):
     and the EventSource client frontend for the log stream.
     """
     # Event keys
-    __EVENT_RECORD = "record"
+    __EVENT_RECORD = "log-record"
 
     # Data keys
     __KEY_TIME = "time"

@@ -16,7 +16,7 @@ class TestStatusStreamHandler(BaseTestWebApp):
         mock_serialize = mock_serialize_status_cls.return_value
         mock_serialize.status.return_value = "\n"
 
-        self.test_app.get("/server/status-stream")
+        self.test_app.get("/server/stream")
         self.assertEqual(1, len(mock_serialize.status.call_args_list))
         call1 = mock_serialize.status.call_args_list[0]
         status = call1[0][0]
@@ -38,7 +38,7 @@ class TestStatusStreamHandler(BaseTestWebApp):
         mock_serialize = mock_serialize_status_cls.return_value
         mock_serialize.status.return_value = "\n"
 
-        self.test_app.get("/server/status-stream")
+        self.test_app.get("/server/stream")
         self.assertEqual(3, len(mock_serialize.status.call_args_list))
         call1, call2, call3 = mock_serialize.status.call_args_list
         status1 = call1[0][0]

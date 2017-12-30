@@ -1,8 +1,8 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-import functools
 from typing import Type, Callable, Optional
 from abc import ABC, abstractmethod
+import time
 
 import bottle
 from bottle import static_file
@@ -41,15 +41,6 @@ class IStreamHandler(ABC):
     def cleanup(self):
         pass
 
-    @staticmethod
-    @abstractmethod
-    def get_path() -> str:
-        """
-        Get route path for this stream
-        :return:
-        """
-        pass
-
     @classmethod
     def register(cls, web_app: "WebApp", **kwargs):
         """
@@ -58,13 +49,15 @@ class IStreamHandler(ABC):
         :param kwargs: args for stream handler ctor
         :return:
         """
-        web_app.add_streaming_handler(cls.get_path(), cls, **kwargs)
+        web_app.add_streaming_handler(cls, **kwargs)
 
 
 class WebApp(bottle.Bottle):
     """
     Web app implementation
     """
+    _STREAM_POLL_INTERVAL_IN_MS = 100
+
     def __init__(self, context: Context, controller: Controller):
         super().__init__()
         self.logger = context.logger.getChild("WebApp")
@@ -73,6 +66,7 @@ class WebApp(bottle.Bottle):
         self.__status = context.status
         self.logger.info("Html path set to: {}".format(self.__html_path))
         self.__stop = False
+        self.__streaming_handlers = []  # list of (handler, kwargs) pairs
 
     def add_default_routes(self):
         """
@@ -80,6 +74,9 @@ class WebApp(bottle.Bottle):
         been added.
         :return:
         """
+        # Streaming route
+        self.get("/server/stream")(self.__web_stream)
+
         # Front-end routes
         self.route("/")(self.__index)
         self.route("/dashboard")(self.__index)
@@ -91,12 +88,8 @@ class WebApp(bottle.Bottle):
     def add_handler(self, path: str, handler: Callable):
         self.get(path)(handler)
 
-    def add_streaming_handler(self, path: str, handler: Type[IStreamHandler], **kwargs):
-        self.get(path)(functools.partial(
-            self.__web_stream,
-            cls=handler,
-            **kwargs
-        ))
+    def add_streaming_handler(self, handler: Type[IStreamHandler], **kwargs):
+        self.__streaming_handlers.append((handler, kwargs))
 
     def process(self):
         """
@@ -128,31 +121,37 @@ class WebApp(bottle.Bottle):
         """
         return static_file(file_path, root=self.__html_path)
 
-    def __web_stream(self, cls: Type[IStreamHandler], **kwargs):
-        stream = cls(**kwargs)
+    def __web_stream(self):
+        # Initialize all the handlers
+        handlers = [cls(**kwargs) for (cls, kwargs) in self.__streaming_handlers]
+
         try:
             # Setup the response header
             bottle.response.content_type = "text/event-stream"
             bottle.response.cache_control = "no-cache"
 
-            # Setup the stream
-            stream.setup()
+            # Call setup on all handlers
+            for handler in handlers:
+                handler.setup()
 
             # Get streaming values until the connection closes
             while not self.__stop:
-                value = stream.get_value()
-                if value:
-                    yield value
-                else:
-                    # need to yield a newline, otherwise the finally block
-                    # is not called upon connection exit
-                    yield "\n"
+                for handler in handlers:
+                    # Process all values from this handler
+                    while True:
+                        value = handler.get_value()
+                        if value:
+                            yield value
+                        else:
+                            break
+
+                time.sleep(WebApp._STREAM_POLL_INTERVAL_IN_MS / 1000)
 
         finally:
-            self.logger.debug("Stream '{}' connection stopped by {}".format(
-                cls.__name__,
+            self.logger.debug("Stream connection stopped by {}".format(
                 "server" if self.__stop else "client"
             ))
 
-            # Cleanup
-            stream.cleanup()
+            # Cleanup all handlers
+            for handler in handlers:
+                handler.cleanup()

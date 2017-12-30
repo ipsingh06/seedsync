@@ -20,13 +20,12 @@ class StreamQueue(Generic[T]):
     def put(self, event: T):
         self.__queue.put(event)
 
-    def get_next_event(self, timeout_in_ms: int) -> Optional[T]:
+    def get_next_event(self) -> Optional[T]:
         """
-        Returns the next event, or blocks for the specified timeout until an event is available.
-        Returns None if timeout expires and no event is available
+        Returns the next event if there is one, otherwise returns None
         :return:
         """
         try:
-            return self.__queue.get(block=True, timeout=float(timeout_in_ms)/1000)
+            return self.__queue.get(block=False)
         except Empty:
             return None

@@ -26,11 +26,11 @@ class SerializeModel(Serialize):
             self.new_file = new_file
 
     # Event keys
-    __EVENT_INIT = "init"
+    __EVENT_INIT = "model-init"
     __EVENT_UPDATE = {
-        UpdateEvent.Change.ADDED: "added",
-        UpdateEvent.Change.REMOVED: "removed",
-        UpdateEvent.Change.UPDATED: "updated"
+        UpdateEvent.Change.ADDED: "model-added",
+        UpdateEvent.Change.REMOVED: "model-removed",
+        UpdateEvent.Change.UPDATED: "model-updated"
     }
     __KEY_UPDATE_OLD_FILE = "old_file"
     __KEY_UPDATE_NEW_FILE = "new_file"

@@ -9,61 +9,28 @@ from model import ModelFile
 
 
 class TestSerializeModel(unittest.TestCase):
-    def test_id_increments(self):
-        serialize = SerializeModel()
-        out = parse_stream(serialize.model([]))
-        idx_new = int(out["id"])
-        self.assertGreaterEqual(idx_new, 0)
-
-        idx_old = idx_new
-        out = parse_stream(
-            serialize.update_event(SerializeModel.UpdateEvent(
-                SerializeModel.UpdateEvent.Change.ADDED, None, None
-            ))
-        )
-        idx_new = int(out["id"])
-        self.assertGreater(idx_new, idx_old)
-
-        idx_old = idx_new
-        out = parse_stream(
-            serialize.update_event(SerializeModel.UpdateEvent(
-                SerializeModel.UpdateEvent.Change.REMOVED, None, None
-            ))
-        )
-        idx_new = int(out["id"])
-        self.assertGreater(idx_new, idx_old)
-
-        idx_old = idx_new
-        out = parse_stream(
-            serialize.update_event(SerializeModel.UpdateEvent(
-                SerializeModel.UpdateEvent.Change.UPDATED, None, None
-            ))
-        )
-        idx_new = int(out["id"])
-        self.assertGreater(idx_new, idx_old)
-
     def test_event_names(self):
         serialize = SerializeModel()
         out = parse_stream(serialize.model([]))
-        self.assertEqual("init", out["event"])
+        self.assertEqual("model-init", out["event"])
         out = parse_stream(
             serialize.update_event(SerializeModel.UpdateEvent(
                 SerializeModel.UpdateEvent.Change.ADDED, None, None
             ))
         )
-        self.assertEqual("added", out["event"])
+        self.assertEqual("model-added", out["event"])
         out = parse_stream(
             serialize.update_event(SerializeModel.UpdateEvent(
                 SerializeModel.UpdateEvent.Change.UPDATED, None, None
             ))
         )
-        self.assertEqual("updated", out["event"])
+        self.assertEqual("model-updated", out["event"])
         out = parse_stream(
             serialize.update_event(SerializeModel.UpdateEvent(
                 SerializeModel.UpdateEvent.Change.REMOVED, None, None
             ))
         )
-        self.assertEqual("removed", out["event"])
+        self.assertEqual("model-removed", out["event"])
 
     def test_model_is_a_list(self):
         serialize = SerializeModel()

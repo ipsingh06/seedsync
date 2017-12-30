@@ -38,19 +38,12 @@ class WebResponseModelListener(IModelListener, StreamQueue[SerializeModel.Update
 
 
 class ModelStreamHandler(IStreamHandler):
-    _EVENT_BLOCK_INTERVAL_IN_MS = 500
-
     def __init__(self, controller: Controller):
         self.controller = controller
         self.serialize = SerializeModel()
         self.model_listener = WebResponseModelListener()
         self.initial_model_files = None
         self.first_run = True
-
-    @staticmethod
-    @overrides(IStreamHandler)
-    def get_path() -> str:
-        return "/server/model-stream"
 
     @overrides(IStreamHandler)
     def setup(self):
@@ -62,8 +55,8 @@ class ModelStreamHandler(IStreamHandler):
             self.first_run = False
             return self.serialize.model(self.initial_model_files)
         else:
-            event = self.model_listener.get_next_event(timeout_in_ms=ModelStreamHandler._EVENT_BLOCK_INTERVAL_IN_MS)
-            if event:
+            event = self.model_listener.get_next_event()
+            if event is not None:
                 return self.serialize.update_event(event)
             else:
                 return None

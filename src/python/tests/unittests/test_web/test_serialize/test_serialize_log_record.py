@@ -24,7 +24,7 @@ class TestSerializeLogRecord(unittest.TestCase):
             sinfo=None
         )
         out = parse_stream(serialize.record(record))
-        self.assertEqual("record", out["event"])
+        self.assertEqual("log-record", out["event"])
 
     def test_record_time(self):
         serialize = SerializeLogRecord()

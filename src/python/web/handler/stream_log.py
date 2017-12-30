@@ -22,17 +22,10 @@ class QueueLogHandler(logging.Handler, StreamQueue[logging.LogRecord]):
 
 
 class LogStreamHandler(IStreamHandler):
-    _EVENT_BLOCK_INTERVAL_IN_MS = 500
-
     def __init__(self, logger: logging.Logger):
         self.logger = logger
         self.handler = QueueLogHandler()
         self.serialize = SerializeLogRecord()
-
-    @staticmethod
-    @overrides(IStreamHandler)
-    def get_path() -> str:
-        return "/server/log-stream"
 
     @overrides(IStreamHandler)
     def setup(self):
@@ -40,8 +33,8 @@ class LogStreamHandler(IStreamHandler):
 
     @overrides(IStreamHandler)
     def get_value(self) -> Optional[str]:
-        record = self.handler.get_next_event(timeout_in_ms=LogStreamHandler._EVENT_BLOCK_INTERVAL_IN_MS)
-        if record:
+        record = self.handler.get_next_event()
+        if record is not None:
             return self.serialize.record(record)
         else:
             return None

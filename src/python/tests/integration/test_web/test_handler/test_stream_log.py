@@ -25,7 +25,7 @@ class TestLogStreamHandler(BaseTestWebApp):
         mock_serialize = mock_serialize_log_record_cls.return_value
         mock_serialize.record.return_value = "\n"
 
-        self.test_app.get("/server/log-stream")
+        self.test_app.get("/server/stream")
         self.assertEqual(4, len(mock_serialize.record.call_args_list))
         call1, call2, call3, call4 = mock_serialize.record.call_args_list
         record1 = call1[0][0]
