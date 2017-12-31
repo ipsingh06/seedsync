@@ -81,7 +81,7 @@ export class StreamDispatchService {
     private createSseObserver() {
         const observable = Observable.create(observer => {
             const eventSource = EventSourceFactory.createEventSource(this.STREAM_URL);
-            for(let eventName of Array.from(this._eventNameToServiceMap.keys())) {
+            for (let eventName of Array.from(this._eventNameToServiceMap.keys())) {
                 eventSource.addEventListener(eventName, event => observer.next(
                     {
                         "event": eventName,
@@ -90,25 +90,18 @@ export class StreamDispatchService {
                 ));
             }
 
-            eventSource.onopen = event =>  {
+            // noinspection SpellCheckingInspection
+            // noinspection JSUnusedLocalSymbols
+            eventSource.onopen = event => {
                 this._logger.info("Connected to server stream");
 
                 // Notify all services of connection
-                for(let service of this._services) {
+                for (let service of this._services) {
                     service.notifyConnected();
                 }
             };
 
-            eventSource.onerror = err => this._zone.run(() => {
-                this._logger.error("Error in stream: %O", err);
-
-                // Notify all services of disconnection
-                for(let service of this._services) {
-                    service.notifyDisconnected();
-                }
-
-                setTimeout(() => {this.createSseObserver(); }, this.STREAM_RETRY_INTERVAL_MS);
-            });
+            eventSource.onerror = x => this._zone.run(() => observer.error(x));
 
             return () => {
                 eventSource.close();
@@ -118,8 +111,18 @@ export class StreamDispatchService {
             next: (x) => {
                 let eventName = x["event"];
                 let eventData = x["data"];
-                this._logger.debug("Received event:", eventName);
+                // this._logger.debug("Received event:", eventName);
                 this._eventNameToServiceMap.get(eventName).notifyEvent(eventName, eventData);
+            },
+            error: err => {
+                this._logger.error("Error in stream: %O", err);
+
+                // Notify all services of disconnection
+                for (let service of this._services) {
+                    service.notifyDisconnected();
+                }
+
+                setTimeout(() => { this.createSseObserver(); }, this.STREAM_RETRY_INTERVAL_MS);
             }
         });
     }
@@ -139,7 +142,6 @@ export class StreamServiceRegistry {
                 private _serverStatusService: ServerStatusService,
                 private _connectedService: ConnectedService) {
         // Register all services
-        // TODO: throw error if these services are used without registring
         _dispatch.registerService(_connectedService);
         _dispatch.registerService(_serverStatusService);
         _dispatch.registerService(_modelFileService);

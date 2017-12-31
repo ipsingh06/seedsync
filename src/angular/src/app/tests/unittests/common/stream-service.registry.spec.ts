@@ -142,6 +142,25 @@ describe("Testing stream dispatch service", () => {
         expect(mockService2.connectedSeq).toEqual([false]);
         tick(4000);
     }));
+
+    it("should send events after reconnect", fakeAsync(() => {
+        mockEventSource.onopen(new Event("connected"));
+        tick();
+        mockEventSource.onerror(new Event("bad event"));
+        tick(4000);
+        mockEventSource.onopen(new Event("connected"));
+        tick();
+        mockEventSource.eventListeners.get("event1a")({data: "data1a"});
+        tick();
+        expect(mockService1.eventList).toEqual([
+            ["event1a", "data1a"]
+        ]);
+        expect(mockService2.eventList).toEqual([]);
+        mockEventSource.eventListeners.get("event2b")({data: "data2b"});
+        tick();
+        expect(mockService1.eventList).toEqual([["event1a", "data1a"]]);
+        expect(mockService2.eventList).toEqual([["event2b", "data2b"]]);
+    }));
 });
 
 
