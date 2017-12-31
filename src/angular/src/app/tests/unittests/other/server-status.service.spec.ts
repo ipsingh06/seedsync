@@ -1,5 +1,4 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
-import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 import {ServerStatusService} from "../../../other/server-status.service";
 import {LoggerService} from "../../../common/logger.service";
@@ -11,9 +10,6 @@ describe("Testing server status service", () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [
-                HttpClientTestingModule
-            ],
             providers: [
                 LoggerService,
                 ServerStatusService
@@ -98,8 +94,6 @@ describe("Testing server status service", () => {
         tick();
         expect(count).toBe(2);
         expect(latestStatus.server.up).toBe(false);
-
-        tick(4000);
     }));
 
 });

@@ -6,8 +6,8 @@ import {Config, IConfig} from "./config";
 import {LoggerService} from "../common/logger.service";
 import {BaseWebService} from "../common/base-web.service";
 import {Localization} from "../common/localization";
-import {WebReaction} from "../common/base-stream.service";
 import {StreamServiceRegistry} from "../common/stream-service.registry";
+import {RestService, WebReaction} from "./rest.service";
 
 
 /**
@@ -24,6 +24,7 @@ export class ConfigService extends BaseWebService {
     private _config: BehaviorSubject<Config> = new BehaviorSubject(null);
 
     constructor(_streamServiceProvider: StreamServiceRegistry,
+                private _restService: RestService,
                 private _logger: LoggerService) {
         super(_streamServiceProvider);
     }
@@ -60,7 +61,7 @@ export class ConfigService extends BaseWebService {
             // Double-encode the value
             const valueEncoded = encodeURIComponent(encodeURIComponent(valueStr));
             const url = this.CONFIG_SET_URL(section, option, valueEncoded);
-            const obs = this.sendRequest(url);
+            const obs = this._restService.sendRequest(url);
             obs.subscribe({
                 next: reaction => {
                     if (reaction.success) {
@@ -87,7 +88,7 @@ export class ConfigService extends BaseWebService {
 
     private getConfig() {
         this._logger.debug("Getting config...");
-        this.sendRequest(this.CONFIG_GET_URL).subscribe({
+        this._restService.sendRequest(this.CONFIG_GET_URL).subscribe({
             next: reaction => {
                 if (reaction.success) {
                     const config_json: IConfig = JSON.parse(reaction.data);
@@ -105,9 +106,10 @@ export class ConfigService extends BaseWebService {
  */
 export let configServiceFactory = (
     _streamServiceRegistry: StreamServiceRegistry,
+    _restService: RestService,
     _logger: LoggerService
 ) => {
-  const configService = new ConfigService(_streamServiceRegistry, _logger);
+  const configService = new ConfigService(_streamServiceRegistry, _restService, _logger);
   configService.onInit();
   return configService;
 };
@@ -116,5 +118,5 @@ export let configServiceFactory = (
 export let ConfigServiceProvider = {
     provide: ConfigService,
     useFactory: configServiceFactory,
-    deps: [StreamServiceRegistry, LoggerService]
+    deps: [StreamServiceRegistry, RestService, LoggerService]
 };

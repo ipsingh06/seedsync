@@ -1,5 +1,4 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
-import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 import {LoggerService} from "../../../common/logger.service";
@@ -7,7 +6,6 @@ import {EventSourceFactory, IStreamService, StreamDispatchService, StreamService
 import {ModelFileService} from "../../../model/model-file.service";
 import {ServerStatusService} from "../../../other/server-status.service";
 import {ConnectedService} from "../../../other/connected.service";
-import {RestService} from "../../../other/rest.service";
 
 
 class MockStreamService implements IStreamService {
@@ -156,7 +154,6 @@ describe("Testing stream service registry", () => {
     let mockModelFileService;
     let mockServerStatusService;
     let mockConnectedService;
-    let mockRestService;
 
     let registered;
 
@@ -169,7 +166,6 @@ describe("Testing stream service registry", () => {
         mockModelFileService = jasmine.createSpy("mockModelFileService");
         mockServerStatusService = jasmine.createSpy("mockServerStatusService");
         mockConnectedService = jasmine.createSpy("mockConnectedService");
-        mockRestService = jasmine.createSpy("mockRestService");
 
         TestBed.configureTestingModule({
             providers: [
@@ -178,8 +174,7 @@ describe("Testing stream service registry", () => {
                 {provide: StreamDispatchService, useValue: mockDispatch},
                 {provide: ModelFileService, useValue: mockModelFileService},
                 {provide: ServerStatusService, useValue: mockServerStatusService},
-                {provide: ConnectedService, useValue: mockConnectedService},
-                {provide: RestService, useValue: mockRestService}
+                {provide: ConnectedService, useValue: mockConnectedService}
             ]
         });
 
@@ -200,13 +195,5 @@ describe("Testing stream service registry", () => {
 
     it("should register connected service", () => {
         expect(registered.includes(mockConnectedService)).toBe(true);
-    });
-
-    it("should register rest service", () => {
-        expect(registered.includes(mockRestService)).toBe(true);
-    });
-
-    it("should register rest service first", () => {
-        expect(registered[0]).toBe(mockRestService);
     });
 });

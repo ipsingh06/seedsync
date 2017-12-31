@@ -1,9 +1,6 @@
-import {Injectable, NgZone} from "@angular/core";
-import {Observable} from "rxjs/Observable";
+import {Injectable} from "@angular/core";
 
 import {StreamServiceRegistry} from "./stream-service.registry";
-import {RestService} from "../other/rest.service";
-import {WebReaction} from "./base-stream.service";
 import {ConnectedService} from "../other/connected.service";
 
 
@@ -19,13 +16,7 @@ import {ConnectedService} from "../other/connected.service";
 @Injectable()
 export abstract class BaseWebService {
 
-    private _restService: RestService;
     private _connectedService: ConnectedService;
-
-    constructor(_streamServiceProvider: StreamServiceRegistry) {
-        this._restService = _streamServiceProvider.restService;
-        this._connectedService = _streamServiceProvider.connectedService;
-    }
 
     /**
      * Call this method to finish initialization
@@ -42,9 +33,8 @@ export abstract class BaseWebService {
         });
     }
 
-
-    protected sendRequest(url: string): Observable<WebReaction> {
-        return this._restService.sendRequest(url);
+    constructor(_streamServiceProvider: StreamServiceRegistry) {
+        this._connectedService = _streamServiceProvider.connectedService;
     }
 
 

@@ -1,29 +1,21 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
-import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 
 import {ConnectedService} from "../../../other/connected.service";
-import {LoggerService} from "../../../common/logger.service";
 
 
 describe("Testing connected service", () => {
     let connectedService: ConnectedService;
-    let httpMock: HttpTestingController;
 
     let connectedResults: boolean[];
 
     beforeEach(fakeAsync(() => {
         TestBed.configureTestingModule({
-            imports: [
-                HttpClientTestingModule
-            ],
             providers: [
-                ConnectedService,
-                LoggerService,
+                ConnectedService
             ]
         });
 
         connectedService = TestBed.get(ConnectedService);
-        httpMock = TestBed.get(HttpTestingController);
 
         connectedResults = [];
         connectedService.connected.subscribe({

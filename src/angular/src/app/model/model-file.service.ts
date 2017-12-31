@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient} from "@angular/common/http";
 
 import * as Immutable from "immutable";
 
 import {LoggerService} from "../common/logger.service";
 import {ModelFile} from "./model-file";
-import {BaseStreamService, WebReaction} from "../common/base-stream.service";
+import {BaseStreamService} from "../common/base-stream.service";
+import {RestService, WebReaction} from "../other/rest.service";
 
 
 /**
@@ -30,9 +30,9 @@ export class ModelFileService extends BaseStreamService {
     private _files: BehaviorSubject<Immutable.Map<string, ModelFile>> =
         new BehaviorSubject(Immutable.Map<string, ModelFile>());
 
-    constructor(_logger: LoggerService,
-                _http: HttpClient) {
-        super(_logger, _http);
+    constructor(private _logger: LoggerService,
+                private _restService: RestService) {
+        super();
         this.registerEventName(this.EVENT_INIT);
         this.registerEventName(this.EVENT_ADDED);
         this.registerEventName(this.EVENT_UPDATED);
@@ -53,7 +53,7 @@ export class ModelFileService extends BaseStreamService {
         // Double-encode the value
         const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
         const url: string = "/server/command/queue/" + fileNameEncoded;
-        return this.sendRequest(url);
+        return this._restService.sendRequest(url);
     }
 
     /**
@@ -66,7 +66,7 @@ export class ModelFileService extends BaseStreamService {
         // Double-encode the value
         const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
         const url: string = "/server/command/stop/" + fileNameEncoded;
-        return this.sendRequest(url);
+        return this._restService.sendRequest(url);
     }
 
     protected onEvent(eventName: string, data: string) {

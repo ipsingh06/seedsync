@@ -8,8 +8,8 @@ import {LoggerService} from "../common/logger.service";
 import {BaseWebService} from "../common/base-web.service";
 import {AutoQueuePattern, AutoQueuePatternJson} from "./autoqueue-pattern";
 import {Localization} from "../common/localization";
-import {WebReaction} from "../common/base-stream.service";
 import {StreamServiceRegistry} from "../common/stream-service.registry";
+import {RestService, WebReaction} from "./rest.service";
 
 
 /**
@@ -26,6 +26,7 @@ export class AutoQueueService extends BaseWebService {
             new BehaviorSubject(Immutable.List([]));
 
     constructor(_streamServiceProvider: StreamServiceRegistry,
+                private _restService: RestService,
                 private _logger: LoggerService) {
         super(_streamServiceProvider);
     }
@@ -63,7 +64,7 @@ export class AutoQueueService extends BaseWebService {
             // Double-encode the value
             const patternEncoded = encodeURIComponent(encodeURIComponent(pattern));
             const url = this.AUTOQUEUE_ADD_URL(patternEncoded);
-            const obs = this.sendRequest(url);
+            const obs = this._restService.sendRequest(url);
             obs.subscribe({
                 next: reaction => {
                     if (reaction.success) {
@@ -100,7 +101,7 @@ export class AutoQueueService extends BaseWebService {
             // Double-encode the value
             const patternEncoded = encodeURIComponent(encodeURIComponent(pattern));
             const url = this.AUTOQUEUE_REMOVE_URL(patternEncoded);
-            const obs = this.sendRequest(url);
+            const obs = this._restService.sendRequest(url);
             obs.subscribe({
                 next: reaction => {
                     if (reaction.success) {
@@ -128,7 +129,7 @@ export class AutoQueueService extends BaseWebService {
 
     private getPatterns() {
         this._logger.debug("Getting autoqueue patterns...");
-        this.sendRequest(this.AUTOQUEUE_GET_URL).subscribe({
+        this._restService.sendRequest(this.AUTOQUEUE_GET_URL).subscribe({
             next: reaction => {
                 if (reaction.success) {
                     const parsed: AutoQueuePatternJson[] = JSON.parse(reaction.data);
@@ -152,9 +153,10 @@ export class AutoQueueService extends BaseWebService {
  */
 export let autoQueueServiceFactory = (
     _streamServiceRegistry: StreamServiceRegistry,
+    _restService: RestService,
     _logger: LoggerService
 ) => {
-  const autoQueueService = new AutoQueueService(_streamServiceRegistry, _logger);
+  const autoQueueService = new AutoQueueService(_streamServiceRegistry, _restService, _logger);
   autoQueueService.onInit();
   return autoQueueService;
 };
@@ -163,5 +165,5 @@ export let autoQueueServiceFactory = (
 export let AutoQueueServiceProvider = {
     provide: AutoQueueService,
     useFactory: autoQueueServiceFactory,
-    deps: [StreamServiceRegistry, LoggerService]
+    deps: [StreamServiceRegistry, RestService, LoggerService]
 };

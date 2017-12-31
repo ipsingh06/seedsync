@@ -2,8 +2,8 @@ import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
 import {BaseWebService} from "../common/base-web.service";
-import {WebReaction} from "../common/base-stream.service";
 import {StreamServiceRegistry} from "../common/stream-service.registry";
+import {RestService, WebReaction} from "./rest.service";
 
 
 /**
@@ -13,7 +13,8 @@ import {StreamServiceRegistry} from "../common/stream-service.registry";
 export class ServerCommandService extends BaseWebService {
     private readonly RESTART_URL = "/server/command/restart";
 
-    constructor(_streamServiceProvider: StreamServiceRegistry) {
+    constructor(_streamServiceProvider: StreamServiceRegistry,
+                private _restService: RestService) {
         super(_streamServiceProvider);
     }
 
@@ -22,7 +23,7 @@ export class ServerCommandService extends BaseWebService {
      * @returns {Observable<WebReaction>}
      */
     public restart(): Observable<WebReaction> {
-        return this.sendRequest(this.RESTART_URL);
+        return this._restService.sendRequest(this.RESTART_URL);
     }
 
     protected onConnected() {
@@ -38,9 +39,10 @@ export class ServerCommandService extends BaseWebService {
  * ConfigService factory and provider
  */
 export let serverCommandServiceFactory = (
-    _streamServiceRegistry: StreamServiceRegistry
+    _streamServiceRegistry: StreamServiceRegistry,
+    _restService: RestService
 ) => {
-  const serverCommandService = new ServerCommandService(_streamServiceRegistry);
+  const serverCommandService = new ServerCommandService(_streamServiceRegistry, _restService);
   serverCommandService.onInit();
   return serverCommandService;
 };
@@ -49,5 +51,5 @@ export let serverCommandServiceFactory = (
 export let ServerCommandServiceProvider = {
     provide: ServerCommandService,
     useFactory: serverCommandServiceFactory,
-    deps: [StreamServiceRegistry]
+    deps: [StreamServiceRegistry, RestService]
 };

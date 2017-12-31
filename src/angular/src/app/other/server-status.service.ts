@@ -1,9 +1,7 @@
 import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient} from "@angular/common/http";
 
-import {LoggerService} from "../common/logger.service";
 import {Localization} from "../common/localization";
 import {ServerStatus, ServerStatusJson} from "./server-status";
 import {BaseStreamService} from "../common/base-stream.service";
@@ -19,9 +17,8 @@ export class ServerStatusService extends BaseStreamService {
             }
         }));
 
-    constructor(_logger: LoggerService,
-                _http: HttpClient) {
-        super(_logger, _http);
+    constructor() {
+        super();
         this.registerEventName("status");
     }
 

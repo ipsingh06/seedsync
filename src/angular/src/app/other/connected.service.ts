@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient} from "@angular/common/http";
 
 import {LoggerService} from "../common/logger.service";
 import {BaseStreamService} from "../common/base-stream.service";
+import {RestService} from "./rest.service";
 
 
 /**
@@ -17,9 +17,8 @@ export class ConnectedService extends BaseStreamService {
     // For clients
     private _connectedSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
-    constructor(_logger: LoggerService,
-                _http: HttpClient) {
-        super(_logger, _http);
+    constructor() {
+        super();
         // No events to register
     }
 

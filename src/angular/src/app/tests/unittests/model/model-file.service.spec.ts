@@ -6,6 +6,7 @@ import * as Immutable from "immutable";
 import {ModelFileService} from "../../../model/model-file.service";
 import {LoggerService} from "../../../common/logger.service";
 import {ModelFile} from "../../../model/model-file";
+import {RestService} from "../../../other/rest.service";
 
 
 // noinspection JSUnusedLocalSymbols
@@ -23,6 +24,7 @@ describe("Testing model file service", () => {
             ],
             providers: [
                 LoggerService,
+                RestService,
                 ModelFileService
             ]
         });
@@ -335,6 +337,7 @@ describe("Testing model file service", () => {
         expect(count).toBe(1);
         httpMock.verify();
     }));
+
 
     it("should send correct GET requests on queue command", fakeAsync(() => {
         // Connect the service
