@@ -32,14 +32,14 @@ class WebAppBuilder:
         web_app = WebApp(context=self.__context,
                          controller=self.__controller)
 
-        ModelStreamHandler.register(web_app=web_app,
-                                    controller=self.__controller)
-
         StatusStreamHandler.register(web_app=web_app,
                                      status=self.__context.status)
 
         LogStreamHandler.register(web_app=web_app,
                                   logger=self.__context.logger)
+
+        ModelStreamHandler.register(web_app=web_app,
+                                    controller=self.__controller)
 
         self.controller_handler.add_routes(web_app)
         self.server_handler.add_routes(web_app)
