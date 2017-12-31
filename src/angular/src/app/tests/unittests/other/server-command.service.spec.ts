@@ -3,44 +3,41 @@ import {HttpClientTestingModule, HttpTestingController} from "@angular/common/ht
 
 import {LoggerService} from "../../../common/logger.service";
 import {ServerCommandService} from "../../../other/server-command.service";
-import {EventSourceFactory} from "../../../common/base-stream.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
+import {MockStreamServiceRegistry} from "../../mocks/mock-stream-service.registry";
+import {RestService} from "../../../other/rest.service";
+import {ConnectedService} from "../../../other/connected.service";
+import {StreamServiceRegistry} from "../../../common/stream-service.registry";
 
 
 describe("Testing server command service", () => {
+    let mockRegistry: MockStreamServiceRegistry;
     let httpMock: HttpTestingController;
     let commandService: ServerCommandService;
 
-    let mockEventSource: MockEventSource;
-
-    beforeEach(fakeAsync(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
                 HttpClientTestingModule
             ],
             providers: [
-                LoggerService,
                 ServerCommandService,
+                LoggerService,
+                RestService,
+                ConnectedService,
+                {provide: StreamServiceRegistry, useClass: MockStreamServiceRegistry}
             ]
         });
 
-        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
-            (url: string) => {
-                mockEventSource = createMockEventSource(url);
-                return mockEventSource;
-            }
-        );
-
+        mockRegistry = TestBed.get(StreamServiceRegistry);
         httpMock = TestBed.get(HttpTestingController);
         commandService = TestBed.get(ServerCommandService);
 
+        // Connect the services
+        mockRegistry.connect();
+
         // Finish test config init
         commandService.onInit();
-
-        // Connect the service
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
-        tick();
-    }));
+    });
 
     it("should create an instance", () => {
         expect(commandService).toBeDefined();

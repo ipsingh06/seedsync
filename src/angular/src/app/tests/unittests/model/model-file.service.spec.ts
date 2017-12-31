@@ -5,18 +5,16 @@ import * as Immutable from "immutable";
 
 import {ModelFileService} from "../../../model/model-file.service";
 import {LoggerService} from "../../../common/logger.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
-import {EventSourceFactory} from "../../../common/base-stream.service";
 import {ModelFile} from "../../../model/model-file";
+
 
 // noinspection JSUnusedLocalSymbols
 const DoNothing = {next: reaction => {}};
 
+
 describe("Testing model file service", () => {
     let modelFileService: ModelFileService;
     let httpMock: HttpTestingController;
-
-    let mockEventSource: MockEventSource;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -31,31 +29,17 @@ describe("Testing model file service", () => {
 
         httpMock = TestBed.get(HttpTestingController);
 
-        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
-            (url: string) => {
-                mockEventSource = createMockEventSource(url);
-                return mockEventSource;
-            }
-        );
-
         modelFileService = TestBed.get(ModelFileService);
-        modelFileService.onInit();
     });
 
     it("should create an instance", () => {
         expect(modelFileService).toBeDefined();
     });
 
-    it("should construct an event source with correct url", () => {
-        expect(mockEventSource.url).toBe("/server/model-stream");
-    });
-
     it("should register all events with the event source", () => {
-        expect(mockEventSource.eventListeners.size).toBe(4);
-        expect(mockEventSource.eventListeners.has("init")).toBe(true);
-        expect(mockEventSource.eventListeners.has("added")).toBe(true);
-        expect(mockEventSource.eventListeners.has("removed")).toBe(true);
-        expect(mockEventSource.eventListeners.has("updated")).toBe(true);
+        expect(modelFileService.getEventNames()).toEqual(
+            ["model-init", "model-added", "model-updated", "model-removed"]
+        );
     });
 
     it("should send correct model on an init event", fakeAsync(() => {
@@ -97,7 +81,7 @@ describe("Testing model file service", () => {
                 children: []
             })
         ];
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify(actualModelFiles)});
+        modelFileService.notifyEvent("model-init", JSON.stringify(actualModelFiles));
         tick();
         expect(count).toBe(2);
         expect(latestModel.size).toBe(1);
@@ -118,7 +102,7 @@ describe("Testing model file service", () => {
                 children: []
             }
         ];
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify(initialModelFiles)});
+        modelFileService.notifyEvent("model-init", JSON.stringify(initialModelFiles));
 
         let count = 0;
         let latestModel: Immutable.Map<string, ModelFile> = null;
@@ -171,7 +155,7 @@ describe("Testing model file service", () => {
                 children: []
             })
         ];
-        mockEventSource.eventListeners.get("added")({data: JSON.stringify(addedModelFile)});
+        modelFileService.notifyEvent("model-added", JSON.stringify(addedModelFile));
         tick();
         expect(count).toBe(2);
         expect(latestModel.size).toBe(2);
@@ -193,7 +177,7 @@ describe("Testing model file service", () => {
                 children: []
             }
         ];
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify(initialModelFiles)});
+        modelFileService.notifyEvent("model-init", JSON.stringify(initialModelFiles));
 
         let count = 0;
         let latestModel: Immutable.Map<string, ModelFile> = null;
@@ -222,7 +206,7 @@ describe("Testing model file service", () => {
             }
         };
 
-        mockEventSource.eventListeners.get("removed")({data: JSON.stringify(removedModelFile)});
+        modelFileService.notifyEvent("model-removed", JSON.stringify(removedModelFile));
         tick();
         expect(count).toBe(2);
         expect(latestModel.size).toBe(0);
@@ -242,7 +226,7 @@ describe("Testing model file service", () => {
                 children: []
             }
         ];
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify(initialModelFiles)});
+        modelFileService.notifyEvent("model-init", JSON.stringify(initialModelFiles));
 
         let count = 0;
         let latestModel: Immutable.Map<string, ModelFile> = null;
@@ -294,14 +278,14 @@ describe("Testing model file service", () => {
                 children: []
             })
         ];
-        mockEventSource.eventListeners.get("updated")({data: JSON.stringify(updatedModelFile)});
+        modelFileService.notifyEvent("model-updated", JSON.stringify(updatedModelFile));
         tick();
         expect(count).toBe(2);
         expect(latestModel.size).toBe(1);
         expect(Immutable.is(latestModel.get("File.One"), expectedModelFiles[0])).toBe(true);
     }));
 
-    it("should send empty model on error", fakeAsync(() => {
+    it("should send empty model on disconnect", fakeAsync(() => {
         let count = 0;
         let latestModel: Immutable.Map<string, ModelFile> = null;
         modelFileService.files.subscribe({
@@ -314,7 +298,7 @@ describe("Testing model file service", () => {
         expect(count).toBe(1);
         expect(latestModel.size).toBe(0);
 
-        mockEventSource.onerror(new Event("bad event"));
+        modelFileService.notifyDisconnected();
         tick();
         expect(count).toBe(2);
         expect(latestModel.size).toBe(0);
@@ -324,7 +308,7 @@ describe("Testing model file service", () => {
 
     it("should send a GET on queue command", fakeAsync(() => {
         // Connect the service
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+        modelFileService.notifyConnected();
 
         let modelFile = new ModelFile({
             name: "File.One",
@@ -354,7 +338,7 @@ describe("Testing model file service", () => {
 
     it("should send correct GET requests on queue command", fakeAsync(() => {
         // Connect the service
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+        modelFileService.notifyConnected();
 
         let modelFile;
 
@@ -401,7 +385,7 @@ describe("Testing model file service", () => {
 
     it("should send a GET on stop command", fakeAsync(() => {
         // Connect the service
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+        modelFileService.notifyConnected();
 
         let modelFile = new ModelFile({
             name: "File.One",
@@ -431,7 +415,7 @@ describe("Testing model file service", () => {
 
     it("should send correct GET requests on stop command", fakeAsync(() => {
         // Connect the service
-        mockEventSource.eventListeners.get("init")({data: JSON.stringify([])});
+        modelFileService.notifyConnected();
 
         let modelFile;
 

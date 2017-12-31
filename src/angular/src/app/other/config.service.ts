@@ -1,13 +1,13 @@
-import {Injectable, NgZone} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient} from "@angular/common/http";
 
 import {Config, IConfig} from "./config";
 import {LoggerService} from "../common/logger.service";
 import {BaseWebService} from "../common/base-web.service";
 import {Localization} from "../common/localization";
 import {WebReaction} from "../common/base-stream.service";
+import {StreamServiceRegistry} from "../common/stream-service.registry";
 
 
 /**
@@ -16,15 +16,16 @@ import {WebReaction} from "../common/base-stream.service";
 @Injectable()
 export class ConfigService extends BaseWebService {
     private readonly CONFIG_GET_URL = "/server/config/get";
+
+    // noinspection UnterminatedStatementJS
     private readonly CONFIG_SET_URL =
         (section, option, value) => `/server/config/set/${section}/${option}/${value}`
 
     private _config: BehaviorSubject<Config> = new BehaviorSubject(null);
 
-    constructor(_logger: LoggerService,
-                _http: HttpClient,
-                _zone: NgZone) {
-        super(_logger, _http, _zone);
+    constructor(_streamServiceProvider: StreamServiceRegistry,
+                private _logger: LoggerService) {
+        super(_streamServiceProvider);
     }
 
     /**
@@ -74,14 +75,14 @@ export class ConfigService extends BaseWebService {
         }
     }
 
-    protected onConnectedChanged(connected: boolean): void {
-        if (connected) {
-            // Retry the get
-            this.getConfig();
-        } else {
-            // Send null config
-            this._config.next(null);
-        }
+    protected onConnected() {
+        // Retry the get
+        this.getConfig();
+    }
+
+    protected onDisconnected() {
+        // Send null config
+        this._config.next(null);
     }
 
     private getConfig() {
@@ -103,10 +104,10 @@ export class ConfigService extends BaseWebService {
  * ConfigService factory and provider
  */
 export let configServiceFactory = (
-    _logger: LoggerService,
-    _http: HttpClient,
-    _zone: NgZone) => {
-  const configService = new ConfigService(_logger, _http, _zone);
+    _streamServiceRegistry: StreamServiceRegistry,
+    _logger: LoggerService
+) => {
+  const configService = new ConfigService(_streamServiceRegistry, _logger);
   configService.onInit();
   return configService;
 };
@@ -115,5 +116,5 @@ export let configServiceFactory = (
 export let ConfigServiceProvider = {
     provide: ConfigService,
     useFactory: configServiceFactory,
-    deps: [LoggerService, HttpClient, NgZone]
+    deps: [StreamServiceRegistry, LoggerService]
 };

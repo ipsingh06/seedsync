@@ -1,16 +1,10 @@
-import {Injectable, NgZone} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 
 import {LoggerService} from "./logger.service";
 import {Localization} from "./localization";
-
-
-export class EventSourceFactory {
-    static createEventSource(url: string) {
-        return new EventSource(url);
-    }
-}
+import {IStreamService} from "./stream-service.registry";
 
 
 /**
@@ -31,64 +25,32 @@ export class WebReaction {
 
 
 @Injectable()
-export abstract class BaseStreamService {
+export abstract class BaseStreamService implements IStreamService {
 
-    private readonly STREAM_RETRY_INTERVAL_MS = 3000;
-
-    private _streamUrl: string;
     private _eventNames: string[] = [];
-    private _connected: boolean = false;
+    private _connected = false;
+
 
     constructor(protected _logger: LoggerService,
-                private _http: HttpClient,
-                private _zone: NgZone) {
+                private _http: HttpClient) {
     }
 
-    protected set streamUrl(url: string) {
-        this._streamUrl = url;
+    getEventNames(): string[] {
+        return this._eventNames;
     }
 
-    protected registerEvent(eventName: string) {
-        this._eventNames.push(eventName);
+    notifyConnected() {
+        this._connected = true;
+        this.onConnected();
     }
 
-    /**
-     * Call this method to finish initialization
-     */
-    public onInit() {
-        this.createSseObserver();
+    notifyDisconnected() {
+        this._connected = false;
+        this.onDisconnected();
     }
 
-    private createSseObserver() {
-        const observable = Observable.create(observer => {
-            const eventSource = EventSourceFactory.createEventSource(this._streamUrl);
-            for(let eventName of this._eventNames) {
-                eventSource.addEventListener(eventName, event => observer.next(
-                    {
-                        "event": eventName,
-                        "data": event.data
-                    }
-                ));
-            }
-
-            eventSource.onerror = x => this._zone.run(() => observer.error(x));
-
-            return () => {
-                eventSource.close();
-            };
-        });
-        observable.subscribe({
-            next: (x) => {
-                // TODO: move to onopen
-                this._connected = true;
-                this.onEvent(x["event"], x["data"])
-            },
-            error: err => {
-                this._connected = false;
-                this.onError(err);
-                setTimeout(() => {this.createSseObserver(); }, this.STREAM_RETRY_INTERVAL_MS);
-            }
-        });
+    notifyEvent(eventName: string, data: string) {
+        this.onEvent(eventName, data);
     }
 
     /**
@@ -119,7 +81,7 @@ export abstract class BaseStreamService {
                 );
             } else {
                 // We are NOT connected, don't bother sending a request
-                this._logger.debug("%s failed: not connected to server", url);
+                this._logger.error("%s failed: not connected to server", url);
                 observer.next(new WebReaction(false, null, Localization.Error.SERVER_DISCONNECTED));
             }
         }).shareReplay(1);
@@ -127,6 +89,10 @@ export abstract class BaseStreamService {
         //      prevent duplicate http requests
         //      share result with those that subscribe after the value was published
         // More info: https://blog.thoughtram.io/angular/2016/06/16/cold-vs-hot-observables.html
+    }
+
+    protected registerEventName(eventName: string) {
+        this._eventNames.push(eventName);
     }
 
     /**
@@ -137,8 +103,12 @@ export abstract class BaseStreamService {
     protected abstract onEvent(eventName: string, data: string);
 
     /**
-     * Callback for error
-     * @param err
+     * Callback for connected
      */
-    protected abstract onError(err);
+    protected abstract onConnected();
+
+    /**
+     * Callback for disconnected
+     */
+    protected abstract onDisconnected();
 }

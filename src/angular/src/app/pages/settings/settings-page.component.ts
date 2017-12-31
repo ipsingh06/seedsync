@@ -13,6 +13,7 @@ import {
     OPTIONS_CONTEXT_SERVER
 } from "./options-list";
 import {ConnectedService} from "../../other/connected.service";
+import {StreamServiceRegistry} from "../../common/stream-service.registry";
 
 @Component({
     selector: "app-settings-page",
@@ -32,14 +33,17 @@ export class SettingsPageComponent implements OnInit {
 
     public commandsEnabled: boolean;
 
+    private _connectedService: ConnectedService;
+
     private _configRestartNotif: Notification;
     private _badValueNotifs: Map<string, Notification>;
 
     constructor(private _logger: LoggerService,
+                _streamServiceRegistry: StreamServiceRegistry,
                 private _configService: ConfigService,
                 private _notifService: NotificationService,
-                private _connectedService: ConnectedService,
                 private _commandService: ServerCommandService) {
+        this._connectedService = _streamServiceRegistry.connectedService;
         this.config = _configService.config;
         this.commandsEnabled = false;
         this._configRestartNotif = new Notification({

@@ -2,16 +2,12 @@ import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 
 import {ConnectedService} from "../../../other/connected.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
-import {EventSourceFactory} from "../../../common/base-stream.service";
 import {LoggerService} from "../../../common/logger.service";
 
 
 describe("Testing connected service", () => {
     let connectedService: ConnectedService;
     let httpMock: HttpTestingController;
-
-    let mockEventSource: MockEventSource;
 
     let connectedResults: boolean[];
 
@@ -26,18 +22,8 @@ describe("Testing connected service", () => {
             ]
         });
 
-        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
-            (url: string) => {
-                mockEventSource = createMockEventSource(url);
-                return mockEventSource;
-            }
-        );
-
         connectedService = TestBed.get(ConnectedService);
         httpMock = TestBed.get(HttpTestingController);
-
-        // Initialize base web service
-        connectedService.onInit();
 
         connectedResults = [];
         connectedService.connected.subscribe({
@@ -57,55 +43,52 @@ describe("Testing connected service", () => {
     });
 
     it("should notify on first connection success", fakeAsync(() => {
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        connectedService.notifyConnected();
         tick();
 
         expect(connectedResults).toEqual([false, true]);
     }));
 
     it("should NOT notify on first connection failure", fakeAsync(() => {
-        mockEventSource.onerror(new Event("bad event"));
+        connectedService.notifyDisconnected();
         tick();
 
         expect(connectedResults).toEqual([false]);
-        tick(4000);
     }));
 
     it("should notify on disconnection", fakeAsync(() => {
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        connectedService.notifyConnected();
         tick();
-        mockEventSource.onerror(new Event("bad event"));
+        connectedService.notifyDisconnected();
         tick();
         expect(connectedResults).toEqual([false, true, false]);
-        tick(4000);
+        tick();
     }));
 
     it("should notify on re-connection", fakeAsync(() => {
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        connectedService.notifyConnected();
         tick();
-        mockEventSource.onerror(new Event("bad event"));
-        tick(4000);
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        connectedService.notifyDisconnected();
+        tick();
+        connectedService.notifyConnected();
         tick();
         expect(connectedResults).toEqual([false, true, false, true]);
-        tick(4000);
     }));
 
     it("should NOT notify on repeated disconnection", fakeAsync(() => {
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        connectedService.notifyConnected();
         tick();
-        mockEventSource.onerror(new Event("bad event"));
+        connectedService.notifyDisconnected();
         tick();
-        mockEventSource.onerror(new Event("bad event"));
+        connectedService.notifyDisconnected();
         tick();
         expect(connectedResults).toEqual([false, true, false]);
-        tick(4000);
     }));
 
     it("should NOT notify on repeated re-connection", fakeAsync(() => {
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        connectedService.notifyConnected();
         tick();
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        connectedService.notifyConnected();
         tick();
         expect(connectedResults).toEqual([false, true]);
     }));

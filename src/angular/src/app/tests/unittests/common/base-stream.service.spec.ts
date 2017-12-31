@@ -1,34 +1,40 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
-import {HttpClientTestingModule} from "@angular/common/http/testing";
+import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
 
-import {BaseStreamService, EventSourceFactory} from "../../../common/base-stream.service";
+import {BaseStreamService, WebReaction} from "../../../common/base-stream.service";
 import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 import {LoggerService} from "../../../common/logger.service";
+import {EventSourceFactory} from "../../../common/stream-service.registry";
+import {Observable} from "rxjs/Observable";
 
 
 class TestBaseStreamService extends BaseStreamService {
     eventList = [];
 
-    public set testStreamUrl(url: string) {
-        this.streamUrl = url;
-    }
-
-    public registerEvent(eventName: string) {
-        super.registerEvent(eventName);
+    public registerEventName(eventName: string) {
+        super.registerEventName(eventName);
     }
 
     protected onEvent(eventName: string, data: string) {
         console.log(eventName, data);
-        this.eventList.push({name: eventName, data: data});
+        this.eventList.push([eventName, data]);
     }
 
-    public onError(err: any) {}
+    public onConnected() {}
+
+    public onDisconnected() {}
+
+
+    public sendRequest(url: string): Observable<WebReaction> {
+        return super.sendRequest(url);
+    }
 }
 
 
 describe("Testing base stream service", () => {
     let baseStreamService: TestBaseStreamService;
 
+    let httpMock: HttpTestingController;
     let mockEventSource: MockEventSource;
 
     beforeEach(() => {
@@ -48,54 +54,150 @@ describe("Testing base stream service", () => {
                 return mockEventSource;
             }
         );
+        httpMock = TestBed.get(HttpTestingController);
 
         baseStreamService = TestBed.get(TestBaseStreamService);
-        baseStreamService.testStreamUrl = "/stream/url/for/service";
-        baseStreamService.registerEvent("event1");
-        baseStreamService.registerEvent("event2");
-        baseStreamService.registerEvent("event3");
-        baseStreamService.onInit();
+        spyOn(baseStreamService, "onConnected");
+        spyOn(baseStreamService, "onDisconnected");
     });
 
     it("should create an instance", () => {
         expect(baseStreamService).toBeDefined();
     });
 
-    it("should construct an event source with correct url", () => {
-        expect(mockEventSource.url).toBe("/stream/url/for/service");
+    it("should return all registered event names", () => {
+        baseStreamService.registerEventName("event1");
+        baseStreamService.registerEventName("event2");
+        baseStreamService.registerEventName("event3");
+        expect(baseStreamService.getEventNames()).toEqual(["event1", "event2", "event3"]);
     });
 
-    it("should register all events with the event source", () => {
-        expect(mockEventSource.addEventListener).toHaveBeenCalledTimes(3);
-        expect(mockEventSource.eventListeners.size).toBe(3);
-        expect(mockEventSource.eventListeners.has("event1")).toBe(true);
-        expect(mockEventSource.eventListeners.has("event2")).toBe(true);
-        expect(mockEventSource.eventListeners.has("event3")).toBe(true);
+    it("should forward the event notifications", () => {
+        baseStreamService.notifyEvent("event1", "data1");
+        expect(baseStreamService.eventList).toEqual([
+            ["event1", "data1"]
+        ]);
+        baseStreamService.notifyEvent("event2", "data2");
+        expect(baseStreamService.eventList).toEqual([
+            ["event1", "data1"], ["event2", "data2"]
+        ]);
+        baseStreamService.notifyEvent("event3", "data3");
+        expect(baseStreamService.eventList).toEqual([
+            ["event1", "data1"], ["event2", "data2"], ["event3", "data3"]
+        ]);
     });
 
-    it("should set an error handler on the event source", () => {
-        expect(mockEventSource.onerror).toBeDefined();
+    it("should forward the connected notifications", () => {
+        baseStreamService.notifyConnected();
+        expect(baseStreamService.onConnected).toHaveBeenCalledTimes(1);
+        baseStreamService.notifyConnected();
+        expect(baseStreamService.onConnected).toHaveBeenCalledTimes(2);
     });
 
-    it("forwards event name and data", () => {
-        mockEventSource.eventListeners.get("event3")({data: "data3"});
-        mockEventSource.eventListeners.get("event1")({data: "data1"});
-        mockEventSource.eventListeners.get("event2")({data: "data2"});
-        expect(baseStreamService.eventList.length).toBe(3);
-        expect(baseStreamService.eventList).toEqual(
-            [
-                {name: "event3", data: "data3"},
-                {name: "event1", data: "data1"},
-                {name: "event2", data: "data2"},
-            ]
-        )
+    it("should forward the disconnected notifications", () => {
+        baseStreamService.notifyDisconnected();
+        expect(baseStreamService.onDisconnected).toHaveBeenCalledTimes(1);
+        baseStreamService.notifyDisconnected();
+        expect(baseStreamService.onDisconnected).toHaveBeenCalledTimes(2);
     });
 
-    it("should forward errors", fakeAsync(() => {
-        spyOn(baseStreamService, 'onError');
-        mockEventSource.onerror(new Event("bad event"));
-        expect(baseStreamService.onError).toHaveBeenCalledWith(new Event("bad event"));
-        tick(4000);
+
+
+    it("should send http GET on sendRequest", fakeAsync(() => {
+        // Connect the service
+        baseStreamService.notifyConnected();
+        tick();
+
+        let subscriberIndex = 0;
+        baseStreamService.sendRequest("/server/request").subscribe({
+            next: reaction => {
+                subscriberIndex++;
+                expect(reaction.success).toBe(true);
+            }
+        });
+        httpMock.expectOne("/server/request").flush("success");
+
+        expect(subscriberIndex).toBe(1);
+        httpMock.verify();
+    }));
+
+    it("should return correct data on sendRequest", fakeAsync(() => {
+        // Connect the service
+        baseStreamService.notifyConnected();
+        tick();
+
+        let subscriberIndex = 0;
+        baseStreamService.sendRequest("/server/request").subscribe({
+            next: reaction => {
+                subscriberIndex++;
+                expect(reaction.success).toBe(true);
+                expect(reaction.data).toBe("this is some data");
+            }
+        });
+        httpMock.expectOne("/server/request").flush("this is some data");
+
+        expect(subscriberIndex).toBe(1);
+        httpMock.verify();
+    }));
+
+    it("should get error message on sendRequest error 404", fakeAsync(() => {
+        // Connect the service
+        baseStreamService.notifyConnected();
+        tick();
+
+        let subscriberIndex = 0;
+        baseStreamService.sendRequest("/server/request").subscribe({
+            next: reaction => {
+                subscriberIndex++;
+                expect(reaction.success).toBe(false);
+                expect(reaction.errorMessage).toBe("Not found");
+            }
+        });
+        httpMock.expectOne("/server/request").flush(
+        "Not found",
+        {status: 404, statusText: "Bad Request"}
+        );
+
+        expect(subscriberIndex).toBe(1);
+        httpMock.verify();
+    }));
+
+    it("should get error message on sendRequest network error", fakeAsync(() => {
+        // Connect the service
+        baseStreamService.notifyConnected();
+        tick();
+
+        let subscriberIndex = 0;
+        baseStreamService.sendRequest("/server/request").subscribe({
+            next: reaction => {
+                subscriberIndex++;
+                expect(reaction.success).toBe(false);
+                expect(reaction.errorMessage).toBe("mock error");
+            }
+        });
+        httpMock.expectOne("/server/request").error(new ErrorEvent("mock error"));
+
+        expect(subscriberIndex).toBe(1);
+        httpMock.verify();
+    }));
+
+    it("should get error message on sendRequest when disconnected", fakeAsync(() => {
+        // Keep service disconnected
+        let subscriberIndex = 0;
+        baseStreamService.sendRequest("/server/request").subscribe({
+            next: reaction => {
+                subscriberIndex++;
+                expect(reaction.success).toBe(false);
+            }
+        });
+        expect(subscriberIndex).toBe(1);
+    }));
+
+    it("should NOT issue a GET for sendRequest when disconnected", fakeAsync(() => {
+        // Keep service disconnected
+        baseStreamService.sendRequest("/server/request").subscribe({next: () => {}});
+        httpMock.expectNone("/server/request");
+        httpMock.verify();
     }));
 
 });

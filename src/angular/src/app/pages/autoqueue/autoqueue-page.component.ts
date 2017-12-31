@@ -8,6 +8,7 @@ import {AutoQueuePattern} from "../../other/autoqueue-pattern";
 import {Notification} from "../../other/notification";
 import {NotificationService} from "../../other/notification.service";
 import {ConnectedService} from "../../other/connected.service";
+import {StreamServiceRegistry} from "../../common/stream-service.registry";
 
 
 @Component({
@@ -25,9 +26,12 @@ export class AutoQueuePageComponent implements OnInit {
 
     public enabled: boolean;
 
+    private _connectedService: ConnectedService;
+
     constructor(private _autoqueueService: AutoQueueService,
                 private _notifService: NotificationService,
-                private _connectedService: ConnectedService) {
+                _streamServiceRegistry: StreamServiceRegistry) {
+        this._connectedService = _streamServiceRegistry.connectedService;
         this.patterns = _autoqueueService.patterns;
         this.newPattern = "";
         this.enabled = false;

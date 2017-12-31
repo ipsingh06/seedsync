@@ -4,6 +4,7 @@ import {ROUTE_INFOS} from "./routes";
 import {ServerCommandService} from "./other/server-command.service";
 import {LoggerService} from "./common/logger.service";
 import {ConnectedService} from "./other/connected.service";
+import {StreamServiceRegistry} from "./common/stream-service.registry";
 
 @Component({
     selector: "app-sidebar",
@@ -16,9 +17,12 @@ export class SidebarComponent implements OnInit {
 
     public commandsEnabled: boolean;
 
+    private _connectedService: ConnectedService;
+
     constructor(private _logger: LoggerService,
-                private _connectedService: ConnectedService,
+                _streamServiceRegistry: StreamServiceRegistry,
                 private _commandService: ServerCommandService) {
+        this._connectedService = _streamServiceRegistry.connectedService;
         this.commandsEnabled = false;
     }
 

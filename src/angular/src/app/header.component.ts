@@ -7,6 +7,7 @@ import {LoggerService} from "./common/logger.service";
 import {ServerStatusService} from "./other/server-status.service";
 import {Notification} from "./other/notification";
 import {NotificationService} from "./other/notification.service";
+import {StreamServiceRegistry} from "./common/stream-service.registry";
 
 @Component({
     selector: "app-header",
@@ -20,11 +21,14 @@ export class HeaderComponent implements OnInit {
 
     public notifications: Observable<Immutable.List<Notification>>;
 
+    private _serverStatusService: ServerStatusService;
+
     private _prevServerNotification: Notification;
 
     constructor(private _logger: LoggerService,
-                private _serverStatusService: ServerStatusService,
+                _streamServiceRegistry: StreamServiceRegistry,
                 private _notificationService: NotificationService) {
+        this._serverStatusService = _streamServiceRegistry.serverStatusService;
         this.notifications = this._notificationService.notifications;
         this._prevServerNotification = null;
     }

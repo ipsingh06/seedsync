@@ -1,10 +1,9 @@
-import {Injectable, NgZone} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
-import {HttpClient} from "@angular/common/http";
 
 import {BaseWebService} from "../common/base-web.service";
-import {LoggerService} from "../common/logger.service";
 import {WebReaction} from "../common/base-stream.service";
+import {StreamServiceRegistry} from "../common/stream-service.registry";
 
 
 /**
@@ -14,15 +13,8 @@ import {WebReaction} from "../common/base-stream.service";
 export class ServerCommandService extends BaseWebService {
     private readonly RESTART_URL = "/server/command/restart";
 
-    constructor(_logger: LoggerService,
-                _http: HttpClient,
-                _zone: NgZone) {
-        super(_logger, _http, _zone);
-    }
-
-    // noinspection JSUnusedLocalSymbols
-    protected onConnectedChanged(connected: boolean): void {
-        // Nothing to do
+    constructor(_streamServiceProvider: StreamServiceRegistry) {
+        super(_streamServiceProvider);
     }
 
     /**
@@ -32,16 +24,23 @@ export class ServerCommandService extends BaseWebService {
     public restart(): Observable<WebReaction> {
         return this.sendRequest(this.RESTART_URL);
     }
+
+    protected onConnected() {
+        // Nothing to do
+    }
+
+    protected onDisconnected() {
+        // Nothing to do
+    }
 }
 
 /**
  * ConfigService factory and provider
  */
 export let serverCommandServiceFactory = (
-    _logger: LoggerService,
-    _http: HttpClient,
-    _zone: NgZone) => {
-  const serverCommandService = new ServerCommandService(_logger, _http, _zone);
+    _streamServiceRegistry: StreamServiceRegistry
+) => {
+  const serverCommandService = new ServerCommandService(_streamServiceRegistry);
   serverCommandService.onInit();
   return serverCommandService;
 };
@@ -50,5 +49,5 @@ export let serverCommandServiceFactory = (
 export let ServerCommandServiceProvider = {
     provide: ServerCommandService,
     useFactory: serverCommandServiceFactory,
-    deps: [LoggerService, HttpClient, NgZone]
+    deps: [StreamServiceRegistry]
 };

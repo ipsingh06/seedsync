@@ -10,6 +10,7 @@ import {ModelFileService} from "../model/model-file.service";
 import {ViewFile} from "./view-file";
 import {MOCK_MODEL_FILES} from "../model/mock-model-files";
 import {WebReaction} from "../common/base-stream.service";
+import {StreamServiceRegistry} from "../common/stream-service.registry";
 
 
 /**
@@ -18,6 +19,7 @@ import {WebReaction} from "../common/base-stream.service";
 export interface ViewFileFilterCriteria {
     meetsCriteria(viewFile: ViewFile): boolean;
 }
+
 
 
 /**
@@ -63,6 +65,8 @@ export class ViewFileService {
 
     private readonly USE_MOCK_MODEL = false;
 
+    private modelFileService: ModelFileService;
+
     private _files: Immutable.List<ViewFile> = Immutable.List([]);
     private _filesSubject: BehaviorSubject<Immutable.List<ViewFile>> = new BehaviorSubject(this._files);
     private _filteredFilesSubject: BehaviorSubject<Immutable.List<ViewFile>> = new BehaviorSubject(this._files);
@@ -72,6 +76,7 @@ export class ViewFileService {
 
     private _filterCriteria: ViewFileFilterCriteria = null;
 
+    // noinspection UnterminatedStatementJS
     /**
      * Comparator used to sort the ViewFiles
      * First, sorts by status.
@@ -99,7 +104,8 @@ export class ViewFileService {
     }
 
     constructor(private _logger: LoggerService,
-                private modelFileService: ModelFileService) {
+                private _streamServiceRegistry: StreamServiceRegistry) {
+        this.modelFileService = _streamServiceRegistry.modelFileService;
         const _viewFileService = this;
 
         if (!this.USE_MOCK_MODEL) {

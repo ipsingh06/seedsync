@@ -9,7 +9,7 @@ import {environment} from "../environments/environment";
 import {LoggerService} from "./common/logger.service";
 import {FileListComponent} from "./pages/files/file-list.component";
 import {FileComponent} from "./pages/files/file.component";
-import {ModelFileServiceProvider} from "./model/model-file.service";
+import {ModelFileService} from "./model/model-file.service";
 import {ViewFileService} from "./view/view-file.service";
 import {FileSizePipe} from "./common/file-size.pipe";
 import {EtaPipe} from "./common/eta.pipe";
@@ -21,7 +21,7 @@ import {FilesPageComponent} from "./pages/files/files-page.component";
 import {HeaderComponent} from "./header.component";
 import {SidebarComponent} from "./sidebar.component";
 import {SettingsPageComponent} from "./pages/settings/settings-page.component";
-import {ServerStatusServiceProvider} from "./other/server-status.service";
+import {ServerStatusService} from "./other/server-status.service";
 import {ConfigServiceProvider} from "./other/config.service";
 import {OptionComponent} from "./pages/settings/option.component";
 import {NotificationService} from "./other/notification.service";
@@ -29,7 +29,9 @@ import {ServerCommandServiceProvider} from "./other/server-command.service";
 import {AutoQueuePageComponent} from "./pages/autoqueue/autoqueue-page.component";
 import {AutoQueueServiceProvider} from "./other/autoqueue.service";
 import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
-import {ConnectedServiceProvider} from "./other/connected.service";
+import {ConnectedService} from "./other/connected.service";
+import {RestService} from "./other/rest.service";
+import {StreamDispatchService, StreamServiceRegistryProvider} from "./common/stream-service.registry";
 
 @NgModule({
     declarations: [
@@ -72,17 +74,24 @@ import {ConnectedServiceProvider} from "./other/connected.service";
             }
         ])
     ],
-    providers: [{provide: RouteReuseStrategy, useClass: CachedReuseStrategy},
-                LoggerService,
-                ModelFileServiceProvider,
-                ViewFileService,
-                ViewFileFilterService,
-                ServerStatusServiceProvider,
-                ConfigServiceProvider,
-                NotificationService,
-                ServerCommandServiceProvider,
-                AutoQueueServiceProvider,
-                ConnectedServiceProvider],
+    providers: [
+        {provide: RouteReuseStrategy, useClass: CachedReuseStrategy},
+        LoggerService,
+        NotificationService,
+        ViewFileService,
+        ViewFileFilterService,
+
+        StreamDispatchService,
+        StreamServiceRegistryProvider,
+        ServerStatusService,
+        ModelFileService,
+        ConnectedService,
+        RestService,
+
+        AutoQueueServiceProvider,
+        ConfigServiceProvider,
+        ServerCommandServiceProvider,
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {

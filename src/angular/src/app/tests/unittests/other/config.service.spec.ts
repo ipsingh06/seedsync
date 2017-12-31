@@ -1,69 +1,50 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
-import {Subject} from "rxjs/Subject";
 
 import * as Immutable from "immutable";
 
 import {ConfigService} from "../../../other/config.service";
 import {LoggerService} from "../../../common/logger.service";
 import {Config} from "../../../other/config";
-import {EventSourceFactory} from "../../../common/base-stream.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
+import {MockStreamServiceRegistry} from "../../mocks/mock-stream-service.registry";
+import {ConnectedService} from "../../../other/connected.service";
+import {RestService} from "../../../other/rest.service";
+import {StreamServiceRegistry} from "../../../common/stream-service.registry";
 
 
 // noinspection JSUnusedLocalSymbols
 const DoNothing = {next: reaction => {}};
 
-class TestConfigService extends ConfigService {
-    private _firstConnection = false;
-
-    public onConnectedChanged(connected: boolean) {
-        // Peek into the first connection
-        if (!this._firstConnection && connected) {
-            this.onFirstConnection();
-            this._firstConnection = true;
-        }
-
-        super.onConnectedChanged(connected);
-    }
-
-    public onFirstConnection() {}
-}
 
 describe("Testing config service", () => {
+    let mockRegistry: MockStreamServiceRegistry;
     let httpMock: HttpTestingController;
-    let configService: TestConfigService;
+    let configService: ConfigService;
 
-    let mockEventSource: MockEventSource;
-
-    beforeEach(fakeAsync(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
                 HttpClientTestingModule
             ],
             providers: [
+                ConfigService,
                 LoggerService,
-                { provide: ConfigService, useClass: TestConfigService },
+                RestService,
+                ConnectedService,
+                {provide: StreamServiceRegistry, useClass: MockStreamServiceRegistry}
             ]
         });
 
-        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
-            (url: string) => {
-                mockEventSource = createMockEventSource(url);
-                return mockEventSource;
-            }
-        );
-
+        mockRegistry = TestBed.get(StreamServiceRegistry);
         httpMock = TestBed.get(HttpTestingController);
         configService = TestBed.get(ConfigService);
 
+        // Connect the services
+        mockRegistry.connect();
+
         // Finish test config init
         configService.onInit();
-
-        // Connect the service
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
-        tick();
-    }));
+    });
 
     it("should create an instance", () => {
         expect(configService).toBeDefined();
@@ -163,12 +144,11 @@ describe("Testing config service", () => {
         });
 
         // status disconnect
-        mockEventSource.onerror(new Event("bad event"));
+        mockRegistry.disconnect();
         tick();
 
         httpMock.verify();
         expect(configSubscriberIndex).toBe(2);
-        tick(4000);
     }));
 
     it("should retry GET on disconnect", fakeAsync(() => {
@@ -177,11 +157,11 @@ describe("Testing config service", () => {
 
 
         // status disconnect
-        mockEventSource.onerror(new Event("bad event"));
-        tick(4000);
+        mockRegistry.disconnect();
+        tick();
 
         // status reconnect
-        mockEventSource.eventListeners.get("status")({data: "doesn't matter"});
+        mockRegistry.connect();
         tick();
         httpMock.expectOne("/server/config/get").flush("{}");
 

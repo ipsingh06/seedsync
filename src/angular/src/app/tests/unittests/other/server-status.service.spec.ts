@@ -2,16 +2,12 @@ import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 import {ServerStatusService} from "../../../other/server-status.service";
-import {createMockEventSource, MockEventSource} from "../../mocks/common/mock-event-source";
 import {LoggerService} from "../../../common/logger.service";
-import {EventSourceFactory} from "../../../common/base-stream.service";
 import {ServerStatus} from "../../../other/server-status";
 
 
 describe("Testing server status service", () => {
     let serverStatusService: ServerStatusService;
-
-    let mockEventSource: MockEventSource;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -24,28 +20,17 @@ describe("Testing server status service", () => {
             ]
         });
 
-        spyOn(EventSourceFactory, 'createEventSource').and.callFake(
-            (url: string) => {
-                mockEventSource = createMockEventSource(url);
-                return mockEventSource;
-            }
-        );
-
         serverStatusService = TestBed.get(ServerStatusService);
-        serverStatusService.onInit();
     });
 
     it("should create an instance", () => {
         expect(serverStatusService).toBeDefined();
     });
 
-    it("should construct an event source with correct url", () => {
-        expect(mockEventSource.url).toBe("/server/status-stream");
-    });
-
     it("should register all events with the event source", () => {
-        expect(mockEventSource.eventListeners.size).toBe(1);
-        expect(mockEventSource.eventListeners.has("status")).toBe(true);
+        expect(serverStatusService.getEventNames()).toEqual(
+            ["status"]
+        );
     });
 
     it("should send correct status on event", fakeAsync(() => {
@@ -64,37 +49,37 @@ describe("Testing server status service", () => {
         expect(latestStatus.server.up).toBe(false);
 
         // New status
-        mockEventSource.eventListeners.get("status")({data: JSON.stringify({
+        serverStatusService.notifyEvent("status", JSON.stringify({
             server: {
                 up: true,
                 error_msg: null
             }
-        })});
+        }));
         tick();
         expect(count).toBe(2);
         expect(latestStatus.server.up).toBe(true);
 
         // Status update
-        mockEventSource.eventListeners.get("status")({data: JSON.stringify({
+        serverStatusService.notifyEvent("status", JSON.stringify({
             server: {
                 up: false,
                 error_msg: "uh oh spaghettios"
             }
-        })});
+        }));
         tick();
         expect(count).toBe(3);
         expect(latestStatus.server.up).toBe(false);
         expect(latestStatus.server.errorMessage).toBe("uh oh spaghettios");
     }));
 
-    it("should send correct status on error", fakeAsync(() => {
+    it("should send correct status on disconnect", fakeAsync(() => {
         // Initial status
-        mockEventSource.eventListeners.get("status")({data: JSON.stringify({
+        serverStatusService.notifyEvent("status", JSON.stringify({
             server: {
                 up: true,
                 error_msg: null
             }
-        })});
+        }));
 
         let count = 0;
         let latestStatus: ServerStatus = null;
@@ -109,7 +94,7 @@ describe("Testing server status service", () => {
         expect(count).toBe(1);
 
         // Error
-        mockEventSource.onerror(new Event("bad event"));
+        serverStatusService.notifyDisconnected();
         tick();
         expect(count).toBe(2);
         expect(latestStatus.server.up).toBe(false);

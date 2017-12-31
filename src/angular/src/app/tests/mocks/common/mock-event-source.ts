@@ -2,6 +2,7 @@ declare let spyOn: any;
 
 export class MockEventSource {
     url: string;
+    onopen: (event: Event) => any;
     onerror: (event: Event) => any;
 
     eventListeners: Map<string, (event: sse.IOnMessageEvent) => void> = new Map();

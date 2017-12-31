@@ -1,7 +1,6 @@
-import {Injectable, NgZone} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
-import {HttpClient} from "@angular/common/http";
 
 import * as Immutable from "immutable";
 
@@ -10,6 +9,7 @@ import {BaseWebService} from "../common/base-web.service";
 import {AutoQueuePattern, AutoQueuePatternJson} from "./autoqueue-pattern";
 import {Localization} from "../common/localization";
 import {WebReaction} from "../common/base-stream.service";
+import {StreamServiceRegistry} from "../common/stream-service.registry";
 
 
 /**
@@ -25,10 +25,9 @@ export class AutoQueueService extends BaseWebService {
     private _patterns: BehaviorSubject<Immutable.List<AutoQueuePattern>> =
             new BehaviorSubject(Immutable.List([]));
 
-    constructor(_logger: LoggerService,
-                _http: HttpClient,
-                _zone: NgZone) {
-        super(_logger, _http, _zone);
+    constructor(_streamServiceProvider: StreamServiceRegistry,
+                private _logger: LoggerService) {
+        super(_streamServiceProvider);
     }
 
     /**
@@ -37,26 +36,6 @@ export class AutoQueueService extends BaseWebService {
      */
     get patterns(): Observable<Immutable.List<AutoQueuePattern>> {
         return this._patterns.asObservable();
-    }
-
-    private getPatterns() {
-        this._logger.debug("Getting autoqueue patterns...");
-        this.sendRequest(this.AUTOQUEUE_GET_URL).subscribe({
-            next: reaction => {
-                if (reaction.success) {
-                    const parsed: AutoQueuePatternJson[] = JSON.parse(reaction.data);
-                    const newPatterns: AutoQueuePattern[] = [];
-                    for (const patternJson of parsed) {
-                        newPatterns.push(new AutoQueuePattern({
-                            pattern: patternJson.pattern
-                        }));
-                    }
-                    this._patterns.next(Immutable.List(newPatterns));
-                } else {
-                    this._patterns.next(Immutable.List([]));
-                }
-            }
-        });
     }
 
     /**
@@ -137,14 +116,34 @@ export class AutoQueueService extends BaseWebService {
         }
     }
 
-    protected onConnectedChanged(connected: boolean): void {
-        if (connected) {
-            // Retry the get
-            this.getPatterns();
-        } else {
-            // Send empty list
-            this._patterns.next(Immutable.List([]));
-        }
+    protected onConnected() {
+        // Retry the get
+        this.getPatterns();
+    }
+
+    protected onDisconnected() {
+        // Send empty list
+        this._patterns.next(Immutable.List([]));
+    }
+
+    private getPatterns() {
+        this._logger.debug("Getting autoqueue patterns...");
+        this.sendRequest(this.AUTOQUEUE_GET_URL).subscribe({
+            next: reaction => {
+                if (reaction.success) {
+                    const parsed: AutoQueuePatternJson[] = JSON.parse(reaction.data);
+                    const newPatterns: AutoQueuePattern[] = [];
+                    for (const patternJson of parsed) {
+                        newPatterns.push(new AutoQueuePattern({
+                            pattern: patternJson.pattern
+                        }));
+                    }
+                    this._patterns.next(Immutable.List(newPatterns));
+                } else {
+                    this._patterns.next(Immutable.List([]));
+                }
+            }
+        });
     }
 }
 
@@ -152,10 +151,10 @@ export class AutoQueueService extends BaseWebService {
  * AutoQueueService factory and provider
  */
 export let autoQueueServiceFactory = (
-    _logger: LoggerService,
-    _http: HttpClient,
-    _zone: NgZone) => {
-  const autoQueueService = new AutoQueueService(_logger, _http, _zone);
+    _streamServiceRegistry: StreamServiceRegistry,
+    _logger: LoggerService
+) => {
+  const autoQueueService = new AutoQueueService(_streamServiceRegistry, _logger);
   autoQueueService.onInit();
   return autoQueueService;
 };
@@ -164,5 +163,5 @@ export let autoQueueServiceFactory = (
 export let AutoQueueServiceProvider = {
     provide: AutoQueueService,
     useFactory: autoQueueServiceFactory,
-    deps: [LoggerService, HttpClient, NgZone]
+    deps: [StreamServiceRegistry, LoggerService]
 };

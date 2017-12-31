@@ -1,8 +1,10 @@
 import {Injectable, NgZone} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
+import {Observable} from "rxjs/Observable";
 
-import {LoggerService} from "./logger.service";
-import {BaseStreamService} from "./base-stream.service";
+import {StreamServiceRegistry} from "./stream-service.registry";
+import {RestService} from "../other/rest.service";
+import {WebReaction} from "./base-stream.service";
+import {ConnectedService} from "../other/connected.service";
 
 
 /**
@@ -15,54 +17,44 @@ import {BaseStreamService} from "./base-stream.service";
  * is a connection.
  */
 @Injectable()
-export abstract class BaseWebService extends BaseStreamService {
+export abstract class BaseWebService {
 
-    // Use this stream to check for connection status
-    private readonly STATUS_STREAM_URL = "/server/status-stream";
+    private _restService: RestService;
+    private _connectedService: ConnectedService;
 
-    private _streamConnected: boolean;
-
-    constructor(_logger: LoggerService,
-                _http: HttpClient,
-                _zone: NgZone) {
-        super(_logger, _http, _zone);
-
-        // We start off assuming we are not connected
-        this._streamConnected = false;
-
-        this.streamUrl = this.STATUS_STREAM_URL;
-        super.registerEvent("status");
+    constructor(_streamServiceProvider: StreamServiceRegistry) {
+        this._restService = _streamServiceProvider.restService;
+        this._connectedService = _streamServiceProvider.connectedService;
     }
 
     /**
      * Call this method to finish initialization
      */
     public onInit() {
-        super.onInit();
+        this._connectedService.connected.subscribe({
+            next: connected => {
+                if(connected) {
+                    this.onConnected();
+                } else {
+                    this.onDisconnected();
+                }
+            }
+        });
     }
 
 
-    protected onEvent(eventName: string, data: string) {
-        if(!this._streamConnected) {
-            // Change the status BEFORE notifying derived class so that if
-            // it calls any methods on us, we have the latest state
-            this._streamConnected = true;
-            this.onConnectedChanged(this._streamConnected);
-        }
+    protected sendRequest(url: string): Observable<WebReaction> {
+        return this._restService.sendRequest(url);
     }
 
-    protected onError(err: any) {
-        if(this._streamConnected) {
-            // Change the status BEFORE notifying derived class so that if
-            // it calls any methods on us, we have the latest state
-            this._streamConnected = false;
-            this.onConnectedChanged(this._streamConnected);
-        }
-    }
 
     /**
-     * Indicates a change in connection status
-     * @param {boolean} connected   New status
+     * Callback for connected
      */
-    protected abstract onConnectedChanged(connected: boolean): void;
+    protected abstract onConnected(): void;
+
+    /**
+     * Callback for disconnected
+     */
+    protected abstract onDisconnected(): void;
 }

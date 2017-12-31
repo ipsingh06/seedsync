@@ -1,4 +1,4 @@
-import {Injectable, NgZone} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 import {HttpClient} from "@angular/common/http";
@@ -12,8 +12,6 @@ import {BaseStreamService} from "../common/base-stream.service";
 @Injectable()
 export class ServerStatusService extends BaseStreamService {
 
-    private readonly STATUS_STREAM_URL = "/server/status-stream";
-
     private _status: BehaviorSubject<ServerStatus> =
         new BehaviorSubject(new ServerStatus({
             server: {
@@ -22,23 +20,24 @@ export class ServerStatusService extends BaseStreamService {
         }));
 
     constructor(_logger: LoggerService,
-                _http: HttpClient,
-                _zone: NgZone) {
-        super(_logger, _http, _zone);
+                _http: HttpClient) {
+        super(_logger, _http);
+        this.registerEventName("status");
+    }
 
-        this.streamUrl = this.STATUS_STREAM_URL;
-
-        super.registerEvent("status");
+    get status(): Observable<ServerStatus> {
+        return this._status.asObservable();
     }
 
     protected onEvent(eventName: string, data: string) {
         this.parseStatus(data);
     }
 
-    protected onError(err: any) {
-        // Log the error
-        this._logger.error("Error in status stream: %O", err);
+    protected onConnected() {
+        // nothing to do
+    }
 
+    protected onDisconnected() {
         // Notify the clients
         this._status.next(new ServerStatus({
             server: {
@@ -62,27 +61,4 @@ export class ServerStatusService extends BaseStreamService {
         });
         this._status.next(status);
     }
-
-    get status(): Observable<ServerStatus> {
-        return this._status.asObservable();
-    }
 }
-
-/**
- * ServerStatusService factory and provider
- */
-export let serverStatusServiceFactory = (
-        _logger: LoggerService,
-        _http: HttpClient,
-        _zone: NgZone) => {
-    const serverStatusService = new ServerStatusService(_logger, _http, _zone);
-    serverStatusService.onInit();
-    return serverStatusService;
-};
-
-// noinspection JSUnusedGlobalSymbols
-export let ServerStatusServiceProvider = {
-    provide: ServerStatusService,
-    useFactory: serverStatusServiceFactory,
-    deps: [LoggerService, HttpClient, NgZone]
-};
