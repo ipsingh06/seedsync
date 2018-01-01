@@ -6,6 +6,7 @@ import {EventSourceFactory, IStreamService, StreamDispatchService, StreamService
 import {ModelFileService} from "../../../../services/files/model-file.service";
 import {ServerStatusService} from "../../../../services/server/server-status.service";
 import {ConnectedService} from "../../../../services/utils/connected.service";
+import {LogService} from "../../../../services/logs/log.service";
 
 
 class MockStreamService implements IStreamService {
@@ -173,6 +174,7 @@ describe("Testing stream service registry", () => {
     let mockModelFileService;
     let mockServerStatusService;
     let mockConnectedService;
+    let mockLogService;
 
     let registered;
 
@@ -185,6 +187,7 @@ describe("Testing stream service registry", () => {
         mockModelFileService = jasmine.createSpy("mockModelFileService");
         mockServerStatusService = jasmine.createSpy("mockServerStatusService");
         mockConnectedService = jasmine.createSpy("mockConnectedService");
+        mockLogService = jasmine.createSpy("mockLogService");
 
         TestBed.configureTestingModule({
             providers: [
@@ -193,7 +196,8 @@ describe("Testing stream service registry", () => {
                 {provide: StreamDispatchService, useValue: mockDispatch},
                 {provide: ModelFileService, useValue: mockModelFileService},
                 {provide: ServerStatusService, useValue: mockServerStatusService},
-                {provide: ConnectedService, useValue: mockConnectedService}
+                {provide: ConnectedService, useValue: mockConnectedService},
+                {provide: LogService, useValue: mockLogService}
             ]
         });
 
@@ -214,5 +218,9 @@ describe("Testing stream service registry", () => {
 
     it("should register connected service", () => {
         expect(registered.includes(mockConnectedService)).toBe(true);
+    });
+
+    it("should register log service", () => {
+        expect(registered.includes(mockLogService)).toBe(true);
     });
 });

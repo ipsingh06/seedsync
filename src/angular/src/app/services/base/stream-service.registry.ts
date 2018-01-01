@@ -5,6 +5,7 @@ import {ModelFileService} from "../files/model-file.service";
 import {ServerStatusService} from "../server/server-status.service";
 import {LoggerService} from "../utils/logger.service";
 import {ConnectedService} from "../utils/connected.service";
+import {LogService} from "../logs/log.service";
 
 
 export class EventSourceFactory {
@@ -140,11 +141,13 @@ export class StreamServiceRegistry {
     constructor(private _dispatch: StreamDispatchService,
                 private _modelFileService: ModelFileService,
                 private _serverStatusService: ServerStatusService,
-                private _connectedService: ConnectedService) {
+                private _connectedService: ConnectedService,
+                private _logService: LogService) {
         // Register all services
         _dispatch.registerService(_connectedService);
         _dispatch.registerService(_serverStatusService);
         _dispatch.registerService(_modelFileService);
+        _dispatch.registerService(_logService);
     }
 
     /**
@@ -157,6 +160,7 @@ export class StreamServiceRegistry {
     get modelFileService(): ModelFileService { return this._modelFileService; }
     get serverStatusService(): ServerStatusService { return this._serverStatusService; }
     get connectedService(): ConnectedService { return this._connectedService; }
+    get logService(): LogService { return this._logService; }
 }
 
 /**
@@ -166,13 +170,15 @@ export let streamServiceRegistryFactory = (
         _dispatch: StreamDispatchService,
         _modelFileService: ModelFileService,
         _serverStatusService: ServerStatusService,
-        _connectedService: ConnectedService
+        _connectedService: ConnectedService,
+        _logService: LogService
 ) => {
     let streamServiceRegistry = new StreamServiceRegistry(
         _dispatch,
         _modelFileService,
         _serverStatusService,
-        _connectedService
+        _connectedService,
+        _logService
     );
     streamServiceRegistry.onInit();
     return streamServiceRegistry;
@@ -186,6 +192,7 @@ export let StreamServiceRegistryProvider = {
         StreamDispatchService,
         ModelFileService,
         ServerStatusService,
-        ConnectedService
+        ConnectedService,
+        LogService
     ]
 };
