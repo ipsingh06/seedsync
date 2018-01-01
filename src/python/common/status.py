@@ -129,7 +129,6 @@ class Status(BaseStatus):
         copy = Status()
         cls = Status
         property_names = [p for p in dir(cls) if isinstance(getattr(cls, p), property)]
-        print(property_names)
         for prop in property_names:
             src_comp = self._get_property(prop)
             dst_comp = copy._get_property(prop)
