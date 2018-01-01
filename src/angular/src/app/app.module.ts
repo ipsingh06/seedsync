@@ -32,6 +32,8 @@ import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
 import {ConnectedService} from "./services/utils/connected.service";
 import {RestService} from "./services/utils/rest.service";
 import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/base/stream-service.registry";
+import {LogsPageComponent} from "./pages/logs/logs-page.component";
+import {LogService} from "./services/logs/log.service";
 
 @NgModule({
     declarations: [
@@ -48,7 +50,8 @@ import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/b
         SidebarComponent,
         SettingsPageComponent,
         OptionComponent,
-        AutoQueuePageComponent
+        AutoQueuePageComponent,
+        LogsPageComponent
     ],
     imports: [
         BrowserModule,
@@ -71,6 +74,10 @@ import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/b
             {
                 path: "autoqueue",
                 component: AutoQueuePageComponent
+            },
+            {
+                path: "logs",
+                component: LogsPageComponent
             }
         ])
     ],
@@ -78,6 +85,7 @@ import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/b
         {provide: RouteReuseStrategy, useClass: CachedReuseStrategy},
         LoggerService,
         NotificationService,
+        RestService,
         ViewFileService,
         ViewFileFilterService,
 
@@ -86,7 +94,7 @@ import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/b
         ServerStatusService,
         ModelFileService,
         ConnectedService,
-        RestService,
+        LogService,
 
         AutoQueueServiceProvider,
         ConfigServiceProvider,

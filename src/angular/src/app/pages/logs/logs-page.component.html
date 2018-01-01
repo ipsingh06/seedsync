@@ -1,0 +1,20 @@
+<div id="logs">
+    <!--suppress HtmlUnknownAttribute -->
+    <ng-template #clone let-record="record">
+        <p
+            [class.debug]="record.level == LogRecord.Level.DEBUG"
+            [class.info]="record.level == LogRecord.Level.INFO"
+            [class.warning]="record.level == LogRecord.Level.WARNING"
+            [class.error]="record.level == LogRecord.Level.ERROR"
+            [class.critical]="record.level == LogRecord.Level.CRITICAL">
+            {{record.time | date: 'yyyy/MM/dd HH:mm:ss'}} -
+            {{record.level}} -
+            {{record.loggerName}} -
+            {{record.message}}
+        </p>
+    </ng-template>
+
+
+    <!-- marks where template should be copied -->
+    <ng-container #container></ng-container>
+</div>

@@ -1,0 +1,31 @@
+#logs {
+    padding: 15px;
+    font-family: monospace;
+    font-size: 95%;
+
+    p {
+        margin: 0;
+
+        &.debug {
+            color: darkgray;
+        }
+
+        &.info {
+            color: black;
+        }
+
+        &.warning {
+            // copied from bootstrap alert-warning
+            color: #8a6d3b;
+            background-color: #fcf8e3;
+            border-color: #faebcc;
+        }
+
+        &.error, &.critical {
+            // copied from bootstrap alert-danger
+            color: #a94442;
+            background-color: #f2dede;
+            border-color: #ebccd1;
+        }
+    }
+}

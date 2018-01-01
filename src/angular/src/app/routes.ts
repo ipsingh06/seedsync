@@ -20,5 +20,10 @@ export const ROUTE_INFOS: Immutable.List<RouteInfo> = Immutable.List([
         path: "/autoqueue",
         name: "AutoQueue",
         icon: "glyphicon-list"
+    },
+    {
+        path: "/logs",
+        name: "Logs",
+        icon: "glyphicon-list-alt"
     }
 ]);
