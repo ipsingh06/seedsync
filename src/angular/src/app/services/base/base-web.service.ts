@@ -8,10 +8,6 @@ import {ConnectedService} from "../utils/connected.service";
  * BaseWebService provides utility to be notified when connection to
  * the backend server is lost and regained. Non-streaming web services
  * can use these notifications to re-issue get requests.
- *
- * The service starts off assuming there is no connection. The
- * onConnectionChanged() will always be called quickly if there
- * is a connection.
  */
 @Injectable()
 export abstract class BaseWebService {
