@@ -6,32 +6,32 @@ import {RouteReuseStrategy, RouterModule} from "@angular/router";
 
 import {AppComponent} from "./pages/main/app.component";
 import {environment} from "../environments/environment";
-import {LoggerService} from "./common/logger.service";
+import {LoggerService} from "./services/utils/logger.service";
 import {FileListComponent} from "./pages/files/file-list.component";
 import {FileComponent} from "./pages/files/file.component";
-import {ModelFileService} from "./model/model-file.service";
-import {ViewFileService} from "./view/view-file.service";
+import {ModelFileService} from "./services/files/model-file.service";
+import {ViewFileService} from "./services/files/view-file.service";
 import {FileSizePipe} from "./common/file-size.pipe";
 import {EtaPipe} from "./common/eta.pipe";
 import {CapitalizePipe} from "./common/capitalize.pipe";
 import {ClickStopPropagationDirective} from "./common/click-stop-propagation.directive";
 import {FileListFilterComponent} from "./pages/files/file-list-filter.component";
-import {ViewFileFilterService} from "./view/view-file-filter.service";
+import {ViewFileFilterService} from "./services/files/view-file-filter.service";
 import {FilesPageComponent} from "./pages/files/files-page.component";
 import {HeaderComponent} from "./pages/main/header.component";
 import {SidebarComponent} from "./pages/main/sidebar.component";
 import {SettingsPageComponent} from "./pages/settings/settings-page.component";
-import {ServerStatusService} from "./other/server-status.service";
-import {ConfigServiceProvider} from "./other/config.service";
+import {ServerStatusService} from "./services/server/server-status.service";
+import {ConfigServiceProvider} from "./services/settings/config.service";
 import {OptionComponent} from "./pages/settings/option.component";
-import {NotificationService} from "./other/notification.service";
-import {ServerCommandServiceProvider} from "./other/server-command.service";
+import {NotificationService} from "./services/utils/notification.service";
+import {ServerCommandServiceProvider} from "./services/server/server-command.service";
 import {AutoQueuePageComponent} from "./pages/autoqueue/autoqueue-page.component";
-import {AutoQueueServiceProvider} from "./other/autoqueue.service";
+import {AutoQueueServiceProvider} from "./services/autoqueue/autoqueue.service";
 import {CachedReuseStrategy} from "./common/cached-reuse-strategy";
-import {ConnectedService} from "./other/connected.service";
-import {RestService} from "./other/rest.service";
-import {StreamDispatchService, StreamServiceRegistryProvider} from "./common/stream-service.registry";
+import {ConnectedService} from "./services/utils/connected.service";
+import {RestService} from "./services/utils/rest.service";
+import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/base/stream-service.registry";
 
 @NgModule({
     declarations: [

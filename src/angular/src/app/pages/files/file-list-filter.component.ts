@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
-import {ViewFileFilterService} from "../../view/view-file-filter.service";
-import {ViewFileFilter} from "../../view/view-file-filter";
-import {ViewFile} from "../../view/view-file";
+import {ViewFileFilterService} from "../../services/files/view-file-filter.service";
+import {ViewFileFilter} from "../../services/files/view-file-filter";
+import {ViewFile} from "../../services/files/view-file";
 
 @Component({
     selector: "app-file-list-filter",

@@ -1,6 +1,6 @@
 import {TestBed} from "@angular/core/testing";
 
-import {ConnectedService} from "../../other/connected.service";
+import {ConnectedService} from "../../services/utils/connected.service";
 
 
 export class MockStreamServiceRegistry {

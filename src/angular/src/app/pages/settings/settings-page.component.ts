@@ -1,19 +1,19 @@
 import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
-import {LoggerService} from "../../common/logger.service";
-import {ConfigService} from "../../other/config.service";
-import {Config} from "../../other/config";
-import {Notification} from "../../other/notification";
+import {LoggerService} from "../../services/utils/logger.service";
+import {ConfigService} from "../../services/settings/config.service";
+import {Config} from "../../services/settings/config";
+import {Notification} from "../../services/utils/notification";
 import {Localization} from "../../common/localization";
-import {NotificationService} from "../../other/notification.service";
-import {ServerCommandService} from "../../other/server-command.service";
+import {NotificationService} from "../../services/utils/notification.service";
+import {ServerCommandService} from "../../services/server/server-command.service";
 import {
     OPTIONS_CONTEXT_CONNECTIONS, OPTIONS_CONTEXT_DISCOVERY, OPTIONS_CONTEXT_OTHER,
     OPTIONS_CONTEXT_SERVER
 } from "./options-list";
-import {ConnectedService} from "../../other/connected.service";
-import {StreamServiceRegistry} from "../../common/stream-service.registry";
+import {ConnectedService} from "../../services/utils/connected.service";
+import {StreamServiceRegistry} from "../../services/base/stream-service.registry";
 
 @Component({
     selector: "app-settings-page",

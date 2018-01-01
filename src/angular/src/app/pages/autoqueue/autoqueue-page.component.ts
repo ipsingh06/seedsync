@@ -3,12 +3,12 @@ import {Observable} from "rxjs/Observable";
 
 import * as Immutable from "immutable";
 
-import {AutoQueueService} from "../../other/autoqueue.service";
-import {AutoQueuePattern} from "../../other/autoqueue-pattern";
-import {Notification} from "../../other/notification";
-import {NotificationService} from "../../other/notification.service";
-import {ConnectedService} from "../../other/connected.service";
-import {StreamServiceRegistry} from "../../common/stream-service.registry";
+import {AutoQueueService} from "../../services/autoqueue/autoqueue.service";
+import {AutoQueuePattern} from "../../services/autoqueue/autoqueue-pattern";
+import {Notification} from "../../services/utils/notification";
+import {NotificationService} from "../../services/utils/notification.service";
+import {ConnectedService} from "../../services/utils/connected.service";
+import {StreamServiceRegistry} from "../../services/base/stream-service.registry";
 
 
 @Component({
