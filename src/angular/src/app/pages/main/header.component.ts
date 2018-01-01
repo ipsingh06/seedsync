@@ -3,11 +3,11 @@ import {Observable} from "rxjs/Observable";
 
 import * as Immutable from "immutable";
 
-import {LoggerService} from "./common/logger.service";
-import {ServerStatusService} from "./other/server-status.service";
-import {Notification} from "./other/notification";
-import {NotificationService} from "./other/notification.service";
-import {StreamServiceRegistry} from "./common/stream-service.registry";
+import {LoggerService} from "../../common/logger.service";
+import {ServerStatusService} from "../../other/server-status.service";
+import {Notification} from "../../other/notification";
+import {NotificationService} from "../../other/notification.service";
+import {StreamServiceRegistry} from "../../common/stream-service.registry";
 
 @Component({
     selector: "app-header",

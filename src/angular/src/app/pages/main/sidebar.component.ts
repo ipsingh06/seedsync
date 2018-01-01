@@ -1,10 +1,10 @@
 import {Component, OnInit} from "@angular/core";
 
-import {ROUTE_INFOS} from "./routes";
-import {ServerCommandService} from "./other/server-command.service";
-import {LoggerService} from "./common/logger.service";
-import {ConnectedService} from "./other/connected.service";
-import {StreamServiceRegistry} from "./common/stream-service.registry";
+import {ROUTE_INFOS} from "../../routes";
+import {ServerCommandService} from "../../other/server-command.service";
+import {LoggerService} from "../../common/logger.service";
+import {ConnectedService} from "../../other/connected.service";
+import {StreamServiceRegistry} from "../../common/stream-service.registry";
 
 @Component({
     selector: "app-sidebar",

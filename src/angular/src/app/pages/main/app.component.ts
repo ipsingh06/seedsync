@@ -1,6 +1,6 @@
 import {Component} from "@angular/core";
 import {Router} from "@angular/router";
-import {ROUTE_INFOS, RouteInfo} from "./routes";
+import {ROUTE_INFOS, RouteInfo} from "../../routes";
 
 @Component({
     selector: "app-root",

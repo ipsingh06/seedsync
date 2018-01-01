@@ -4,7 +4,7 @@ import {HttpClientModule} from "@angular/common/http";
 import {FormsModule} from "@angular/forms";
 import {RouteReuseStrategy, RouterModule} from "@angular/router";
 
-import {AppComponent} from "./app.component";
+import {AppComponent} from "./pages/main/app.component";
 import {environment} from "../environments/environment";
 import {LoggerService} from "./common/logger.service";
 import {FileListComponent} from "./pages/files/file-list.component";
@@ -18,8 +18,8 @@ import {ClickStopPropagationDirective} from "./common/click-stop-propagation.dir
 import {FileListFilterComponent} from "./pages/files/file-list-filter.component";
 import {ViewFileFilterService} from "./view/view-file-filter.service";
 import {FilesPageComponent} from "./pages/files/files-page.component";
-import {HeaderComponent} from "./header.component";
-import {SidebarComponent} from "./sidebar.component";
+import {HeaderComponent} from "./pages/main/header.component";
+import {SidebarComponent} from "./pages/main/sidebar.component";
 import {SettingsPageComponent} from "./pages/settings/settings-page.component";
 import {ServerStatusService} from "./other/server-status.service";
 import {ConfigServiceProvider} from "./other/config.service";
