@@ -156,23 +156,30 @@ class AutoQueue:
         self.__controller = controller
         self.__model_listener = AutoQueueModelListener()
         self.__persist_listener = AutoQueuePersistListener()
-        persist.add_listener(self.__persist_listener)
+        self.__enabled = context.config.autoqueue.enabled
+        self.__patterns_only = context.config.autoqueue.patterns_only
 
-        initial_model_files = self.__controller.get_model_files_and_add_listener(self.__model_listener)
-        # pass the initial model files through to our listener
-        for file in initial_model_files:
-            self.__model_listener.file_added(file)
+        if self.__enabled:
+            persist.add_listener(self.__persist_listener)
 
-        # Print the initial persist state
-        self.logger.debug("Auto-Queue Patterns:")
-        for pattern in self.__persist.patterns:
-            self.logger.debug("    {}".format(pattern.pattern))
+            initial_model_files = self.__controller.get_model_files_and_add_listener(self.__model_listener)
+            # pass the initial model files through to our listener
+            for file in initial_model_files:
+                self.__model_listener.file_added(file)
+
+            # Print the initial persist state
+            self.logger.debug("Auto-Queue Patterns:")
+            for pattern in self.__persist.patterns:
+                self.logger.debug("    {}".format(pattern.pattern))
 
     def process(self):
         """
         Advance the auto queue state
         :return:
         """
+        if not self.__enabled:
+            return
+
         # Build a list of candidate files
         new_files = []
 
@@ -196,7 +203,7 @@ class AutoQueue:
         # Step 1: run new file through all the patterns
         for file in new_files:
             for pattern in self.__persist.patterns:
-                if AutoQueue.__match(pattern, file):
+                if self.__match(pattern, file):
                     files_to_queue[file.name] = pattern
                     break
 
@@ -205,7 +212,7 @@ class AutoQueue:
             model_files = self.__controller.get_model_files()
             for new_pattern in self.__persist_listener.new_patterns:
                 for file in model_files:
-                    if AutoQueue.__accept(file) and AutoQueue.__match(new_pattern, file):
+                    if AutoQueue.__accept(file) and self.__match(new_pattern, file):
                         files_to_queue[file.name] = new_pattern
 
         # Send the queue commands
@@ -220,15 +227,15 @@ class AutoQueue:
         # Clear the new patterns
         self.__persist_listener.new_patterns.clear()
 
-    @staticmethod
-    def __match(pattern: AutoQueuePattern, file: ModelFile) -> bool:
+    def __match(self, pattern: AutoQueuePattern, file: ModelFile) -> bool:
         """
         Returns true is file matches the pattern
         :param pattern:
         :param file:
         :return:
         """
-        return pattern.pattern.lower() in file.name.lower()
+        return not self.__patterns_only or \
+            pattern.pattern.lower() in file.name.lower()
 
     @staticmethod
     def __accept(file: ModelFile) -> bool:

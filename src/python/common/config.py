@@ -274,11 +274,21 @@ class Config(Persist):
             super().__init__()
             self.port = None
 
+    class AutoQueue(InnerConfig):
+        enabled = PROP("enabled", Checkers.null, Converters.bool)
+        patterns_only = PROP("patterns_only", Checkers.null, Converters.bool)
+
+        def __init__(self):
+            super().__init__()
+            self.enabled = None
+            self.patterns_only = None
+
     def __init__(self):
         self.general = Config.General()
         self.lftp = Config.Lftp()
         self.controller = Config.Controller()
         self.web = Config.Web()
+        self.autoqueue = Config.AutoQueue()
 
     @staticmethod
     def _check_section(dct: OuterConfigType, name: str) -> InnerConfigType:
@@ -336,6 +346,7 @@ class Config(Persist):
         config.lftp = Config.Lftp.from_dict(Config._check_section(config_dict, "Lftp"))
         config.controller = Config.Controller.from_dict(Config._check_section(config_dict, "Controller"))
         config.web = Config.Web.from_dict(Config._check_section(config_dict, "Web"))
+        config.autoqueue = Config.AutoQueue.from_dict(Config._check_section(config_dict, "AutoQueue"))
 
         Config._check_empty_outer_dict(config_dict)
         return config
@@ -348,6 +359,7 @@ class Config(Persist):
         config_dict["Lftp"] = self.lftp.as_dict()
         config_dict["Controller"] = self.controller.as_dict()
         config_dict["Web"] = self.web.as_dict()
+        config_dict["AutoQueue"] = self.autoqueue.as_dict()
         return config_dict
 
     def has_section(self, name: str) -> bool:

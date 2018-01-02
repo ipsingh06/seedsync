@@ -295,6 +295,9 @@ class Seedsync:
 
         config.web.port = 8800
 
+        config.autoqueue.enabled = True
+        config.autoqueue.patterns_only = False
+
         return config
 
     @staticmethod

@@ -175,6 +175,10 @@ class TestController(unittest.TestCase):
             },
             "Web": {
                 "port": "8800",
+            },
+            "AutoQueue": {
+                "enabled": "True",
+                "patterns_only": "True"
             }
         }
 

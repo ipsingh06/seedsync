@@ -183,6 +183,7 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(config.has_section("lftp"))
         self.assertTrue(config.has_section("controller"))
         self.assertTrue(config.has_section("web"))
+        self.assertTrue(config.has_section("autoqueue"))
         self.assertFalse(config.has_section("nope"))
         self.assertFalse(config.has_section("from_file"))
         self.assertFalse(config.has_section("__init__"))
@@ -304,6 +305,28 @@ class TestConfig(unittest.TestCase):
         self.check_bad_value_error(Config.Web, good_dict, "port", "-1")
         self.check_bad_value_error(Config.Web, good_dict, "port", "0")
 
+    def test_autoqueue(self):
+        good_dict = {
+            "enabled": "True",
+            "patterns_only": "False"
+        }
+        autoqueue = Config.AutoQueue.from_dict(good_dict)
+        self.assertEqual(True, autoqueue.enabled)
+        self.assertEqual(False, autoqueue.patterns_only)
+
+        self.check_common(Config.AutoQueue,
+                          good_dict,
+                          {
+                              "enabled",
+                              "patterns_only"
+                          })
+
+        # bad values
+        self.check_bad_value_error(Config.AutoQueue, good_dict, "enabled", "SomeString")
+        self.check_bad_value_error(Config.AutoQueue, good_dict, "enabled", "-1")
+        self.check_bad_value_error(Config.AutoQueue, good_dict, "patterns_only", "SomeString")
+        self.check_bad_value_error(Config.AutoQueue, good_dict, "patterns_only", "-1")
+
     def test_from_file(self):
         # Create empty config file
         config_file = open(tempfile.mktemp(suffix="test_config"), "w")
@@ -332,6 +355,10 @@ class TestConfig(unittest.TestCase):
 
         [Web]
         port=88
+
+        [AutoQueue]
+        enabled=False
+        patterns_only=True
         """)
         config_file.flush()
         config = Config.from_file(config_file.name)
@@ -355,6 +382,9 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(2000, config.controller.interval_ms_downloading_scan)
 
         self.assertEqual(88, config.web.port)
+
+        self.assertEqual(False, config.autoqueue.enabled)
+        self.assertEqual(True, config.autoqueue.patterns_only)
 
         # unknown section error
         config_file.write("""
@@ -390,6 +420,8 @@ class TestConfig(unittest.TestCase):
         config.controller.interval_ms_local_scan = 5678
         config.controller.interval_ms_downloading_scan = 9012
         config.web.port = 13
+        config.autoqueue.enabled = True
+        config.autoqueue.patterns_only = True
         config.to_file(config_file_path)
         with open(config_file_path, "r") as f:
             actual_str = f.read()
@@ -419,6 +451,10 @@ class TestConfig(unittest.TestCase):
 
         [Web]
         port = 13
+
+        [AutoQueue]
+        enabled = True
+        patterns_only = True
         """
 
         golden_lines = [s.strip() for s in golden_str.splitlines()]

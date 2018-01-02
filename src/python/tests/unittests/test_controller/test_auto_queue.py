@@ -6,7 +6,7 @@ import logging
 import sys
 import json
 
-from common import overrides, PersistError
+from common import overrides, PersistError, Config
 from controller import AutoQueue, AutoQueuePersist, IAutoQueuePersistListener, AutoQueuePattern
 from controller import Controller
 from model import IModelListener, ModelFile
@@ -301,6 +301,9 @@ class TestAutoQueue(unittest.TestCase):
 
         self.context = MagicMock()
 
+        self.context.config = Config()
+        self.context.config.autoqueue.enabled = True
+        self.context.config.autoqueue.patterns_only = True
         self.context.logger = self.logger
         self.controller = MagicMock()
         self.controller.get_model_files_and_add_listener = MagicMock()
@@ -687,3 +690,69 @@ class TestAutoQueue(unittest.TestCase):
         command = self.controller.queue_command.call_args[0][0]
         self.assertEqual(Controller.Command.Action.QUEUE, command.action)
         self.assertEqual("File.One", command.filename)
+
+    def test_no_files_are_queued_when_disabled(self):
+        self.context.config.autoqueue.enabled = False
+
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two", True)
+        file_two.remote_size = 200
+        file_three = ModelFile("File.Three", True)
+        file_three.remote_size = 300
+        file_four = ModelFile("File.Four", True)
+        file_four.remote_size = 400
+        file_five = ModelFile("File.Five", True)
+        file_five.remote_size = 500
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # First with patterns_only ON
+        self.context.config.autoqueue.patterns_only = True
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        # Second with patterns_only OFF
+        self.context.config.autoqueue.patterns_only = False
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_all_files_are_queued_when_patterns_only_disabled(self):
+        self.context.config.autoqueue.patterns_only = False
+
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two", True)
+        file_two.remote_size = 200
+        file_three = ModelFile("File.Three", True)
+        file_three.remote_size = 300
+        file_four = ModelFile("File.Four", True)
+        file_four.remote_size = 400
+        file_five = ModelFile("File.Five", True)
+        file_five.remote_size = 500
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        calls = self.controller.queue_command.call_args_list
+        self.assertEqual(5, len(calls))
+        commands = [calls[i][0][0] for i in range(5)]
+        self.assertEqual(set([Controller.Command.Action.QUEUE]*5), {c.action for c in commands})
+        self.assertEqual({"File.One", "File.Two", "File.Three", "File.Four", "File.Five"},
+                         {c.filename for c in commands})

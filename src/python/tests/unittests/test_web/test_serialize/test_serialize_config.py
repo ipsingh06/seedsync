@@ -63,3 +63,13 @@ class TestSerializeConfig(unittest.TestCase):
         out_dict = json.loads(out)
         self.assertIn("web", out_dict)
         self.assertEqual(8080, out_dict["web"]["port"])
+
+    def test_section_autoqueue(self):
+        config = Config()
+        config.autoqueue.enabled = True
+        config.autoqueue.patterns_only = False
+        out = SerializeConfig.config(config)
+        out_dict = json.loads(out)
+        self.assertIn("autoqueue", out_dict)
+        self.assertEqual(True, out_dict["autoqueue"]["enabled"])
+        self.assertEqual(False, out_dict["autoqueue"]["patterns_only"])
