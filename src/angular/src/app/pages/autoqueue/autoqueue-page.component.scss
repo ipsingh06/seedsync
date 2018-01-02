@@ -7,64 +7,75 @@
         font-size: 100%;
     }
 
-    .pattern,
-    #add-pattern {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        margin: 10px;
+    #controls {
+        &[disabled] {
+            opacity: .65;
+        }
 
-        .button {
-            @extend %button;
-
-            flex-grow: 0;
+        .pattern,
+        #add-pattern {
+            display: flex;
             flex-direction: row;
-            padding: 8px;
-            margin-right: 12px;
-            font-size: 120%;
-        }
-    }
+            flex-wrap: nowrap;
+            align-items: center;
+            margin: 10px;
 
-    .pattern {
-        .text {
-            font-size: 120%;
-            font-family: monospace;
-            white-space: pre-wrap;
+            .button {
+                @extend %button;
 
-            /* break up long text */
-            overflow-wrap: normal;
-            hyphens: auto;
-            word-break: break-all;
-        }
-
-        .button {
-            background-color: red;
-            border-color: darkred;
-
-            &:active {
-                background-color: darkred;
+                flex-grow: 0;
+                flex-direction: row;
+                padding: 8px;
+                margin-right: 12px;
+                font-size: 100%;
             }
         }
-    }
 
-    #add-pattern {
-        .button {
-            background-color: green;
-            border-color: darkgreen;
+        .pattern {
+            .text {
+                font-size: 100%;
+                font-family: monospace;
+                white-space: pre-wrap;
 
-            &:active {
-                background-color: darkgreen;
+                /* break up long text */
+                overflow-wrap: normal;
+                hyphens: auto;
+                word-break: break-all;
             }
 
-            &[disabled] {
-                opacity: .65;
+            .button {
+                background-color: red;
+                border-color: darkred;
+
+                &:active {
+                    background-color: darkred;
+                }
+
+                &[disabled] {
+                    opacity: .65;
+                    background-color: red;
+                }
+            }
+        }
+
+        #add-pattern {
+            .button {
                 background-color: green;
-            }
-        }
+                border-color: darkgreen;
 
-        label {
-            margin-bottom: 0;
+                &:active {
+                    background-color: darkgreen;
+                }
+
+                &[disabled] {
+                    opacity: .65;
+                    background-color: green;
+                }
+            }
+
+            label {
+                margin-bottom: 0;
+            }
         }
     }
 }

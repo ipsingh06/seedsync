@@ -1,27 +1,43 @@
 <div id="autoqueue">
-    <span id="description">
-        Files matching these patterns are automatically queued. <br />
-        Add/Remove these patterns below.
+    <span id="description" *ngIf="connected">
+
+        <ng-container *ngIf="enabled && patternsOnly">
+            Files matching these patterns will be automatically queued. <br />
+            Add/Remove these patterns below.
+        </ng-container>
+
+        <ng-container *ngIf="enabled && !patternsOnly">
+            Patterns are disabled. <b>All files will be auto-queued.</b><br />
+            To restrict which files are auto-queued, enable patterns in Settings.
+        </ng-container>
+
+        <ng-container *ngIf="!enabled">
+            Auto-Queue is disabled. <br />
+            Enable AutoQueue in Settings to queue files automatically.
+        </ng-container>
     </span>
-    <div *ngFor="let pattern of patterns | async"
-         class="pattern">
-        <div class="button" appClickStopPropagation
-             (click)="onRemovePattern(pattern)">
-            <span class="glyphicon glyphicon-minus"></span>
+    <div id="controls" [attr.disabled]="enabled && patternsOnly ? null : true">
+        <div *ngFor="let pattern of patterns | async"
+             class="pattern">
+            <div class="button" appClickStopPropagation
+                 [attr.disabled]="enabled && patternsOnly ? null : true"
+                 (click)="!(enabled && patternsOnly) || onRemovePattern(pattern)">
+                <span class="glyphicon glyphicon-minus"></span>
+            </div>
+            <span class="text">{{pattern.pattern}}</span>
         </div>
-        <span class="text">{{pattern.pattern}}</span>
-    </div>
-    <div id="add-pattern">
-        <div class="button" appClickStopPropagation
-             (click)="!newPattern || onAddPattern()"
-             [attr.disabled]="newPattern ? null : true">
-            <span class="glyphicon glyphicon-plus"></span>
+        <div id="add-pattern">
+            <div class="button" appClickStopPropagation
+                 (click)="!(newPattern && enabled && patternsOnly) || onAddPattern()"
+                 [attr.disabled]="newPattern && enabled && patternsOnly ? null : true">
+                <span class="glyphicon glyphicon-plus"></span>
+            </div>
+            <label>
+                <input type="search"
+                       class="form-control"
+                       [(ngModel)]="newPattern"
+                       [disabled]="!connected || !enabled || !patternsOnly"/>
+            </label>
         </div>
-        <label>
-            <input type="search"
-                   class="form-control"
-                   [(ngModel)]="newPattern"
-                   [disabled]="!enabled"/>
-        </label>
     </div>
 </div>

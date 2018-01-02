@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
 import * as Immutable from "immutable";
@@ -9,6 +9,8 @@ import {Notification} from "../../services/utils/notification";
 import {NotificationService} from "../../services/utils/notification.service";
 import {ConnectedService} from "../../services/utils/connected.service";
 import {StreamServiceRegistry} from "../../services/base/stream-service.registry";
+import {Config} from "../../services/settings/config";
+import {ConfigService} from "../../services/settings/config.service";
 
 
 @Component({
@@ -24,28 +26,49 @@ export class AutoQueuePageComponent implements OnInit {
     public patterns: Observable<Immutable.List<AutoQueuePattern>>;
     public newPattern: string;
 
+    public config: Observable<Config>;
+
+    public connected: boolean;
     public enabled: boolean;
+    public patternsOnly: boolean;
 
     private _connectedService: ConnectedService;
 
-    constructor(private _autoqueueService: AutoQueueService,
+    constructor(private _changeDetector: ChangeDetectorRef,
+                private _autoqueueService: AutoQueueService,
                 private _notifService: NotificationService,
+                private _configService: ConfigService,
                 _streamServiceRegistry: StreamServiceRegistry) {
         this._connectedService = _streamServiceRegistry.connectedService;
         this.patterns = _autoqueueService.patterns;
         this.newPattern = "";
+        this.connected = false;
         this.enabled = false;
+        this.patternsOnly = false;
     }
 
     // noinspection JSUnusedGlobalSymbols
     ngOnInit() {
         this._connectedService.connected.subscribe({
             next: (connected: boolean) => {
-                this.enabled = connected;
-                if (!this.enabled) {
+                this.connected = connected;
+                if (!this.connected) {
                     // Clear the input box
                     this.newPattern = "";
                 }
+            }
+        });
+
+        this._configService.config.subscribe({
+            next: config => {
+                if(config != null) {
+                    this.enabled = config.autoqueue.enabled;
+                    this.patternsOnly = config.autoqueue.patterns_only;
+                } else {
+                    this.enabled = false;
+                    this.patternsOnly = false;
+                }
+                this._changeDetector.detectChanges();
             }
         });
     }
