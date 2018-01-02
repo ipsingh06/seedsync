@@ -98,11 +98,13 @@ export class StreamDispatchService {
 
                 // Notify all services of connection
                 for (let service of this._services) {
-                    service.notifyConnected();
+                    this._zone.run(() => {
+                        service.notifyConnected();
+                    });
                 }
             };
 
-            eventSource.onerror = x => this._zone.run(() => observer.error(x));
+            eventSource.onerror = x => observer.error(x);
 
             return () => {
                 eventSource.close();
@@ -113,14 +115,18 @@ export class StreamDispatchService {
                 let eventName = x["event"];
                 let eventData = x["data"];
                 // this._logger.debug("Received event:", eventName);
-                this._eventNameToServiceMap.get(eventName).notifyEvent(eventName, eventData);
+                this._zone.run(() => {
+                    this._eventNameToServiceMap.get(eventName).notifyEvent(eventName, eventData);
+                });
             },
             error: err => {
                 this._logger.error("Error in stream: %O", err);
 
                 // Notify all services of disconnection
                 for (let service of this._services) {
-                    service.notifyDisconnected();
+                    this._zone.run(() => {
+                        service.notifyDisconnected();
+                    });
                 }
 
                 setTimeout(() => { this.createSseObserver(); }, this.STREAM_RETRY_INTERVAL_MS);
