@@ -18,13 +18,18 @@
 </div>
 <div id="top-content">
 
-    <app-header></app-header>
-
     <div id="top-header">
-        <button id="sidebar-btn-open" class="sidebar-btn" (click)="showSidebar=!showSidebar">
-            &#9776;
-        </button>
-        <span id="top-title">{{activeRoute?.name}}</span>
+
+        <app-header></app-header>
+
+        <div id="title-bar">
+            <button id="sidebar-btn-open" class="sidebar-btn" (click)="showSidebar=!showSidebar">
+                &#9776;
+            </button>
+            <span id="title">{{activeRoute?.name}}</span>
+        </div>
+
     </div>
+
     <router-outlet></router-outlet>
 </div>

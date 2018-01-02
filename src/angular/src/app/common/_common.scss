@@ -16,6 +16,10 @@ $large-min-width: 993px;
 
 $sidebar-width: 170px;
 
+$zindex-sidebar: 300;
+$zindex-top-header: 200;
+$zindex-file-search: 100;
+
 %button {
     background-color: $primary-color;
     color: white;

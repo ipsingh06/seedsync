@@ -7,6 +7,12 @@
 }
 
 #top-header {
+    position: sticky;
+    top: 0;
+    z-index: $zindex-top-header;
+}
+
+#title-bar {
     background-color: $header-color;
     display: flex;
     flex-direction: row;
@@ -16,7 +22,7 @@
     padding-bottom: 8px;
 }
 
-#top-header #top-title {
+#title-bar #title {
     flex-grow: 1;
     font-size: 26px;
     cursor: default;
@@ -28,7 +34,7 @@
     width: $sidebar-width;
     height: 100%;
     position: fixed;
-    z-index: 200;
+    z-index: $zindex-sidebar;
     overflow: auto;
     box-shadow:0 2px 5px 0 rgba(0,0,0,0.16), 0 2px 10px 0 rgba(0,0,0,0.12);
     animation: animateleft 0.4s;
@@ -128,8 +134,8 @@
         display: none;
     }
 
-    // Hide the entire top-header
-    #top-header {
+    // Hide the entire title-bar
+    #title-bar {
         display: none;
     }
 }
