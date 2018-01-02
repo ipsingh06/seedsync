@@ -1,5 +1,11 @@
 @import '../../common/common';
 
+.form-group {
+    margin-bottom: 0;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
 .error {
     background-color: #f2dede;
     color: #a94442;

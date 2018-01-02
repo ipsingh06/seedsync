@@ -30,6 +30,10 @@ describe("Testing config record initialization", () => {
             },
             web: {
                 port: 8800
+            },
+            autoqueue: {
+                enabled: true,
+                patterns_only: false
             }
         };
         config = new Config(configJson);
@@ -53,6 +57,8 @@ describe("Testing config record initialization", () => {
         expect(config.controller.interval_ms_local_scan).toBe(10000);
         expect(config.controller.interval_ms_downloading_scan).toBe(1000);
         expect(config.web.port).toBe(8800);
+        expect(config.autoqueue.enabled).toBe(true);
+        expect(config.autoqueue.patterns_only).toBe(false);
     });
 
     it("should be immutable", () => {
@@ -64,5 +70,6 @@ describe("Testing config record initialization", () => {
         expect(config.lftp instanceof Immutable.Record).toBe(true);
         expect(config.controller instanceof Immutable.Record).toBe(true);
         expect(config.web instanceof Immutable.Record).toBe(true);
+        expect(config.autoqueue instanceof Immutable.Record).toBe(true);
     });
 });

@@ -20,19 +20,27 @@
         <ng-container
             *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_SERVER">
         </ng-container>
+
         <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
         <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_DISCOVERY">
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_AUTOQUEUE">
         </ng-container>
+
+        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+        <ng-container
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_OTHER">
+        </ng-container>
+
     </div>
     <div id="right">
         <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
         <ng-container
             *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_CONNECTIONS">
         </ng-container>
+
         <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
         <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_OTHER">
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_DISCOVERY">
         </ng-container>
     </div>
 

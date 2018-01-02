@@ -73,6 +73,19 @@ const DefaultWeb: IWeb = {
 };
 const WebRecord = Record(DefaultWeb);
 
+/*
+ * AUTOQUEUE
+ */
+interface IAutoQueue {
+    enabled: boolean;
+    patterns_only: boolean;
+}
+const DefaultAutoQueue: IAutoQueue = {
+    enabled: null,
+    patterns_only: null
+};
+const AutoQueueRecord = Record(DefaultAutoQueue);
+
 
 
 /*
@@ -83,13 +96,15 @@ export interface IConfig {
     lftp: ILftp;
     controller: IController;
     web: IWeb;
+    autoqueue: IAutoQueue;
 
 }
 const DefaultConfig: IConfig = {
     general: null,
     lftp: null,
     controller: null,
-    web: null
+    web: null,
+    autoqueue: null,
 };
 const ConfigRecord = Record(DefaultConfig);
 
@@ -99,6 +114,7 @@ export class Config extends ConfigRecord implements IConfig {
     lftp: ILftp;
     controller: IController;
     web: IWeb;
+    autoqueue: IAutoQueue;
 
     constructor(props) {
         // Create immutable members
@@ -107,6 +123,7 @@ export class Config extends ConfigRecord implements IConfig {
             lftp: LftpRecord(props.lftp),
             controller: ControllerRecord(props.controller),
             web: WebRecord(props.web),
+            autoqueue: AutoQueueRecord(props.autoqueue)
         });
     }
 }

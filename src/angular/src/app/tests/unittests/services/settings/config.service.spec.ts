@@ -74,6 +74,10 @@ describe("Testing config service", () => {
             },
             web: {
                 port: 8800
+            },
+            autoqueue: {
+                enabled: true,
+                patterns_only: false
             }
         };
         httpMock.expectOne("/server/config/get").flush(configJson);
@@ -95,6 +99,8 @@ describe("Testing config service", () => {
                 expect(config.controller.interval_ms_local_scan).toBe(10000);
                 expect(config.controller.interval_ms_downloading_scan).toBe(1000);
                 expect(config.web.port).toBe(8800);
+                expect(config.autoqueue.enabled).toBe(true);
+                expect(config.autoqueue.patterns_only).toBe(false);
             }
         });
 
