@@ -663,3 +663,27 @@ class TestAutoQueue(unittest.TestCase):
         persist.remove_pattern(AutoQueuePattern(pattern="File.One"))
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
+
+    def test_downloaded_file_with_changed_remote_size_is_queued(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        file_one_updated = ModelFile("File.One", True)
+        file_one_updated.remote_size = 200
+        file_one_updated.local_size = 100
+        file_one_updated.state = ModelFile.State.DEFAULT
+        self.model_listener.file_updated(file_one, file_one_updated)
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("File.One", command.filename)

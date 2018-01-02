@@ -181,10 +181,10 @@ class AutoQueue:
             if AutoQueue.__accept(file):
                 new_files.append(file)
 
-        # Accept modified files that were just discovered on remote
+        # Accept modified files where the remote size changed
         for old_file, new_file in self.__model_listener.modified_files:
             if AutoQueue.__accept(new_file):
-                if old_file.remote_size is None:
+                if old_file.remote_size != new_file.remote_size:
                     # File was just discovered
                     # (remote old size is None, new size is not None)
                     new_files.append(new_file)
