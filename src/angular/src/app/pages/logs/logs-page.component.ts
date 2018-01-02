@@ -3,6 +3,9 @@ import {ChangeDetectionStrategy, ChangeDetectorRef,Component,
 
 import {LogService} from "../../services/logs/log.service";
 import {LogRecord} from "../../services/logs/log-record";
+import {StreamServiceRegistry} from "../../services/base/stream-service.registry";
+import {ConnectedService} from "../../services/utils/connected.service";
+import {Localization} from "../../common/localization";
 
 @Component({
     selector: "app-logs-page",
@@ -14,15 +17,21 @@ import {LogRecord} from "../../services/logs/log-record";
 
 export class LogsPageComponent implements OnInit {
     public readonly LogRecord = LogRecord;
+    public readonly Localization = Localization;
 
-    // What to clone
-    @ViewChild('clone') template;
+    @ViewChild('templateRecord') templateRecord;
+    @ViewChild('templateConnected') templateConnected;
 
     // Where to insert the cloned content
     @ViewChild('container', {read:ViewContainerRef}) container;
 
-    constructor(private _logService: LogService,
-                private _changeDetector: ChangeDetectorRef) {
+    private _logService: LogService;
+    private _connectedService: ConnectedService;
+
+    constructor(private _changeDetector: ChangeDetectorRef,
+                private _streamRegistry: StreamServiceRegistry) {
+        this._logService = _streamRegistry.logService;
+        this._connectedService = _streamRegistry.connectedService;
     }
 
     ngOnInit() {
@@ -31,10 +40,20 @@ export class LogsPageComponent implements OnInit {
                 this.insertRecord(record);
             }
         });
+        this._connectedService.connected.subscribe({
+            next: connected => {
+                this.insertConnected(connected);
+            }
+        });
     }
 
-    private insertRecord(record: LogRecord){
-        this.container.createEmbeddedView(this.template, {record: record});
+    private insertConnected(connected: boolean) {
+        this.container.createEmbeddedView(this.templateConnected, {connected: connected});
+        this._changeDetector.detectChanges();
+    }
+
+    private insertRecord(record: LogRecord) {
+        this.container.createEmbeddedView(this.templateRecord, {record: record});
         this._changeDetector.detectChanges();
     }
 }

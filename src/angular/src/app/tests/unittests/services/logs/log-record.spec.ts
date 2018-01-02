@@ -12,7 +12,8 @@ describe("Testing log record initialization", () => {
             level_name: "DEBUG",
             time: "1514776875.9439101",
             logger_name: "seedsync.Controller.Model",
-            message: "LftpModel: Adding a listener"
+            message: "LftpModel: Adding a listener",
+            exc_tb: "Exception Traceback"
         };
         baseLogRecord = LogRecord.fromJson(baseJson);
     });
@@ -49,5 +50,12 @@ describe("Testing log record initialization", () => {
 
     it("should correctly initialize time", () => {
         expect(baseLogRecord.time).toEqual(new Date(1514776875943));
+    });
+
+    it("should correctly initialize exception traceback", () => {
+        expect(baseLogRecord.exceptionTraceback).toEqual("Exception Traceback");
+        baseJson.exc_tb = null;
+        baseLogRecord = LogRecord.fromJson(baseJson);
+        expect(baseLogRecord.exceptionTraceback).toBeNull();
     });
 });

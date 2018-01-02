@@ -1,7 +1,7 @@
 <div id="logs">
     <!--suppress HtmlUnknownAttribute -->
-    <ng-template #clone let-record="record">
-        <p
+    <ng-template #templateRecord let-record="record">
+        <p class="record"
             [class.debug]="record.level == LogRecord.Level.DEBUG"
             [class.info]="record.level == LogRecord.Level.INFO"
             [class.warning]="record.level == LogRecord.Level.WARNING"
@@ -11,7 +11,18 @@
             {{record.level}} -
             {{record.loggerName}} -
             {{record.message}}
+
+            <!-- Don't break this span into multiple lines, newlines show up -->
+            <span class="traceback" *ngIf="record.exceptionTraceback">{{record.exceptionTraceback}}</span>
         </p>
+    </ng-template>
+
+    <!--suppress HtmlUnknownAttribute -->
+    <ng-template #templateConnected let-connected="connected">
+        <div class="connected">
+            <span *ngIf="connected">{{Localization.Log.CONNECTED}}</span>
+            <span *ngIf="!connected">{{Localization.Log.DISCONNECTED}}</span>
+        </div>
     </ng-template>
 
 

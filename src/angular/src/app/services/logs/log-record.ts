@@ -9,12 +9,14 @@ interface ILogRecord {
     level: LogRecord.Level;
     loggerName: string;
     message: string;
+    exceptionTraceback: string;
 }
 const DefaultLogRecord: ILogRecord = {
     time: null,
     level: null,
     loggerName: null,
     message: null,
+    exceptionTraceback: null,
 };
 const LogRecordRecord = Record(DefaultLogRecord);
 export class LogRecord extends LogRecordRecord implements ILogRecord {
@@ -22,6 +24,7 @@ export class LogRecord extends LogRecordRecord implements ILogRecord {
     level: LogRecord.Level;
     loggerName: string;
     message: string;
+    exceptionTraceback: string;
 
     constructor(props) {
         // State mapping
@@ -39,7 +42,8 @@ export module LogRecord {
             time: new Date(1000 * +json.time),
             level: json.level_name,
             loggerName: json.logger_name,
-            message: json.message
+            message: json.message,
+            exceptionTraceback: json.exc_tb
         });
     }
 
@@ -62,4 +66,5 @@ export interface LogRecordJson {
     level_name: string;
     logger_name: string;
     message: string;
+    exc_tb: string;
 }
