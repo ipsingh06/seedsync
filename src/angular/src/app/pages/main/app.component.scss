@@ -12,6 +12,17 @@
     z-index: $zindex-top-header;
 }
 
+#outside-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: $zindex-sidebar - 1;
+    background-color: black;
+    opacity: .25;
+}
+
 #title-bar {
     background-color: $header-color;
     display: flex;
@@ -92,6 +103,13 @@
     display: none;
 }
 
+.outside-sidebar-show {
+    display: block;
+}
+.outside-sidebar-hide {
+    display: none;
+}
+
 .sidebar-btn {
     background-color: inherit;
     display: block;
@@ -127,6 +145,11 @@
     // Always show the sidebar
     #top-sidebar {
         display: block;
+    }
+
+    // Always hide the outside-sidebar
+    .outside-sidebar-show {
+        display: none;
     }
 
     // Hide the sidebar open/close buttons

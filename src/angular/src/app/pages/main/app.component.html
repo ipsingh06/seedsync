@@ -16,6 +16,14 @@
 
     <app-sidebar></app-sidebar>
 </div>
+
+<!-- Used for sidebar closing -->
+<div id="outside-sidebar"
+     [class.outside-sidebar-show]="showSidebar"
+     [class.outside-sidebar-hide]="!showSidebar"
+     (click)="showSidebar=false">
+</div>
+
 <div id="top-content">
 
     <div id="top-header">
