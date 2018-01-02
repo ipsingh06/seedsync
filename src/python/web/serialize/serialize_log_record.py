@@ -19,6 +19,12 @@ class SerializeLogRecord(Serialize):
     __KEY_LEVEL_NAME = "level_name"
     __KEY_LOGGER_NAME = "logger_name"
     __KEY_MESSAGE = "message"
+    __KEY_EXCEPTION_TRACEBACK = "exc_tb"
+
+    def __init__(self):
+        super().__init__()
+        # logging formatter to generate exception traceback
+        self.__log_formatter = logging.Formatter()
 
     def record(self, record: logging.LogRecord) -> str:
         json_dict = dict()
@@ -26,5 +32,12 @@ class SerializeLogRecord(Serialize):
         json_dict[SerializeLogRecord.__KEY_LEVEL_NAME] = record.levelname
         json_dict[SerializeLogRecord.__KEY_LOGGER_NAME] = record.name
         json_dict[SerializeLogRecord.__KEY_MESSAGE] = record.msg
+        exc_text = None
+        if record.exc_text:
+            exc_text = record.exc_text
+        elif record.exc_info:
+            exc_text = self.__log_formatter.formatException(record.exc_info)
+        json_dict[SerializeLogRecord.__KEY_EXCEPTION_TRACEBACK] = exc_text
+
         record_json = json.dumps(json_dict)
         return self._sse_pack(event=SerializeLogRecord.__EVENT_RECORD, data=record_json)

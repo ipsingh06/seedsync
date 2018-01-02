@@ -59,7 +59,6 @@ class TestSerializeLogRecord(unittest.TestCase):
             func=None,
             sinfo=None
         )
-        print(record.name)
         out = parse_stream(serialize.record(record))
         data = json.loads(out["data"])
         self.assertEqual("DEBUG", data["level_name"])
@@ -75,7 +74,6 @@ class TestSerializeLogRecord(unittest.TestCase):
             func=None,
             sinfo=None
         )
-        print(record.name)
         out = parse_stream(serialize.record(record))
         data = json.loads(out["data"])
         self.assertEqual("INFO", data["level_name"])
@@ -91,7 +89,6 @@ class TestSerializeLogRecord(unittest.TestCase):
             func=None,
             sinfo=None
         )
-        print(record.name)
         out = parse_stream(serialize.record(record))
         data = json.loads(out["data"])
         self.assertEqual("WARNING", data["level_name"])
@@ -107,7 +104,6 @@ class TestSerializeLogRecord(unittest.TestCase):
             func=None,
             sinfo=None
         )
-        print(record.name)
         out = parse_stream(serialize.record(record))
         data = json.loads(out["data"])
         self.assertEqual("ERROR", data["level_name"])
@@ -123,7 +119,6 @@ class TestSerializeLogRecord(unittest.TestCase):
             func=None,
             sinfo=None
         )
-        print(record.name)
         out = parse_stream(serialize.record(record))
         data = json.loads(out["data"])
         self.assertEqual("CRITICAL", data["level_name"])
@@ -163,3 +158,56 @@ class TestSerializeLogRecord(unittest.TestCase):
         out = parse_stream(serialize.record(record))
         data = json.loads(out["data"])
         self.assertEqual("my logger msg", data["message"])
+
+    def test_record_exception_text(self):
+        serialize = SerializeLogRecord()
+        logger = logging.getLogger()
+
+        # When there's exc_text already there
+        record = logger.makeRecord(
+            name=None,
+            level=None,
+            fn=None,
+            lno=None,
+            msg=None,
+            args=None,
+            exc_info=None,
+            func=None,
+            sinfo=None
+        )
+        record.exc_text = "My traceback"
+        out = parse_stream(serialize.record(record))
+        data = json.loads(out["data"])
+        self.assertEqual("My traceback", data["exc_tb"])
+
+        # When there's exc_info but no exc_text
+        record = logger.makeRecord(
+            name=None,
+            level=None,
+            fn=None,
+            lno=None,
+            msg=None,
+            args=None,
+            exc_info=(None, ValueError(), None),
+            func=None,
+            sinfo=None
+        )
+        out = parse_stream(serialize.record(record))
+        data = json.loads(out["data"])
+        self.assertEqual("ValueError", data["exc_tb"])
+
+        # When there's neither
+        record = logger.makeRecord(
+            name=None,
+            level=None,
+            fn=None,
+            lno=None,
+            msg=None,
+            args=None,
+            exc_info=None,
+            func=None,
+            sinfo=None
+        )
+        out = parse_stream(serialize.record(record))
+        data = json.loads(out["data"])
+        self.assertEqual(None, data["exc_tb"])
