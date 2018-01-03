@@ -1,6 +1,6 @@
 import {AutoQueuePage} from "./autoqueue.page";
 
-describe('Testing dashboard page', () => {
+describe('Testing autoqueue page', () => {
     let page: AutoQueuePage;
 
     beforeEach(() => {

@@ -20,6 +20,6 @@ export class App {
     }
 
     getTopTitle(): Promise<string> {
-        return browser.executeScript("return arguments[0].innerHTML;", element(by.css("#top-title")));
+        return browser.executeScript("return arguments[0].innerHTML;", element(by.css("#title")));
     }
 }

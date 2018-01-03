@@ -1,6 +1,6 @@
 import {SettingsPage} from "./settings.page";
 
-describe('Testing dashboard page', () => {
+describe('Testing settings page', () => {
     let page: SettingsPage;
 
     beforeEach(() => {

@@ -18,6 +18,8 @@ describe('Testing top-level app', () => {
                 "Dashboard",
                 "Settings",
                 "AutoQueue",
+                "Logs",
+                "About",
                 "Restart"
             ]
         );
