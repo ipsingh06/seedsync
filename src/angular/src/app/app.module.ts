@@ -35,6 +35,7 @@ import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/b
 import {LogsPageComponent} from "./pages/logs/logs-page.component";
 import {LogService} from "./services/logs/log.service";
 import {AboutPageComponent} from "./pages/about/about-page.component";
+import {ROUTES} from "./routes";
 
 @NgModule({
     declarations: [
@@ -59,33 +60,7 @@ import {AboutPageComponent} from "./pages/about/about-page.component";
         BrowserModule,
         HttpClientModule,
         FormsModule,
-        RouterModule.forRoot([
-            {
-                path: "",
-                redirectTo: "/dashboard",
-                pathMatch: "full"
-            },
-            {
-                path: "dashboard",
-                component: FilesPageComponent
-            },
-            {
-                path: "settings",
-                component: SettingsPageComponent
-            },
-            {
-                path: "autoqueue",
-                component: AutoQueuePageComponent
-            },
-            {
-                path: "logs",
-                component: LogsPageComponent
-            },
-            {
-                path: "about",
-                component: AboutPageComponent
-            }
-        ])
+        RouterModule.forRoot(ROUTES)
     ],
     providers: [
         {provide: RouteReuseStrategy, useClass: CachedReuseStrategy},
