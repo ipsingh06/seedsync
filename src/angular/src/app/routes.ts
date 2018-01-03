@@ -3,6 +3,7 @@ import * as Immutable from "immutable";
 export interface RouteInfo {
     path: string;
     name: string;
+    icon: string;
 }
 
 export const ROUTE_INFOS: Immutable.List<RouteInfo> = Immutable.List([
@@ -25,5 +26,10 @@ export const ROUTE_INFOS: Immutable.List<RouteInfo> = Immutable.List([
         path: "/logs",
         name: "Logs",
         icon: "glyphicon-list-alt"
+    },
+    {
+        path: "/about",
+        name: "About",
+        icon: "glyphicon-heart"
     }
 ]);

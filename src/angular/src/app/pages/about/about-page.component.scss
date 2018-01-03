@@ -1,0 +1,33 @@
+@import '../../common/common';
+
+#about {
+    display: flex;
+    justify-content: center;
+
+    #wrapper {
+        margin-top: 50px;
+        text-align: center;
+
+        #banner {
+            display: flex;
+            align-items: center;
+
+            img {
+                max-width: 80px;
+                max-height: 80px;
+            }
+            span {
+                margin-left: 10px;
+                color: $logo-color;
+                font-family: $logo-font;
+                font-size: 300%;
+                cursor: default;
+                user-select: none;
+            }
+        }
+
+        #version {
+            font-size: 150%;
+        }
+    }
+}

@@ -34,6 +34,7 @@ import {RestService} from "./services/utils/rest.service";
 import {StreamDispatchService, StreamServiceRegistryProvider} from "./services/base/stream-service.registry";
 import {LogsPageComponent} from "./pages/logs/logs-page.component";
 import {LogService} from "./services/logs/log.service";
+import {AboutPageComponent} from "./pages/about/about-page.component";
 
 @NgModule({
     declarations: [
@@ -51,7 +52,8 @@ import {LogService} from "./services/logs/log.service";
         SettingsPageComponent,
         OptionComponent,
         AutoQueuePageComponent,
-        LogsPageComponent
+        LogsPageComponent,
+        AboutPageComponent
     ],
     imports: [
         BrowserModule,
@@ -78,6 +80,10 @@ import {LogService} from "./services/logs/log.service";
             {
                 path: "logs",
                 component: LogsPageComponent
+            },
+            {
+                path: "about",
+                component: AboutPageComponent
             }
         ])
     ],

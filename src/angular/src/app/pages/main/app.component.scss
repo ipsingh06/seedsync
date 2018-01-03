@@ -68,10 +68,10 @@
             flex-grow: 1;
             padding-left: 5px;
             font-size: 140%;
-            color: $logo-color;
             cursor: default;
             user-select: none;
-            font-family: 'Arial Black', Gadget, sans-serif;
+            color: $logo-color;
+            font-family: $logo-font;
         }
 
         #sidebar-btn-close {
