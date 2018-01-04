@@ -2,6 +2,8 @@
 
 SeedSync is a GUI-configurable, LFTP-based file transfer program. With a LFTP backend, it can fetch files from a remote server (like your seedbox) at maximum throughput. Fully GUI-configurable means not having to muck around with scripts.
 
+![](https://user-images.githubusercontent.com/12875506/34561320-480404a4-f0fe-11e7-9e01-6ed50668c36a.png)
+
 SeedSync currently supports the following features:
 
 - LFTP-backend for high-throughput, parallel transfers
@@ -16,6 +18,46 @@ Supported OS: Linux (sorry no Windows or Mac support at this time)
 
 Tested on: Ubuntu 14.04 and above
 
+
+
+## Screenshots
+
+<table>
+<tr>
+    <td>
+        <a href="https://user-images.githubusercontent.com/12875506/34560363-48c85d44-f0fa-11e7-87c0-4ac0b80f38b4.png">
+        <img src="https://user-images.githubusercontent.com/12875506/34560363-48c85d44-f0fa-11e7-87c0-4ac0b80f38b4.png"
+        alt="Dashboard on Desktop"
+        style="max-width: 100px;" />
+        </a>
+    </td>
+    <td>
+        <a href="https://user-images.githubusercontent.com/12875506/34560367-4e27c96e-f0fa-11e7-9647-c58eaba64b86.png">
+        <img src="https://user-images.githubusercontent.com/12875506/34560367-4e27c96e-f0fa-11e7-9647-c58eaba64b86.png"
+        alt="Dashboard on Mobile"
+        style="max-width: 100px;" />
+        </a>
+    </td>
+    <td>
+        <a href="https://user-images.githubusercontent.com/12875506/34560372-52b6fcfc-f0fa-11e7-9618-edf18a7665cd.png">
+        <img src="https://user-images.githubusercontent.com/12875506/34560372-52b6fcfc-f0fa-11e7-9618-edf18a7665cd.png"
+        alt="Change LFTP settings from GUI"
+        style="max-width: 100px;" />
+        </a>
+    </td>
+</tr>
+<tr>
+    <td>
+        Dashboard on Desktop
+    </td>
+    <td>
+        Dashboard on Mobile
+    </td>
+    <td>
+        Change LFTP settings from GUI
+    </td>
+</tr>
+</table>
 
 
 
@@ -71,7 +113,11 @@ The Dashboard page shows all the files and directories on the remote server and 
 
 ### AutoQueue
 
-The AutoQueue page is where you can add or remove autoqueue patterns. Any files or directories on the remote server that match a pattern will be automatically queued for transfer.
+AutoQueue queues all newly discovered files on the remote server.
+You can also restrict AutoQueue to pattern-based matches (see this option in the Settings page).
+When pattern restriction is enabled, the AutoQueue page is where you can add or remove patterns.
+Any files or directories on the remote server that match a pattern will be automatically queued for transfer.
+
 
 
 
