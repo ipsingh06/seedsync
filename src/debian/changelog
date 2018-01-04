@@ -1,3 +1,14 @@
+seedsync (0.2-0) stable; urgency=low
+
+  * Added option for remote SSH port
+  * Added ability to view log in web GUI
+  * Added option to enable/disable pattern-restricted AutoQueue
+  * Added option to enable/disable AutoQueue entirely
+  * Fixed AutoQueue not re-queuing file when it changes on remote server
+  * Minor UI improvements
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Thu, 04 Jan 2018 02:00:54 -0800
+
 seedsync (0.1-0) stable; urgency=low
 
   * Initial Release
