@@ -10,7 +10,7 @@ services:
         read_only: true
 
   chrome:
-    image: yukinying/chrome-headless-browser-selenium
+    build: ../chrome
     shm_size: 1024M
     cap_add:
      - SYS_ADMIN

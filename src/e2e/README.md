@@ -1,6 +1,13 @@
 ###To run e2e tests in dev mode:
 
-1. Start the docker dev image
+1. Install dependencies
+```
+sudo npm install -g protractor
+cd src/e2e
+npm install
+```
+
+2. Start the docker dev image
 ```
 export PATH_TO_INSTALL_DEB=<path to deb file>
 docker-compose -f src/docker/compose/e2e-base.yml -f src/docker/compose/e2e-ubu1604.dev.yml -p seedsync_test_dev up
@@ -11,7 +18,7 @@ Note: to restart the docker images:
 docker-compose -f src/docker/compose/e2e-base.yml -f src/docker/compose/e2e-ubu1604.dev.yml -p seedsync_test_dev down
 ```
 
-2. Compile and run the tests
+3. Compile and run the tests
 
 ```
 cd src/e2e/
