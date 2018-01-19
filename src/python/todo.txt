@@ -1,0 +1,34 @@
+Create extract/extractor.py
+    - Like Lftp, has a state
+    - Returns a status, like List[ArchiveStatus]
+        - Name
+        - State: EXTRACTING (the only state for now)
+    - extract command, runs job asynchronously
+        - extract all archive files in a folder
+    - provides a utility method 'is_archive' to determine if a file/folder is an archive
+        - takes in a SystemFile
+        - checks file extension to see if it's a supported archive
+        - if it's a folder, checks all the immediate files
+
+Update model_file.py
+    - add states EXTRACTING and EXTRACTED
+    - add flag is_archive
+
+Update model_builder
+    - receives List[ArchiveStatus] to determine EXTRACTING files
+    - receives List[str] to determine EXTRACTED files
+    - uses extract/is_archive() to set is_archive flag in model file
+        - might as well set the flag for all levels of model_file, even though
+          only top ones will be extracted
+
+Update controller
+    - interact with extractor
+    - interact with model_builder: extracting and extracted
+    - add a listener for updated files to determine persist the extracted ones
+    - new command: EXTRACT
+
+Update controller persist:
+    - save the list of extracted file
+
+Update autoqueue:
+    - auto-extract support
