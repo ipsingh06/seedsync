@@ -1,14 +1,36 @@
-Create extract/extractor.py
-    - Like Lftp, has a state
-    - Returns a status, like List[ArchiveStatus]
-        - Name
-        - State: EXTRACTING (the only state for now)
-    - extract command, runs job asynchronously
-        - extract all archive files in a folder
-    - provides a utility method 'is_archive' to determine if a file/folder is an archive
-        - takes in a SystemFile
-        - checks file extension to see if it's a supported archive
-        - if it's a folder, checks all the immediate files
+Create extract/
+    Create extract.py
+        - Simple utility class to extract a single file
+        - provides a utility method 'is_archive' to determine if a file/folder is an archive
+            - takes in a SystemFile
+            - checks file extension to see if it's a supported archive
+            - if it's a folder, checks all the immediate files
+
+    Create manager.py
+        - Like Lftp, has a state
+        - Returns a status, like List[ArchiveStatus]
+            - Name
+            - State: EXTRACTING (the only state for now)
+        - extract command
+            - is async, queues a command
+            - params:
+                - input: SystemFile - file or directory to extract
+                - output: SystemFile - directory where to place contents
+            - extract all archive files in directory and all subdirectories
+            - maintains directory structure for extraction
+        - all extraction is done by a worker thread
+        - the extraction task can be single-file
+        - need to make a single extract command to its multiple tasks generated
+
+    Create extract_process.py
+        - the main purpose is to move the extraction off the main process
+        - wrapper around extract_manager
+        - process queues:
+            - to receive commands
+            - to send out latest status
+        - run loop does following:
+            - sends commands to manager
+            - grabs latest state from manager
 
 Update model_file.py
     - add states EXTRACTING and EXTRACTED
