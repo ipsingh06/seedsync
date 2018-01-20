@@ -16,7 +16,8 @@ https://docs.docker.com/compose/install/
 sudo apt-get install -y \
     python3-dev \
     debhelper \
-    dh-systemd
+    dh-systemd \
+    rar
 sudo pip install virtualenvwrapper
 ```
 

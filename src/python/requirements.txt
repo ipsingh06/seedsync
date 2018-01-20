@@ -11,6 +11,7 @@ greenlet==0.4.12
 macholib==1.8
 packaging==16.8
 Paste==2.0.3
+patool==1.12
 pefile==2017.9.3
 pexpect==4.2.1
 portend==1.8
