@@ -21,6 +21,7 @@ Create extract/
         - all extraction is done by a worker thread
         - the extraction task can be single-file
         - need to make a single extract command to its multiple tasks generated
+            - also need to make sure multipart archive issue only one task
 
     Create extract_process.py
         - the main purpose is to move the extraction off the main process
