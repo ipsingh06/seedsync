@@ -143,6 +143,12 @@ class TestExtract(unittest.TestCase):
                                     out_dir_path=TestExtract.temp_dir)
         self.assertTrue(str(ctx.exception).startswith("Path is not a valid archive"))
 
+    def test_extract_archive_creates_sub_directories(self):
+        out_path = os.path.join(TestExtract.temp_dir, "bunch", "of", "sub", "dir")
+        Extract.extract_archive(archive_path=TestExtract.ar_zip,
+                                out_dir_path=out_path)
+        self._assert_extracted_files(out_path)
+
     def test_extract_archive_zip(self):
         Extract.extract_archive(archive_path=TestExtract.ar_zip,
                                 out_dir_path=TestExtract.temp_dir)
