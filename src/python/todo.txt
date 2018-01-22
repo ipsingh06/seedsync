@@ -14,8 +14,8 @@ Create extract/
         - extract command
             - is async, queues a command
             - params:
-                - input: SystemFile - file or directory to extract
-                - output: SystemFile - directory where to place contents
+                - input: ModelFile - file or directory to extract
+            - goes through all files and finds all the archives
             - extract all archive files in directory and all subdirectories
             - maintains directory structure for extraction
         - all extraction is done by a worker thread
@@ -35,7 +35,12 @@ Create extract/
 
 Update model_file.py
     - add states EXTRACTING and EXTRACTED
-    - add flag is_archive
+    - add flag is_extractable
+        - when is this determined?
+        - can't be scanning files on every model build...
+        - let's use a super-light-weight file-extension based detection mechanism here
+        - the deeper file-content based check can be done when root is marked for extraction in ExtractManager
+        - we can add a GUI setting to always show extract button, in case this flag misses an archive
 
 Update model_builder
     - receives List[ArchiveStatus] to determine EXTRACTING files
@@ -46,6 +51,7 @@ Update model_builder
 
 Update controller
     - interact with extractor
+        - do the sanity checking on ModelFile state here
     - interact with model_builder: extracting and extracted
     - add a listener for updated files to determine persist the extracted ones
     - new command: EXTRACT
