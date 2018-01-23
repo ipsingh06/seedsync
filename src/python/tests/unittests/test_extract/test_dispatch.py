@@ -478,6 +478,78 @@ class TestExtractDispatch(unittest.TestCase):
         self.assertEqual(3, self.mock_extract_archive.call_count)
         self.assertEqual(golden_calls, self.actual_calls)
 
+    # noinspection SpellCheckingInspection
+    @timeout_decorator.timeout(2)
+    def test_extract_dir_does_not_extract_split_rar_files(self):
+        self.mock_is_archive.return_value = True
+        self.actual_calls = set()
+
+        def _extract(archive_path: str, out_dir_path: str):
+            self.actual_calls.add((archive_path, out_dir_path))
+        self.mock_extract_archive.side_effect = _extract
+
+        a = ModelFile("a", True)
+        a.local_size = 80
+        aa = ModelFile("aa.rar", False)
+        aa.local_size = 10
+        a.add_child(aa)
+        aa0 = ModelFile("aa.r00", False)
+        aa0.local_size = 10
+        a.add_child(aa0)
+        aa1 = ModelFile("aa.r01", False)
+        aa1.local_size = 10
+        a.add_child(aa1)
+        aa2 = ModelFile("aa.r02", False)
+        aa2.local_size = 10
+        a.add_child(aa2)
+        aa15 = ModelFile("aa.r15", False)
+        aa15.local_size = 10
+        a.add_child(aa15)
+        ab = ModelFile("ab.rar", False)
+        ab.local_size = 10
+        a.add_child(ab)
+        ab0 = ModelFile("ab.r000", False)
+        ab0.local_size = 10
+        a.add_child(ab0)
+        ab1 = ModelFile("ab.r001", False)
+        ab1.local_size = 10
+        a.add_child(ab1)
+        ac = ModelFile("ac", True)
+        ac.local_size = 20
+        a.add_child(ac)
+        aca = ModelFile("aca", True)
+        aca.local_size = 20
+        ac.add_child(aca)
+        acaa = ModelFile("acaa.rar", False)
+        acaa.local_size = 10
+        aca.add_child(acaa)
+        acaa0 = ModelFile("acaa.r00", False)
+        acaa0.local_size = 10
+        aca.add_child(acaa0)
+
+        self.dispatch.add_listener(self.listener)
+        self.dispatch.extract(a)
+        while self.listener.extract_completed.call_count < 1:
+            pass
+        self.listener.extract_completed.assert_called_once_with("a", True)
+
+        golden_calls = {
+            (
+                os.path.join(self.local_path, "a", "aa.rar"),
+                os.path.join(self.out_dir_path, "a")
+            ),
+            (
+                os.path.join(self.local_path, "a", "ab.rar"),
+                os.path.join(self.out_dir_path, "a")
+            ),
+            (
+                os.path.join(self.local_path, "a", "ac", "aca", "acaa.rar"),
+                os.path.join(self.out_dir_path, "a", "ac", "aca")
+            ),
+        }
+        self.assertEqual(3, self.mock_extract_archive.call_count)
+        self.assertEqual(golden_calls, self.actual_calls)
+
     @timeout_decorator.timeout(2)
     def test_extract_dir_exits_command_early_on_shutdown(self):
         # Send extract dir command with two archives

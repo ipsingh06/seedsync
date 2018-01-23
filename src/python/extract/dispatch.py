@@ -8,6 +8,7 @@ import os
 import threading
 import time
 from abc import ABC, abstractmethod
+import re
 
 from .extract import Extract, ExtractError
 from model import ModelFile
@@ -123,6 +124,10 @@ class ExtractDispatch:
                             and Extract.is_archive(archive_full_path):
                         task.add_archive(archive_path=archive_full_path,
                                          out_dir_path=out_dir_path)
+
+            # Coalesce extractions
+            ExtractDispatch.__coalesce_extractions(task)
+
             # Verify that there was at least one archive file
             if len(task.archive_paths) > 0:
                 self.__task_queue.put(task)
@@ -185,3 +190,18 @@ class ExtractDispatch:
             time.sleep(ExtractDispatch.__WORKER_SLEEP_INTERVAL_IN_SECS)
 
         self.logger.debug("Stopped worker thread")
+
+    @staticmethod
+    def __coalesce_extractions(task: _Task):
+        """
+        Remove duplicate extractions due to split files
+        :param task:
+        :return:
+        """
+        # Filter out any rxx files for a split rar
+        filtered_paths = []
+        for archive_path, out_path in task.archive_paths:
+            file_ext = os.path.splitext(os.path.basename(archive_path))[1]
+            if not re.match("^\.r\d{2,}$", file_ext):
+                filtered_paths.append((archive_path, out_path))
+        task.archive_paths = filtered_paths
