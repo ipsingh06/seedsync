@@ -10,16 +10,16 @@ import timeout_decorator
 from common import overrides
 from model import ModelFile
 from extract import ExtractDispatch, ExtractDispatchError, ExtractListener, \
-                    ExtractError
+                    ExtractError, ExtractStatus
 
 
 class DummyExtractListener(ExtractListener):
     @overrides(ExtractListener)
-    def extract_completed(self, name: str):
+    def extract_completed(self, name: str, is_dir: bool):
         pass
 
     @overrides(ExtractListener)
-    def extract_failed(self, name: str):
+    def extract_failed(self, name: str, is_dir: bool):
         pass
 
 
@@ -44,6 +44,7 @@ class TestExtractDispatch(unittest.TestCase):
 
         self.dispatch.start()
 
+    @timeout_decorator.timeout(2)
     def tearDown(self):
         if self.dispatch:
             self.dispatch.stop()
@@ -136,7 +137,7 @@ class TestExtractDispatch(unittest.TestCase):
                 or self.listener.extract_completed.call_count < 1:
             pass
         self.assertEqual(1, self.mock_extract_archive.call_count)
-        self.listener.extract_completed.assert_called_once_with("aaa")
+        self.listener.extract_completed.assert_called_once_with("aaa", False)
         self.listener.extract_failed.assert_not_called()
 
     @timeout_decorator.timeout(2)
@@ -159,7 +160,7 @@ class TestExtractDispatch(unittest.TestCase):
             pass
         self.assertEqual(1, self.mock_extract_archive.call_count)
         self.listener.extract_completed.assert_not_called()
-        self.listener.extract_failed.assert_called_once_with("aaa")
+        self.listener.extract_failed.assert_called_once_with("aaa", False)
 
     @timeout_decorator.timeout(2)
     def test_extract_calls_listeners_in_correct_sequence(self):
@@ -183,11 +184,11 @@ class TestExtractDispatch(unittest.TestCase):
 
         listener_calls = []
 
-        def _completed(name):
-            listener_calls.append((True, name))
+        def _completed(name, is_dir):
+            listener_calls.append((True, name, is_dir))
 
-        def _failed(name):
-            listener_calls.append((False, name))
+        def _failed(name, is_dir):
+            listener_calls.append((False, name, is_dir))
 
         self.listener.extract_completed.side_effect = _completed
         self.listener.extract_failed.side_effect = _failed
@@ -202,7 +203,10 @@ class TestExtractDispatch(unittest.TestCase):
                 or self.listener.extract_completed.call_count < 1:
             pass
         self.assertEqual(3, self.mock_extract_archive.call_count)
-        self.assertEqual([(False, "aaa"), (True, "bbb"), (False, "ccc")], listener_calls)
+        self.assertEqual(
+            [(False, "aaa", False), (True, "bbb", False), (False, "ccc", False)],
+            listener_calls
+        )
 
     @timeout_decorator.timeout(2)
     def test_extract_skips_remaining_on_shutdown(self):
@@ -237,8 +241,8 @@ class TestExtractDispatch(unittest.TestCase):
                 or self.listener.extract_completed.call_count < 1:
             pass
         self.assertEqual(1, self.mock_extract_archive.call_count)
-        self.listener.extract_completed.assert_called_once_with("aaa")
-        self.listener.extract_failed.assert_called_once_with("bbb")
+        self.listener.extract_completed.assert_called_once_with("aaa", False)
+        self.listener.extract_failed.assert_not_called()
 
     def test_extract_dir_raises_error_on_empty_dir(self):
         mf = ModelFile("aaa", True)
@@ -320,7 +324,7 @@ class TestExtractDispatch(unittest.TestCase):
         self.dispatch.extract(a)
         while self.listener.extract_completed.call_count < 1:
             pass
-        self.listener.extract_completed.assert_called_once_with("a")
+        self.listener.extract_completed.assert_called_once_with("a", True)
 
         golden_calls = {
             (
@@ -388,7 +392,7 @@ class TestExtractDispatch(unittest.TestCase):
         self.dispatch.extract(a)
         while self.listener.extract_completed.call_count < 1:
             pass
-        self.listener.extract_completed.assert_called_once_with("a")
+        self.listener.extract_completed.assert_called_once_with("a", True)
 
         golden_calls = {
             (
@@ -455,7 +459,7 @@ class TestExtractDispatch(unittest.TestCase):
         self.dispatch.extract(a)
         while self.listener.extract_completed.call_count < 1:
             pass
-        self.listener.extract_completed.assert_called_once_with("a")
+        self.listener.extract_completed.assert_called_once_with("a", True)
 
         golden_calls = {
             (
@@ -510,5 +514,109 @@ class TestExtractDispatch(unittest.TestCase):
                 or self.listener.extract_failed.call_count < 1:
             pass
         self.listener.extract_completed.assert_not_called()
-        self.listener.extract_failed.assert_called_once_with("a")
+        self.listener.extract_failed.assert_called_once_with("a", True)
         self.assertEqual(1, self.mock_extract_archive.call_count)
+
+    @timeout_decorator.timeout(2)
+    def test_status(self):
+        self.mock_is_archive.return_value = True
+        self.send_count = 0
+        self.rx_count = 0
+
+        # noinspection PyUnusedLocal
+        def _extract(**kwargs):
+            # barrier implementation
+            while self.send_count <= self.rx_count:
+                pass
+            self.rx_count += 1
+        self.mock_extract_archive.side_effect = _extract
+
+        a = ModelFile("a", True)
+        a.local_size = 200
+        aa = ModelFile("aa", False)
+        aa.local_size = 100
+        a.add_child(aa)
+        ab = ModelFile("ab", False)
+        ab.local_size = 100
+        a.add_child(ab)
+        b = ModelFile("b", True)
+        b.local_size = 100
+        ba = ModelFile("ba", False)
+        ba.local_size = 100
+        b.add_child(ba)
+        c = ModelFile("c", False)
+        c.local_size = 100
+
+        # Initial status should be empty
+        status = self.dispatch.status()
+        self.assertEqual(0, len(status))
+
+        self.dispatch.add_listener(self.listener)
+        self.dispatch.extract(a)
+        self.dispatch.extract(b)
+        self.dispatch.extract(c)
+
+        status = self.dispatch.status()
+        self.assertEqual(3, len(status))
+        self.assertEqual("a", status[0].name)
+        self.assertEqual(True, status[0].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[0].state)
+        self.assertEqual("b", status[1].name)
+        self.assertEqual(True, status[1].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[1].state)
+        self.assertEqual("c", status[2].name)
+        self.assertEqual(False, status[2].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[2].state)
+
+        # Wait for first dir to start extracting
+        self.send_count = 1
+        while self.rx_count < self.send_count:
+            pass
+
+        status = self.dispatch.status()
+        self.assertEqual(3, len(status))
+        self.assertEqual("a", status[0].name)
+        self.assertEqual(True, status[0].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[0].state)
+        self.assertEqual("b", status[1].name)
+        self.assertEqual(True, status[1].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[1].state)
+        self.assertEqual("c", status[2].name)
+        self.assertEqual(False, status[2].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[2].state)
+
+        # After first directory finishes
+        self.send_count = 2
+        while self.listener.extract_completed.call_count < 1:
+            pass
+        self.listener.extract_completed.assert_called_with("a", True)
+
+        status = self.dispatch.status()
+        self.assertEqual(2, len(status))
+        self.assertEqual("b", status[0].name)
+        self.assertEqual(True, status[0].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[0].state)
+        self.assertEqual("c", status[1].name)
+        self.assertEqual(False, status[1].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[1].state)
+
+        # After second directory finishes
+        self.send_count = 3
+        while self.listener.extract_completed.call_count < 2:
+            pass
+        self.listener.extract_completed.assert_called_with("b", True)
+
+        status = self.dispatch.status()
+        self.assertEqual(1, len(status))
+        self.assertEqual("c", status[0].name)
+        self.assertEqual(False, status[0].is_dir)
+        self.assertEqual(ExtractStatus.State.EXTRACTING, status[0].state)
+
+        # After third/last file finishes
+        self.send_count = 4
+        while self.listener.extract_completed.call_count < 3:
+            pass
+        self.listener.extract_completed.assert_called_with("c", False)
+
+        status = self.dispatch.status()
+        self.assertEqual(0, len(status))

@@ -20,11 +20,11 @@ class ExtractDispatchError(AppError):
 
 class ExtractListener(ABC):
     @abstractmethod
-    def extract_completed(self, name: str):
+    def extract_completed(self, name: str, is_dir: bool):
         pass
 
     @abstractmethod
-    def extract_failed(self, name: str):
+    def extract_failed(self, name: str, is_dir: bool):
         pass
 
 
@@ -36,12 +36,16 @@ class ExtractStatus:
     class State(Enum):
         EXTRACTING = 0
 
-    def __init__(self, name: str, state: State):
+    def __init__(self, name: str, is_dir: bool, state: State):
         self.__name = name
+        self.__is_dir = is_dir
         self.__state = state
 
     @property
     def name(self) -> str: return self.__name
+
+    @property
+    def is_dir(self) -> bool: return self.__is_dir
 
     @property
     def state(self) -> State: return self.__state
@@ -52,8 +56,9 @@ class ExtractDispatch:
     __WORKER_SLEEP_INTERVAL_IN_SECS = 0.5
 
     class _Task:
-        def __init__(self, root_name: str):
+        def __init__(self, root_name: str, root_is_dir: bool):
             self.root_name = root_name
+            self.root_is_dir = root_is_dir
             self.archive_paths = []  # list of (archive path, out path) pairs
 
         def add_archive(self, archive_path: str, out_dir_path: str):
@@ -89,11 +94,18 @@ class ExtractDispatch:
         self.__listeners_lock.release()
 
     def status(self) -> List[ExtractStatus]:
-        pass
+        tasks = list(self.__task_queue.queue)
+        statuses = []
+        for task in tasks:
+            status = ExtractStatus(name=task.root_name,
+                                   is_dir=task.root_is_dir,
+                                   state=ExtractStatus.State.EXTRACTING)
+            statuses.append(status)
+        return statuses
 
     def extract(self, model_file: ModelFile):
         # noinspection PyProtectedMember
-        task = ExtractDispatch._Task(model_file.name)
+        task = ExtractDispatch._Task(model_file.name, model_file.is_dir)
 
         if model_file.is_dir:
             # For a directory, try and find all archives
@@ -134,40 +146,41 @@ class ExtractDispatch:
 
         while not self.__worker_shutdown.is_set():
             # Try to grab next task
-            while True:
+            if len(self.__task_queue.queue) > 0:
+                # peek the task
+                task = self.__task_queue.queue[0]
+
+                # We have a task, extract archives one by one
+                completed = True
+
                 try:
-                    task = self.__task_queue.get(block=False)
-                    # We have a task, extract archives one by one
-                    completed = True
+                    for archive_path, out_dir_path in task.archive_paths:
+                        if self.__worker_shutdown.is_set():
+                            # exit early
+                            self.logger.warning("Extraction failed, shutdown requested")
+                            completed = False
+                            break
 
-                    try:
-                        for archive_path, out_dir_path in task.archive_paths:
-                            if self.__worker_shutdown.is_set():
-                                # exit early
-                                self.logger.warning("Extraction failed, shutdown requested")
-                                completed = False
-                                break
+                        Extract.extract_archive(
+                            archive_path=archive_path,
+                            out_dir_path=out_dir_path
+                        )
 
-                            Extract.extract_archive(
-                                archive_path=archive_path,
-                                out_dir_path=out_dir_path
-                            )
+                except ExtractError:
+                    self.logger.exception("Caught an extraction error")
+                    completed = False
+                finally:
+                    # pop the task
+                    self.__task_queue.get(block=False)
 
-                    except ExtractError:
-                        self.logger.exception("Caught an extraction error")
-                        completed = False
-
-                    # Send notification to listeners
-                    self.__listeners_lock.acquire()
-                    for listener in self.__listeners:
-                        if completed:
-                            listener.extract_completed(task.root_name)
-                        else:
-                            listener.extract_failed(task.root_name)
-                    self.__listeners_lock.release()
-
-                except queue.Empty:
-                    break
+                # Send notification to listeners
+                self.__listeners_lock.acquire()
+                for listener in self.__listeners:
+                    if completed:
+                        listener.extract_completed(task.root_name, task.root_is_dir)
+                    else:
+                        listener.extract_failed(task.root_name, task.root_is_dir)
+                self.__listeners_lock.release()
 
             time.sleep(ExtractDispatch.__WORKER_SLEEP_INTERVAL_IN_SECS)
 
