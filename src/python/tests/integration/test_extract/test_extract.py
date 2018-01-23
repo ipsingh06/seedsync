@@ -154,6 +154,14 @@ class TestExtract(unittest.TestCase):
                                 out_dir_path=TestExtract.temp_dir)
         self._assert_extracted_files(TestExtract.temp_dir)
 
+    def test_extract_archive_overwrites_existing(self):
+        path = os.path.join(TestExtract.temp_dir, "file")
+        with open(path, "w") as f:
+            f.write("Dummy file")
+        Extract.extract_archive(archive_path=TestExtract.ar_zip,
+                                out_dir_path=TestExtract.temp_dir)
+        self._assert_extracted_files(TestExtract.temp_dir)
+
     def test_extract_archive_rar(self):
         Extract.extract_archive(archive_path=TestExtract.ar_rar,
                                 out_dir_path=TestExtract.temp_dir)
