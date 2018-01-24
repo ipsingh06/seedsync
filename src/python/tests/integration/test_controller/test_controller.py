@@ -140,13 +140,14 @@ class TestController(unittest.TestCase):
         # We also need to create an executable that the controller can install on remote
         # Since we don't have a packaged scanfs executable here, we simply
         # create an sh script that points to the python script
+        # Note: the executable must be the venv one so any custom imports work
         current_dir_path = os.path.dirname(os.path.realpath(__file__))
         local_script_path = os.path.abspath(os.path.join(current_dir_path, "..", "..", "..", "scan_fs.py"))
         local_exe_path = os.path.join(TestController.temp_dir, "scanfs_local")
         remote_exe_path = os.path.join(TestController.temp_dir, "scanfs")
         with open(local_exe_path, "w") as f:
             f.write("#!/bin/sh\n")
-            f.write("python3 {} $*".format(local_script_path))
+            f.write("{} {} $*".format(sys.executable, local_script_path))
         os.chmod(local_exe_path, 0o775)
         ctx_args = Args()
         ctx_args.local_path_to_scanfs = local_exe_path
