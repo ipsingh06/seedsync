@@ -61,6 +61,10 @@ class ScannerProcess(AppProcess):
         self.__scanner.set_base_logger(self.logger)
 
     @overrides(AppProcess)
+    def run_cleanup(self):
+        pass
+
+    @overrides(AppProcess)
     def run_loop(self):
         timestamp_start = datetime.now()
         if self.verbose:

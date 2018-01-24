@@ -7,6 +7,7 @@ from multiprocessing import Process, Queue, Event
 import queue
 import signal
 import threading
+from datetime import datetime
 
 import tblib.pickling_support
 
@@ -30,6 +31,17 @@ class ExceptionWrapper:
 
 
 class AppProcess(Process):
+    """
+    Process with some additional functionality and fixes
+      * Support for a multiprocessing logger
+      * Removes signals to prevent join problems
+      * Propagates exceptions to owner process
+      * Safe terminate with timeout, followed by force terminate
+    """
+
+    # Timeout before process is force terminated
+    __DEFAULT_TERMINATE_TIMEOUT_MS = 1000
+
     def __init__(self, name: str):
         self.__name = name
         super().__init__(name=self.__name)
@@ -71,21 +83,35 @@ class AppProcess(Process):
         self.run_init()
 
         try:
-            # TODO: is this loop and signal check still necessary?
             while not self.__terminate.is_set():
                 self.run_loop()
-            self.logger.debug("Process received terminate signal")
+            self.logger.debug("Process received terminate flag")
         except ServiceExit:
             self.logger.debug("Process received a ServiceExit")
         except Exception as e:
+            self.logger.debug("Process caught an exception")
             self.__exception_queue.put(ExceptionWrapper(e))
             raise
+        finally:
+            self.run_cleanup()
 
         self.logger.debug("Exiting process")
 
     @overrides(Process)
     def terminate(self):
+        # Send a terminate signal, and force terminate after a timeout
         self.__terminate.set()
+
+        def elapsed_ms(start):
+            delta_in_s = (datetime.now() - start).total_seconds()
+            delta_in_ms = int(delta_in_s * 1000)
+            return delta_in_ms
+
+        timestamp_start = datetime.now()
+        while self.is_alive() and \
+                elapsed_ms(timestamp_start) < AppProcess.__DEFAULT_TERMINATE_TIMEOUT_MS:
+            pass
+
         super().terminate()
 
     def propagate_exception(self):
@@ -103,6 +129,14 @@ class AppProcess(Process):
     def run_init(self):
         """
         Called once before the run loop
+        :return:
+        """
+        pass
+
+    @abstractmethod
+    def run_cleanup(self):
+        """
+        Called once before cleanup
         :return:
         """
         pass
