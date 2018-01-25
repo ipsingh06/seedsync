@@ -89,6 +89,13 @@ class TestModelFile(unittest.TestCase):
         with self.assertRaises(ValueError):
             file.eta = -100
 
+    def test_is_extractable(self):
+        file = ModelFile("test", True)
+        file.is_extractable = True
+        self.assertTrue(file.is_extractable)
+        file.is_extractable = False
+        self.assertFalse(file.is_extractable)
+
     def test_equality_operator(self):
         # check that timestamp does not affect equality
         now = datetime.now()

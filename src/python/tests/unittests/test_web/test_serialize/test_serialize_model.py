@@ -125,15 +125,21 @@ class TestSerializeModel(unittest.TestCase):
         d.state = ModelFile.State.DOWNLOADED
         e = ModelFile("e", False)
         e.state = ModelFile.State.DELETED
-        files = [a, b, c, d, e]
+        f = ModelFile("f", False)
+        f.state = ModelFile.State.EXTRACTING
+        g = ModelFile("g", False)
+        g.state = ModelFile.State.EXTRACTED
+        files = [a, b, c, d, e, f, g]
         out = parse_stream(serialize.model(files))
         data = json.loads(out["data"])
-        self.assertEqual(5, len(data))
+        self.assertEqual(7, len(data))
         self.assertEqual("default", data[0]["state"])
         self.assertEqual("downloading", data[1]["state"])
         self.assertEqual("queued", data[2]["state"])
         self.assertEqual("downloaded", data[3]["state"])
         self.assertEqual("deleted", data[4]["state"])
+        self.assertEqual("extracting", data[5]["state"])
+        self.assertEqual("extracted", data[6]["state"])
 
     def test_remote_size(self):
         serialize = SerializeModel()
@@ -198,6 +204,19 @@ class TestSerializeModel(unittest.TestCase):
         self.assertEqual(None, data[0]["eta"])
         self.assertEqual(0, data[1]["eta"])
         self.assertEqual(100, data[2]["eta"])
+
+    def test_file_is_extractable(self):
+        serialize = SerializeModel()
+        a = ModelFile("a", True)
+        a.is_extractable = False
+        b = ModelFile("b", False)
+        b.is_extractable = True
+        files = [a, b]
+        out = parse_stream(serialize.model(files))
+        data = json.loads(out["data"])
+        self.assertEqual(2, len(data))
+        self.assertEqual(False, data[0]["is_extractable"])
+        self.assertEqual(True, data[1]["is_extractable"])
 
     def test_children(self):
         serialize = SerializeModel()

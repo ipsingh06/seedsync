@@ -22,6 +22,8 @@ class ModelFile:
         QUEUED = 2
         DOWNLOADED = 3
         DELETED = 4
+        EXTRACTING = 5
+        EXTRACTED = 6
 
     def __init__(self, name: str, is_dir: bool):
         self.__name = name  # file or folder name
@@ -31,6 +33,7 @@ class ModelFile:
         self.__local_size = None  # local size in bytes, None if file does not exist
         self.__downloading_speed = None  # in bytes / sec, None if not downloading
         self.__eta = None  # est. time remaining in seconds, None if not available
+        self.__is_extractable = False  # whether file is an archive or dir contains archives
         # timestamp of the latest update
         # Note: timestamp is not part of equality operator
         self.__update_timestamp = datetime.now()
@@ -153,6 +156,13 @@ class ModelFile:
             self.__eta = eta
         else:
             raise TypeError
+
+    @property
+    def is_extractable(self) -> bool: return self.__is_extractable
+
+    @is_extractable.setter
+    def is_extractable(self, is_extractable: bool):
+        self.__is_extractable = is_extractable
 
     @property
     def full_path(self) -> str:

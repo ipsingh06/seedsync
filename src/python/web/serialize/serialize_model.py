@@ -44,12 +44,15 @@ class SerializeModel(Serialize):
         ModelFile.State.QUEUED: "queued",
         ModelFile.State.DOWNLOADING: "downloading",
         ModelFile.State.DOWNLOADED: "downloaded",
-        ModelFile.State.DELETED: "deleted"
+        ModelFile.State.DELETED: "deleted",
+        ModelFile.State.EXTRACTING: "extracting",
+        ModelFile.State.EXTRACTED: "extracted"
     }
     __KEY_FILE_REMOTE_SIZE = "remote_size"
     __KEY_FILE_LOCAL_SIZE = "local_size"
     __KEY_FILE_DOWNLOADING_SPEED = "downloading_speed"
     __KEY_FILE_ETA = "eta"
+    __KEY_FILE_IS_EXTRACTABLE = "is_extractable"
     __KEY_FILE_FULL_PATH = "full_path"
     __KEY_FILE_CHILDREN = "children"
 
@@ -63,6 +66,7 @@ class SerializeModel(Serialize):
         json_dict[SerializeModel.__KEY_FILE_LOCAL_SIZE] = model_file.local_size
         json_dict[SerializeModel.__KEY_FILE_DOWNLOADING_SPEED] = model_file.downloading_speed
         json_dict[SerializeModel.__KEY_FILE_ETA] = model_file.eta
+        json_dict[SerializeModel.__KEY_FILE_IS_EXTRACTABLE] = model_file.is_extractable
         json_dict[SerializeModel.__KEY_FILE_FULL_PATH] = model_file.full_path
         json_dict[SerializeModel.__KEY_FILE_CHILDREN] = list()
         for child in model_file.get_children():
