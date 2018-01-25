@@ -103,6 +103,7 @@ class TestExtract(unittest.TestCase):
         self.assertFalse(Extract.is_archive_fast("a.b"))
         self.assertFalse(Extract.is_archive_fast(".b"))
         self.assertFalse(Extract.is_archive_fast(".zip"))
+        self.assertFalse(Extract.is_archive_fast(""))
 
     def test_is_archive_fast_works_with_full_paths(self):
         self.assertTrue(Extract.is_archive_fast("/full/path/a.zip"))
