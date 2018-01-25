@@ -183,3 +183,7 @@ class ModelFile:
 
     def get_children(self) -> List["ModelFile"]:
         return copy.copy(self.__children)
+
+    @property
+    def parent(self) -> Optional["ModelFile"]:
+        return self.__parent

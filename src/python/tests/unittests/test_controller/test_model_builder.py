@@ -3,11 +3,13 @@
 import logging
 import sys
 import unittest
+from unittest.mock import patch
 
 from system import SystemFile
 from lftp import LftpJobStatus
 from model import ModelError, ModelFile, Model
 from controller import ModelBuilder
+from controller.extract import ExtractStatus
 
 
 class TestModelBuilder(unittest.TestCase):
@@ -139,6 +141,7 @@ class TestModelBuilder(unittest.TestCase):
     def test_build_mismatch_is_dir(self):
         """Mismatching is_dir raises error"""
         # remote mismatches
+        self.model_builder.clear()
         self.model_builder.set_remote_files([SystemFile("a", 0, True)])
         self.model_builder.set_local_files([SystemFile("a", 0, False)])
         self.model_builder.set_lftp_statuses([
@@ -149,6 +152,7 @@ class TestModelBuilder(unittest.TestCase):
         self.assertTrue(str(context.exception).startswith("Mismatch in is_dir"))
 
         # local mismatches
+        self.model_builder.clear()
         self.model_builder.set_remote_files([SystemFile("a", 0, False)])
         self.model_builder.set_local_files([SystemFile("a", 0, True)])
         self.model_builder.set_lftp_statuses([
@@ -159,6 +163,7 @@ class TestModelBuilder(unittest.TestCase):
         self.assertTrue(str(context.exception).startswith("Mismatch in is_dir"))
 
         # status mismatches
+        self.model_builder.clear()
         self.model_builder.set_remote_files([SystemFile("a", 0, False)])
         self.model_builder.set_local_files([SystemFile("a", 0, False)])
         self.model_builder.set_lftp_statuses([
@@ -167,6 +172,15 @@ class TestModelBuilder(unittest.TestCase):
         with self.assertRaises(ModelError) as context:
             self.model_builder.build_model()
         self.assertTrue(str(context.exception).startswith("Mismatch in is_dir"))
+
+        # extracting mismatches
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 0, False)])
+        self.model_builder.set_local_files([SystemFile("a", 0, False)])
+        self.model_builder.set_extract_statuses([ExtractStatus("a", True, ExtractStatus.State.EXTRACTING)])
+        with self.assertRaises(ModelError) as context:
+            self.model_builder.build_model()
+        self.assertTrue(str(context.exception).startswith("Mismatch in is_dir between file and extract status"))
 
     def test_build_state(self):
         # Queued
@@ -243,6 +257,98 @@ class TestModelBuilder(unittest.TestCase):
         self.model_builder.set_downloaded_files({"a"})
         model = self.model_builder.build_model()
         self.assertEqual(ModelFile.State.DEFAULT, model.get_file("a").state)
+
+        # Downloaded, and Extracting
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_local_files([SystemFile("a", 100, False)])
+        self.model_builder.set_extract_statuses([ExtractStatus("a", False, ExtractStatus.State.EXTRACTING)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.EXTRACTING, model.get_file("a").state)
+
+        # Local-only, and Extracting
+        self.model_builder.clear()
+        self.model_builder.set_local_files([SystemFile("a", 100, False)])
+        self.model_builder.set_extract_statuses([ExtractStatus("a", False, ExtractStatus.State.EXTRACTING)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.EXTRACTING, model.get_file("a").state)
+
+        # Remote-only, and Extracting (unexpected: should fall-back to Default)
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_extract_statuses([ExtractStatus("a", False, ExtractStatus.State.EXTRACTING)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DEFAULT, model.get_file("a").state)
+
+        # Extracting and Downloading/Queued (unexpected: should ignore Extracting)
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_local_files([SystemFile("a", 50, False)])
+        self.model_builder.set_lftp_statuses([
+            LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        ])
+        self.model_builder.set_extract_statuses([ExtractStatus("a", False, ExtractStatus.State.EXTRACTING)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DOWNLOADING, model.get_file("a").state)
+
+        # Extracting and Deleted (unexpected: should ignore Extracting)
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_downloaded_files({"a"})
+        self.model_builder.set_extract_statuses([ExtractStatus("a", False, ExtractStatus.State.EXTRACTING)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DELETED, model.get_file("a").state)
+
+        # Downloaded+Extracted, but extracting again
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_local_files([SystemFile("a", 100, False)])
+        self.model_builder.set_downloaded_files({"a"})
+        self.model_builder.set_extracted_files({"a"})
+        self.model_builder.set_extract_statuses([ExtractStatus("a", False, ExtractStatus.State.EXTRACTING)])
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.EXTRACTING, model.get_file("a").state)
+
+        # Downloaded, and Extracted
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_local_files([SystemFile("a", 100, False)])
+        self.model_builder.set_extracted_files({"a"})
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.EXTRACTED, model.get_file("a").state)
+
+        # Local-only, and Extracted
+        self.model_builder.clear()
+        self.model_builder.set_local_files([SystemFile("a", 100, False)])
+        self.model_builder.set_extracted_files({"a"})
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DEFAULT, model.get_file("a").state)
+
+        # Remote-only, and Extracted
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_extracted_files({"a"})
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DEFAULT, model.get_file("a").state)
+
+        # Extracted, but Downloading/Queued (possible after deletion)
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_local_files([SystemFile("a", 50, False)])
+        self.model_builder.set_lftp_statuses([
+            LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        ])
+        self.model_builder.set_extracted_files({"a"})
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DOWNLOADING, model.get_file("a").state)
+
+        # Extracted and Deleted
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 100, False)])
+        self.model_builder.set_downloaded_files({"a"})
+        self.model_builder.set_extracted_files({"a"})
+        model = self.model_builder.build_model()
+        self.assertEqual(ModelFile.State.DELETED, model.get_file("a").state)
 
     def test_build_remote_size(self):
         self.model_builder.set_remote_files([SystemFile("a", 42, False)])
@@ -902,3 +1008,102 @@ class TestModelBuilder(unittest.TestCase):
         m_d_ch = {m.name: m for m in model.get_file("d").get_children()}
         m_da = m_d_ch["da"]
         self.assertEqual(None, m_da.eta)
+
+    @patch("controller.model_builder.Extract")
+    def test_build_sets_is_extractable(self, mock_extract_module):
+        mock_is_archive_fast = mock_extract_module.is_archive_fast
+        is_archive_list = []
+
+        def _is_archive_fast(name: str):
+            return name in is_archive_list
+        mock_is_archive_fast.side_effect = _is_archive_fast
+
+        # Root local file
+        self.model_builder.clear()
+        is_archive_list = ["a"]
+        self.model_builder.set_local_files([SystemFile("a", 10, False), SystemFile("b", 10, False)])
+        model = self.model_builder.build_model()
+        self.assertTrue(model.get_file("a").is_extractable)
+        self.assertFalse(model.get_file("b").is_extractable)
+
+        # Root remote file
+        self.model_builder.clear()
+        is_archive_list = ["b"]
+        self.model_builder.set_remote_files([SystemFile("a", 10, False), SystemFile("b", 10, False)])
+        model = self.model_builder.build_model()
+        self.assertFalse(model.get_file("a").is_extractable)
+        self.assertTrue(model.get_file("b").is_extractable)
+
+        # Directory with archive
+        self.model_builder.clear()
+        is_archive_list = ["aa"]
+        a = SystemFile("a", 10, True)
+        aa = SystemFile("aa", 10, False)
+        a.add_child(aa)
+        self.model_builder.set_local_files([a])
+        model = self.model_builder.build_model()
+        self.assertTrue(model.get_file("a").is_extractable)
+        self.assertEqual("aa", model.get_file("a").get_children()[0].name)
+        self.assertTrue(model.get_file("a").get_children()[0].is_extractable)
+
+        # Directory with non-archive
+        self.model_builder.clear()
+        is_archive_list = ["aa"]
+        a = SystemFile("a", 10, True)
+        aa = SystemFile("ab", 10, False)
+        a.add_child(aa)
+        self.model_builder.set_local_files([a])
+        model = self.model_builder.build_model()
+        self.assertFalse(model.get_file("a").is_extractable)
+        self.assertEqual("ab", model.get_file("a").get_children()[0].name)
+        self.assertFalse(model.get_file("a").get_children()[0].is_extractable)
+
+        # Directory with archive and non-archive
+        self.model_builder.clear()
+        is_archive_list = ["ab"]
+        a = SystemFile("a", 10, True)
+        aa = SystemFile("aa", 10, False)
+        ab = SystemFile("ab", 10, False)
+        a.add_child(aa)
+        a.add_child(ab)
+        self.model_builder.set_local_files([a])
+        model = self.model_builder.build_model()
+        self.assertTrue(model.get_file("a").is_extractable)
+        a_children = {f.name: f for f in model.get_file("a").get_children()}
+        self.assertFalse(a_children["aa"].is_extractable)
+        self.assertTrue(a_children["ab"].is_extractable)
+
+        # Directory with archive and non-archive sub-directories
+        self.model_builder.clear()
+        is_archive_list = ["aba"]
+        a = SystemFile("a", 10, True)
+        aa = SystemFile("aa", 10, True)
+        aaa = SystemFile("aaa", 10, False)
+        ab = SystemFile("ab", 10, True)
+        aba = SystemFile("aba", 10, False)
+        a.add_child(aa)
+        a.add_child(ab)
+        aa.add_child(aaa)
+        ab.add_child(aba)
+        self.model_builder.set_local_files([a])
+        model = self.model_builder.build_model()
+        self.assertTrue(model.get_file("a").is_extractable)
+        a_children = {f.name: f for f in model.get_file("a").get_children()}
+        self.assertFalse(a_children["aa"].is_extractable)
+        self.assertEqual("aaa", a_children["aa"].get_children()[0].name)
+        self.assertFalse(a_children["aa"].get_children()[0].is_extractable)
+        self.assertTrue(a_children["ab"].is_extractable)
+        self.assertEqual("aba", a_children["ab"].get_children()[0].name)
+        self.assertTrue(a_children["ab"].get_children()[0].is_extractable)
+
+        # Directory name passes is_archive, but not file
+        self.model_builder.clear()
+        is_archive_list = ["a"]
+        a = SystemFile("a", 10, True)
+        aa = SystemFile("aa", 10, False)
+        a.add_child(aa)
+        self.model_builder.set_local_files([a])
+        model = self.model_builder.build_model()
+        self.assertFalse(model.get_file("a").is_extractable)
+        self.assertEqual("aa", model.get_file("a").get_children()[0].name)
+        self.assertFalse(model.get_file("a").get_children()[0].is_extractable)

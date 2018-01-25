@@ -187,3 +187,13 @@ class TestModelFile(unittest.TestCase):
         self.assertEqual("a/aa", file_aa.full_path)
         self.assertEqual("a/aa/aaa", file_aaa.full_path)
         self.assertEqual("a/ab", file_ab.full_path)
+
+    def test_parent(self):
+        a = ModelFile("a", True)
+        aa = ModelFile("aa", True)
+        a.add_child(aa)
+        aaa = ModelFile("aaa", False)
+        aa.add_child(aaa)
+        self.assertIsNone(a.parent)
+        self.assertEqual(a, aa.parent)
+        self.assertEqual(aa, aaa.parent)

@@ -8,6 +8,7 @@ from typing import List, Optional, Set
 from system import SystemFile
 from lftp import LftpJobStatus
 from model import ModelFile, Model, ModelError
+from .extract import ExtractStatus, Extract
 
 
 class ModelBuilder:
@@ -26,6 +27,8 @@ class ModelBuilder:
         self.__remote_files = dict()
         self.__lftp_statuses = dict()
         self.__downloaded_files = set()
+        self.__extract_statuses = dict()
+        self.__extracted_files = set()
 
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("ModelBuilder")
@@ -45,10 +48,19 @@ class ModelBuilder:
     def set_downloaded_files(self, downloaded_files: Set[str]):
         self.__downloaded_files = downloaded_files
 
+    def set_extract_statuses(self, extract_statuses: List[ExtractStatus]):
+        self.__extract_statuses = {status.name: status for status in extract_statuses}
+
+    def set_extracted_files(self, extracted_files: Set[str]):
+        self.__extracted_files = extracted_files
+
     def clear(self):
-        self.__local_files = dict()
-        self.__remote_files = dict()
-        self.__lftp_statuses = dict()
+        self.__local_files.clear()
+        self.__remote_files.clear()
+        self.__lftp_statuses.clear()
+        self.__downloaded_files.clear()
+        self.__extract_statuses.clear()
+        self.__extracted_files.clear()
 
     def build_model(self) -> Model:
         model = Model()
@@ -90,6 +102,15 @@ class ModelBuilder:
                 if _transfer_state:
                     _model_file.downloading_speed = _transfer_state.speed
                     _model_file.eta = _transfer_state.eta
+
+                # set the is_extractable flag
+                if not _model_file.is_dir and Extract.is_archive_fast(_model_file.name):
+                    _model_file.is_extractable = True
+                    # Also set the flag for all of its parents
+                    _parent_file = _model_file.parent
+                    while _parent_file is not None:
+                        _parent_file.is_extractable = True
+                        _parent_file = _parent_file.parent
 
             model_file = ModelFile(name, is_dir)
             # set the file state
@@ -205,6 +226,39 @@ class ModelBuilder:
                     model_file.local_size is None and \
                     model_file.name in self.__downloaded_files:
                 model_file.state = ModelFile.State.DELETED
+
+            # next we check if root is Extracting
+            # root is Extracting if it's part of an extract status, in an expected state,
+            # and exists locally
+            # if root is NOT in an expected state, then ignore the extract status
+            # and report a warning message, as this shouldn't be happening
+            if model_file.name in self.__extract_statuses:
+                extract_status = self.__extract_statuses[model_file.name]
+                if model_file.is_dir != extract_status.is_dir:
+                    raise ModelError("Mismatch in is_dir between file and extract status")
+                if model_file.state in (
+                    ModelFile.State.DEFAULT,
+                    ModelFile.State.DOWNLOADED
+                ) and model_file.local_size is not None:
+                    model_file.state = ModelFile.State.EXTRACTING
+                else:
+                    if model_file.local_size is None:
+                        self.logger.warning("File {} has extract status but doesn't exist locally!".format(
+                            model_file.name
+                        ))
+                    else:
+                        self.logger.warning("File {} has extract status but is in state {}".format(
+                            model_file.name,
+                            str(model_file.state)
+                        ))
+
+            # next we check if root is Extracted
+            # root is Extracted if it is in Downloaded state and in extracted files list
+            # Note: Default files aren't marked extracted because they can still be queued
+            #       for download, and it doesn't make sense to queue after extracting
+            #       If a Default file is extracted, it will return back to the Default state
+            if model_file.name in self.__extracted_files and model_file.state == ModelFile.State.DOWNLOADED:
+                    model_file.state = ModelFile.State.EXTRACTED
 
             model.add_file(model_file)
 
