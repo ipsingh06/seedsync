@@ -92,6 +92,23 @@ class TestExtract(unittest.TestCase):
         with open(path, "r") as f:
             self.assertEqual(TestExtract.__FILE_CONTENT, f.read())
 
+    def test_is_archive_fast(self):
+        self.assertTrue(Extract.is_archive_fast("a.zip"))
+        self.assertTrue(Extract.is_archive_fast("b.rar"))
+        self.assertTrue(Extract.is_archive_fast("c.bz2"))
+        self.assertTrue(Extract.is_archive_fast("d.tar.gz"))
+        self.assertTrue(Extract.is_archive_fast("e.7z"))
+
+        self.assertFalse(Extract.is_archive_fast("a"))
+        self.assertFalse(Extract.is_archive_fast("a.b"))
+        self.assertFalse(Extract.is_archive_fast(".b"))
+        self.assertFalse(Extract.is_archive_fast(".zip"))
+
+    def test_is_archive_fast_works_with_full_paths(self):
+        self.assertTrue(Extract.is_archive_fast("/full/path/a.zip"))
+        self.assertFalse(Extract.is_archive_fast("/full/path/a"))
+        self.assertFalse(Extract.is_archive_fast("/full/path/.zip"))
+
     def test_is_archive_false_on_nonexisting_file(self):
         self.assertFalse(Extract.is_archive(os.path.join(TestExtract.temp_dir, "no_file")))
 
