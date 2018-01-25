@@ -162,7 +162,7 @@ class TestExtractDispatch(unittest.TestCase):
         self.listener.extract_completed.assert_not_called()
         self.listener.extract_failed.assert_called_once_with("aaa", False)
 
-    @timeout_decorator.timeout(2)
+    @timeout_decorator.timeout(5)
     def test_extract_calls_listeners_in_correct_sequence(self):
         self.mock_is_archive.return_value = True
         self.count = 0

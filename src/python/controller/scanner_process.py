@@ -2,10 +2,11 @@
 
 import logging
 from abc import ABC, abstractmethod
-from multiprocessing import Queue
+import multiprocessing
 import time
 from datetime import datetime
-from typing import List
+from typing import List, Optional
+import queue
 
 from common import overrides, AppProcess
 from system import SystemFile
@@ -40,17 +41,15 @@ class ScannerProcess(AppProcess):
     Process to scan a file system and publish the result
     """
     def __init__(self,
-                 queue_: Queue,
                  scanner: IScanner, interval_in_ms: int,
                  verbose: bool = True):
         """
         Create a scanner process
-        :param queue_: multiprocessing.Queue in which to push results
         :param scanner: IScanner implementation
         :param interval_in_ms: Minimum interval (in ms) between results
         """
         super().__init__(name=scanner.__class__.__name__)
-        self.__queue = queue_
+        self.__queue = multiprocessing.Queue()
         self.__scanner = scanner
         self.__interval_in_ms = interval_in_ms
         self.verbose = verbose
@@ -79,3 +78,18 @@ class ScannerProcess(AppProcess):
             self.logger.debug("Scan took {:.3f}s".format(delta_in_s))
         if delta_in_ms < self.__interval_in_ms:
             time.sleep(float(self.__interval_in_ms - delta_in_ms) / 1000.0)
+
+    def pop_latest_result(self) -> Optional[ScannerResult]:
+        """
+        Process-safe method to retrieve latest scan result
+        Returns None if no new scan result was generated since the last time
+        this method was called
+        :return:
+        """
+        latest_scan = None
+        try:
+            while True:
+                latest_scan = self.__queue.get(block=False)
+        except queue.Empty:
+            pass
+        return latest_scan

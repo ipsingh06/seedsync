@@ -2,8 +2,6 @@
 
 from abc import ABC, abstractmethod
 from typing import List
-import multiprocessing
-import queue
 from threading import Lock
 from queue import Queue
 from enum import Enum
@@ -115,23 +113,16 @@ class Controller:
             remote_path_to_scan_script=self.__context.config.lftp.remote_path_to_scan_script
         )
 
-        self.__downloading_scan_queue = multiprocessing.Queue()
-        self.__local_scan_queue = multiprocessing.Queue()
-        self.__remote_scan_queue = multiprocessing.Queue()
-
         self.__downloading_scan_process = ScannerProcess(
-            queue_=self.__downloading_scan_queue,
             scanner=self.__downloading_scanner,
             interval_in_ms=self.__context.config.controller.interval_ms_downloading_scan,
             verbose=False
         )
         self.__local_scan_process = ScannerProcess(
-            queue_=self.__local_scan_queue,
             scanner=self.__local_scanner,
             interval_in_ms=self.__context.config.controller.interval_ms_local_scan,
         )
         self.__remote_scan_process = ScannerProcess(
-            queue_=self.__remote_scan_queue,
             scanner=self.__remote_scanner,
             interval_in_ms=self.__context.config.controller.interval_ms_remote_scan,
         )
@@ -250,29 +241,10 @@ class Controller:
         return model_files
 
     def __update_model(self):
-        # Grab the latest remote scan result
-        latest_remote_scan = None
-        try:
-            while True:
-                latest_remote_scan = self.__remote_scan_queue.get(block=False)
-        except queue.Empty:
-            pass
-
-        # Grab the latest local scan result
-        latest_local_scan = None
-        try:
-            while True:
-                latest_local_scan = self.__local_scan_queue.get(block=False)
-        except queue.Empty:
-            pass
-
-        # Grab the latest downloading scan result
-        latest_downloading_scan = None
-        try:
-            while True:
-                latest_downloading_scan = self.__downloading_scan_queue.get(block=False)
-        except queue.Empty:
-            pass
+        # Grab the latest scan results
+        latest_remote_scan = self.__remote_scan_process.pop_latest_result()
+        latest_local_scan = self.__local_scan_process.pop_latest_result()
+        latest_downloading_scan = self.__downloading_scan_process.pop_latest_result()
 
         # Grab the Lftp status
         lftp_statuses = None
