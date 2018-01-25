@@ -98,7 +98,7 @@ class ExtractProcess(AppProcess):
         """
         self.__command_queue.put(file)
 
-    def get_latest_statuses(self) -> Optional[ExtractStatusResult]:
+    def pop_latest_statuses(self) -> Optional[ExtractStatusResult]:
         """
         Process-safe method to retrieve latest extract status
         Returns none if no new status is available since the last time
@@ -113,7 +113,7 @@ class ExtractProcess(AppProcess):
             pass
         return latest_result
 
-    def get_completed(self) -> List[ExtractCompletedResult]:
+    def pop_completed(self) -> List[ExtractCompletedResult]:
         """
         Process-safe method to retrieve list of newly completed extractions
         Returns an empty list if no new extractions were completed since the

@@ -122,7 +122,7 @@ class TestExtractProcess(unittest.TestCase):
         # wait for first call to status (actually second call to guarantee first status is queued)
         while self.status_counter.value < 2:
             pass
-        status_result = self.process.get_latest_statuses()
+        status_result = self.process.pop_latest_statuses()
         self.assertEqual(1, len(status_result.statuses))
         self.assertEqual("a", status_result.statuses[0].name)
         self.assertEqual(True, status_result.statuses[0].is_dir)
@@ -133,7 +133,7 @@ class TestExtractProcess(unittest.TestCase):
         orig_counter = self.status_counter.value
         while self.status_counter.value < orig_counter+2:
             pass
-        status_result = self.process.get_latest_statuses()
+        status_result = self.process.pop_latest_statuses()
         self.assertEqual(2, len(status_result.statuses))
         self.assertEqual("a", status_result.statuses[0].name)
         self.assertEqual(True, status_result.statuses[0].is_dir)
@@ -147,7 +147,7 @@ class TestExtractProcess(unittest.TestCase):
         orig_counter = self.status_counter.value
         while self.status_counter.value < orig_counter+2:
             pass
-        status_result = self.process.get_latest_statuses()
+        status_result = self.process.pop_latest_statuses()
         self.assertEqual(1, len(status_result.statuses))
         self.assertEqual("c", status_result.statuses[0].name)
         self.assertEqual(True, status_result.statuses[0].is_dir)
@@ -158,7 +158,7 @@ class TestExtractProcess(unittest.TestCase):
         orig_counter = self.status_counter.value
         while self.status_counter.value < orig_counter+2:
             pass
-        status_result = self.process.get_latest_statuses()
+        status_result = self.process.pop_latest_statuses()
         self.assertEqual(0, len(status_result.statuses))
 
     @timeout_decorator.timeout(10)
@@ -189,24 +189,24 @@ class TestExtractProcess(unittest.TestCase):
 
         while self.completed_signal.value < 1:
             pass
-        completed = self.process.get_completed()
+        completed = self.process.pop_completed()
         self.assertEqual(1, len(completed))
         self.assertEqual("a", completed[0].name)
         self.assertEqual(True, completed[0].is_dir)
         # next one should be empty
-        completed = self.process.get_completed()
+        completed = self.process.pop_completed()
         self.assertEqual(0, len(completed))
 
         while self.completed_signal.value < 2:
             pass
-        completed = self.process.get_completed()
+        completed = self.process.pop_completed()
         self.assertEqual(2, len(completed))
         self.assertEqual("b", completed[0].name)
         self.assertEqual(False, completed[0].is_dir)
         self.assertEqual("c", completed[1].name)
         self.assertEqual(True, completed[1].is_dir)
         # next one should be empty
-        completed = self.process.get_completed()
+        completed = self.process.pop_completed()
         self.assertEqual(0, len(completed))
 
     @timeout_decorator.timeout(5)
