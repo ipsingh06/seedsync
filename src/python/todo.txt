@@ -29,9 +29,11 @@ Create extract/
         - process queues:
             - to receive commands
             - to send out latest status
+            - to send out list of extracted files
         - run loop does following:
             - sends commands to manager
             - grabs latest state from manager
+        - create extract listener to update list of extracted files
 
 Update model_file.py
     - add states EXTRACTING and EXTRACTED
@@ -53,7 +55,8 @@ Update controller
     - interact with extractor
         - do the sanity checking on ModelFile state here
     - interact with model_builder: extracting and extracted
-    - add a listener for updated files to determine persist the extracted ones
+        - persist the list of extracted files
+        - pass extract status and extracted to model builder
     - new command: EXTRACT
 
 Update controller persist:
