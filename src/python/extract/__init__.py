@@ -2,3 +2,4 @@
 
 from .extract import Extract, ExtractError
 from .dispatch import ExtractDispatch, ExtractDispatchError, ExtractListener, ExtractStatus
+from .extract_process import ExtractProcess, ExtractStatusResult, ExtractCompletedResult
