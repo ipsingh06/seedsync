@@ -9,8 +9,8 @@ import timeout_decorator
 
 from common import overrides
 from model import ModelFile
-from extract import ExtractDispatch, ExtractDispatchError, ExtractListener, \
-                    ExtractError, ExtractStatus
+from controller.extract import ExtractDispatch, ExtractDispatchError, ExtractListener, \
+                                ExtractError, ExtractStatus
 
 
 class DummyExtractListener(ExtractListener):
@@ -25,7 +25,7 @@ class DummyExtractListener(ExtractListener):
 
 class TestExtractDispatch(unittest.TestCase):
     def setUp(self):
-        extract_patcher = patch('extract.dispatch.Extract')
+        extract_patcher = patch('controller.extract.dispatch.Extract')
         self.addCleanup(extract_patcher.stop)
         mock_extract_module = extract_patcher.start()
         self.mock_is_archive = mock_extract_module.is_archive

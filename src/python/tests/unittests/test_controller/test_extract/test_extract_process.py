@@ -12,12 +12,12 @@ import time
 import timeout_decorator
 
 from model import ModelFile
-from extract import ExtractProcess, ExtractListener, ExtractStatus
+from controller.extract import ExtractProcess, ExtractListener, ExtractStatus
 
 
 class TestExtractProcess(unittest.TestCase):
     def setUp(self):
-        dispatch_patcher = patch('extract.extract_process.ExtractDispatch')
+        dispatch_patcher = patch('controller.extract.extract_process.ExtractDispatch')
         self.addCleanup(dispatch_patcher.stop)
         self.mock_dispatch_cls = dispatch_patcher.start()
         self.mock_dispatch = self.mock_dispatch_cls.return_value

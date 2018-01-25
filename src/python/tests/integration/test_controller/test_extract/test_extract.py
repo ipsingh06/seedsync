@@ -8,7 +8,7 @@ import subprocess
 import zipfile
 
 from common import overrides
-from extract import Extract, ExtractError
+from controller.extract import Extract, ExtractError
 
 
 class TestExtract(unittest.TestCase):

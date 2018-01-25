@@ -8,14 +8,11 @@ from enum import Enum
 import copy
 
 # my libs
-from .scanner_process import ScannerProcess
+from .scan import ScannerProcess, DownloadingScanner, LocalScanner, RemoteScanner
 from .model_builder import ModelBuilder
 from common import Context, AppError, MultiprocessingLogger
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
 from lftp import Lftp, LftpError, LftpJobStatus
-from .downloading_scanner import DownloadingScanner
-from .local_scanner import LocalScanner
-from .remote_scanner import RemoteScanner
 from .controller_persist import ControllerPersist
 
 
