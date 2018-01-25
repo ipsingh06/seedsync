@@ -260,12 +260,16 @@ class Config(Persist):
         interval_ms_remote_scan = PROP("interval_ms_remote_scan", Checkers.int_positive, Converters.int)
         interval_ms_local_scan = PROP("interval_ms_local_scan", Checkers.int_positive, Converters.int)
         interval_ms_downloading_scan = PROP("interval_ms_downloading_scan", Checkers.int_positive, Converters.int)
+        extract_path = PROP("extract_path", Checkers.string_nonempty, Converters.null)
+        use_local_path_as_extract_path = PROP("use_local_path_as_extract_path", Checkers.null, Converters.bool)
 
         def __init__(self):
             super().__init__()
             self.interval_ms_remote_scan = None
             self.interval_ms_local_scan = None
             self.interval_ms_downloading_scan = None
+            self.extract_path = None
+            self.use_local_path_as_extract_path = None
 
     class Web(InnerConfig):
         port = PROP("port", Checkers.int_positive, Converters.int)

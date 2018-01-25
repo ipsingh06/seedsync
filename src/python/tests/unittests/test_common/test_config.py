@@ -266,18 +266,24 @@ class TestConfig(unittest.TestCase):
             "interval_ms_remote_scan": "30000",
             "interval_ms_local_scan": "10000",
             "interval_ms_downloading_scan": "2000",
+            "extract_path": "/extract/path",
+            "use_local_path_as_extract_path": "True"
         }
-        lftp = Config.Controller.from_dict(good_dict)
-        self.assertEqual(30000, lftp.interval_ms_remote_scan)
-        self.assertEqual(10000, lftp.interval_ms_local_scan)
-        self.assertEqual(2000, lftp.interval_ms_downloading_scan)
+        controller = Config.Controller.from_dict(good_dict)
+        self.assertEqual(30000, controller.interval_ms_remote_scan)
+        self.assertEqual(10000, controller.interval_ms_local_scan)
+        self.assertEqual(2000, controller.interval_ms_downloading_scan)
+        self.assertEqual("/extract/path", controller.extract_path)
+        self.assertEqual(True, controller.use_local_path_as_extract_path)
 
         self.check_common(Config.Controller,
                           good_dict,
                           {
                               "interval_ms_remote_scan",
                               "interval_ms_local_scan",
-                              "interval_ms_downloading_scan"
+                              "interval_ms_downloading_scan",
+                              "extract_path",
+                              "use_local_path_as_extract_path"
                           })
 
         # bad values
@@ -287,6 +293,8 @@ class TestConfig(unittest.TestCase):
         self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_local_scan", "0")
         self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_downloading_scan", "-1")
         self.check_bad_value_error(Config.Controller, good_dict, "interval_ms_downloading_scan", "0")
+        self.check_bad_value_error(Config.Controller, good_dict, "use_local_path_as_extract_path", "SomeString")
+        self.check_bad_value_error(Config.Controller, good_dict, "use_local_path_as_extract_path", "-1")
 
     def test_web(self):
         good_dict = {
@@ -352,6 +360,8 @@ class TestConfig(unittest.TestCase):
         interval_ms_remote_scan=30000
         interval_ms_local_scan=10000
         interval_ms_downloading_scan=2000
+        extract_path=/path/where/to/extract/stuff
+        use_local_path_as_extract_path=False
 
         [Web]
         port=88
@@ -380,6 +390,8 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(30000, config.controller.interval_ms_remote_scan)
         self.assertEqual(10000, config.controller.interval_ms_local_scan)
         self.assertEqual(2000, config.controller.interval_ms_downloading_scan)
+        self.assertEqual("/path/where/to/extract/stuff", config.controller.extract_path)
+        self.assertEqual(False, config.controller.use_local_path_as_extract_path)
 
         self.assertEqual(88, config.web.port)
 
@@ -419,6 +431,8 @@ class TestConfig(unittest.TestCase):
         config.controller.interval_ms_remote_scan = 1234
         config.controller.interval_ms_local_scan = 5678
         config.controller.interval_ms_downloading_scan = 9012
+        config.controller.extract_path = "/path/extract/stuff"
+        config.controller.use_local_path_as_extract_path = True
         config.web.port = 13
         config.autoqueue.enabled = True
         config.autoqueue.patterns_only = True
@@ -448,6 +462,8 @@ class TestConfig(unittest.TestCase):
         interval_ms_remote_scan = 1234
         interval_ms_local_scan = 5678
         interval_ms_downloading_scan = 9012
+        extract_path = /path/extract/stuff
+        use_local_path_as_extract_path = True
 
         [Web]
         port = 13

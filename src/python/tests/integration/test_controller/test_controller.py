@@ -173,6 +173,8 @@ class TestController(unittest.TestCase):
                 "interval_ms_remote_scan": "100",
                 "interval_ms_local_scan": "100",
                 "interval_ms_downloading_scan": "100",
+                "extract_path": "/unused/path",
+                "use_local_path_as_extract_path": True
             },
             "Web": {
                 "port": "8800",

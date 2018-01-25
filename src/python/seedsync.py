@@ -292,6 +292,8 @@ class Seedsync:
         config.controller.interval_ms_remote_scan = 30000
         config.controller.interval_ms_local_scan = 10000
         config.controller.interval_ms_downloading_scan = 1000
+        config.controller.extract_path = "/tmp"
+        config.controller.use_local_path_as_extract_path = True
 
         config.web.port = 8800
 
