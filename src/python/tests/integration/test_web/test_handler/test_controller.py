@@ -77,3 +77,38 @@ class TestControllerHandler(BaseTestWebApp):
         command = self.controller.queue_command.call_args[0][0]
         self.assertEqual(Controller.Command.Action.STOP, command.action)
         self.assertEqual("value\"with\"doublequote", command.filename)
+
+    def test_extract(self):
+        def side_effect(cmd: Controller.Command):
+            cmd.callbacks[0].on_success()
+        self.controller.queue_command = MagicMock()
+        self.controller.queue_command.side_effect = side_effect
+
+        print(self.test_app.get("/server/command/extract/test1"))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("test1", command.filename)
+
+        uri = quote(quote("/value/with/slashes", safe=""), safe="")
+        print(self.test_app.get("/server/command/extract/"+uri))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("/value/with/slashes", command.filename)
+
+        uri = quote(quote(" value with spaces", safe=""), safe="")
+        print(self.test_app.get("/server/command/extract/"+uri))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual(" value with spaces", command.filename)
+
+        uri = quote(quote("value'with'singlequote", safe=""), safe="")
+        print(self.test_app.get("/server/command/extract/"+uri))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("value'with'singlequote", command.filename)
+
+        uri = quote(quote("value\"with\"doublequote", safe=""), safe="")
+        print(self.test_app.get("/server/command/extract/"+uri))
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("value\"with\"doublequote", command.filename)

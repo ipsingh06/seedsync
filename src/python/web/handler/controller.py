@@ -46,6 +46,7 @@ class ControllerHandler(IHandler):
     def add_routes(self, web_app: WebApp):
         web_app.add_handler("/server/command/queue/<file_name>", self.__handle_action_queue)
         web_app.add_handler("/server/command/stop/<file_name>", self.__handle_action_stop)
+        web_app.add_handler("/server/command/extract/<file_name>", self.__handle_action_extract)
 
     def __handle_action_queue(self, file_name: str):
         """
@@ -82,5 +83,24 @@ class ControllerHandler(IHandler):
         callback.wait()
         if callback.success:
             return HTTPResponse(body="Stopped file '{}'".format(file_name))
+        else:
+            return HTTPResponse(body=callback.error, status=400)
+
+    def __handle_action_extract(self, file_name: str):
+        """
+        Request a EXTRACT action
+        :param file_name:
+        :return:
+        """
+        # value is double encoded
+        file_name = unquote(file_name)
+
+        command = Controller.Command(Controller.Command.Action.EXTRACT, file_name)
+        callback = WebResponseActionCallback()
+        command.add_callback(callback)
+        self.__controller.queue_command(command)
+        callback.wait()
+        if callback.success:
+            return HTTPResponse(body="Requested extraction for file '{}'".format(file_name))
         else:
             return HTTPResponse(body=callback.error, status=400)
