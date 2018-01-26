@@ -10,6 +10,8 @@ import time
 from filecmp import dircmp, cmp
 import logging
 import sys
+import zipfile
+import subprocess
 
 import timeout_decorator
 
@@ -44,8 +46,11 @@ class DummyCommandCallback(Controller.Command.ICallback):
 
 # noinspection SpellCheckingInspection
 class TestController(unittest.TestCase):
+    __KEEP_FILES = False  # for debugging
+
     maxDiff = None
     temp_dir = None
+    work_dir = None
 
     @staticmethod
     def my_mkdir(*args):
@@ -57,10 +62,43 @@ class TestController(unittest.TestCase):
         with open(path, 'wb') as f:
             f.write(bytearray([0xff] * size))
 
+    @staticmethod
+    def create_archive(*args):
+        """
+        Creates a archive of a text file containing name of archive
+        The text file is named "<archive.ext>.txt"
+        Returns archive file size
+        """
+        path = os.path.join(TestController.temp_dir, *args)
+        archive_name = os.path.basename(path)
+        temp_file_path = os.path.join(TestController.work_dir, archive_name+".txt")
+        with open(temp_file_path, "w") as f:
+            f.write(os.path.basename(path))
+
+        ext = os.path.splitext(os.path.basename(path))[1]
+        ext = ext[1:]
+        if ext == "zip":
+            zf = zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED)
+            zf.write(temp_file_path, os.path.basename(temp_file_path))
+            zf.close()
+        elif ext == "rar":
+            subprocess.Popen(["rar",
+                              "a",
+                              "-ep",
+                              path,
+                              temp_file_path]).communicate()
+        else:
+            raise ValueError("Unsupported archive format: {}".format(os.path.basename(path)))
+        return os.path.getsize(path)
+
     @overrides(unittest.TestCase)
     def setUp(self):
         # Create a temp directory
         TestController.temp_dir = tempfile.mkdtemp(prefix="test_controller")
+
+        # Create a work directory for temp files
+        TestController.work_dir = os.path.join(TestController.temp_dir, "work")
+        os.mkdir(TestController.work_dir)
 
         # Create a bunch of files and directories
         # remote
@@ -94,6 +132,34 @@ class TestController(unittest.TestCase):
         TestController.my_touch(1*1024, "local", "la", "lab")
         TestController.my_touch(2*1024, "local", "lb")
 
+        # Also create some archives
+        # Store the true archive file sizes in a dict
+        # remote
+        #   rd [dir]
+        #     rd.zip [file]
+        #   re.rar [file]
+        #   rf [dir]
+        #     rfa [dir]
+        #       rfa.zip [file]
+        #     rfb [dir]
+        #       rfb.zip [file]
+        # local
+        #   lc [dir]
+        #     lca.rar [file]
+        #     lcb.zip [file]
+        self.archive_sizes = {}
+        TestController.my_mkdir("remote", "rd")
+        self.archive_sizes["rd.zip"] = TestController.create_archive("remote", "rd", "rd.zip")
+        self.archive_sizes["re.rar"] = TestController.create_archive("remote", "re.rar")
+        TestController.my_mkdir("remote", "rf")
+        TestController.my_mkdir("remote", "rf", "rfa")
+        self.archive_sizes["rfa.zip"] = TestController.create_archive("remote", "rf", "rfa", "rfa.zip")
+        TestController.my_mkdir("remote", "rf", "rfb")
+        self.archive_sizes["rfb.zip"] = TestController.create_archive("remote", "rf", "rfb", "rfb.zip")
+        TestController.my_mkdir("local", "lc")
+        self.archive_sizes["lca.rar"] = TestController.create_archive("local", "lc", "lca.rar")
+        self.archive_sizes["lcb.zip"] = TestController.create_archive("local", "lc", "lcb.zip")
+
         # Helper object to store the intial state
         f_ra = ModelFile("ra", True)
         f_ra.remote_size = 8*1024
@@ -119,6 +185,37 @@ class TestController(unittest.TestCase):
         f_rb.add_child(f_rbb)
         f_rc = ModelFile("rc", False)
         f_rc.remote_size = 10*1024
+
+        f_rd = ModelFile("rd", True)
+        f_rd.remote_size = self.archive_sizes["rd.zip"]
+        f_rd.is_extractable = True
+        f_rdx = ModelFile("rd.zip", False)
+        f_rdx.remote_size = self.archive_sizes["rd.zip"]
+        f_rdx.is_extractable = True
+        f_rd.add_child(f_rdx)
+        f_re = ModelFile("re.rar", False)
+        f_re.remote_size = self.archive_sizes["re.rar"]
+        f_re.is_extractable = True
+        f_rf = ModelFile("rf", True)
+        f_rf.remote_size = self.archive_sizes["rfa.zip"] + self.archive_sizes["rfb.zip"]
+        f_rf.is_extractable = True
+        f_rfa = ModelFile("rfa", True)
+        f_rfa.remote_size = self.archive_sizes["rfa.zip"]
+        f_rfa.is_extractable = True
+        f_rfax = ModelFile("rfa.zip", False)
+        f_rfax.remote_size = self.archive_sizes["rfa.zip"]
+        f_rfax.is_extractable = True
+        f_rfa.add_child(f_rfax)
+        f_rf.add_child(f_rfa)
+        f_rfb = ModelFile("rfb", True)
+        f_rfb.remote_size = self.archive_sizes["rfb.zip"]
+        f_rfb.is_extractable = True
+        f_rf.add_child(f_rfb)
+        f_rfbx = ModelFile("rfb.zip", False)
+        f_rfbx.remote_size = self.archive_sizes["rfb.zip"]
+        f_rfbx.is_extractable = True
+        f_rfb.add_child(f_rfbx)
+
         f_la = ModelFile("la", True)
         f_la.local_size = 2*1024
         f_laa = ModelFile("laa", False)
@@ -130,7 +227,22 @@ class TestController(unittest.TestCase):
         f_lb = ModelFile("lb", False)
         f_lb.local_size = 2*1024
 
-        self.initial_state = {f.name: f for f in [f_ra, f_rb, f_rc, f_la, f_lb]}
+        f_lc = ModelFile("lc", True)
+        f_lc.local_size = self.archive_sizes["lca.rar"] + self.archive_sizes["lcb.zip"]
+        f_lc.is_extractable = True
+        f_lca = ModelFile("lca.rar", False)
+        f_lca.local_size = self.archive_sizes["lca.rar"]
+        f_lca.is_extractable = True
+        f_lc.add_child(f_lca)
+        f_lcb = ModelFile("lcb.zip", False)
+        f_lcb.local_size = self.archive_sizes["lcb.zip"]
+        f_lcb.is_extractable = True
+        f_lc.add_child(f_lcb)
+
+        self.initial_state = {f.name: f for f in [
+            f_ra, f_rb, f_rc, f_rd, f_re, f_rf,
+            f_la, f_lb, f_lc
+        ]}
 
         # config file
         # Note: password-less ssh needs to be setup
@@ -205,7 +317,8 @@ class TestController(unittest.TestCase):
             self.controller.exit()
 
         # Cleanup
-        shutil.rmtree(self.temp_dir)
+        if not TestController.__KEEP_FILES:
+            shutil.rmtree(self.temp_dir)
 
     # noinspection PyMethodMayBeStatic
     def __wait_for_initial_model(self):
@@ -1014,6 +1127,430 @@ class TestController(unittest.TestCase):
         self.assertEqual(1, len(callback.on_failure.call_args_list))
         error = callback.on_failure.call_args[0][0]
         self.assertEqual("File 'invalidfile' not found", error)
+
+    @timeout_decorator.timeout(20)
+    def test_command_extract_after_downloading_remote_file(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue a download
+        command = Controller.Command(Controller.Command.Action.QUEUE, "re.rar")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("re.rar", new_file.name)
+                if new_file.state == ModelFile.State.DOWNLOADED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        callback.on_success.reset_mock()
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "re.rar")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("re.rar", new_file.name)
+                if new_file.state == ModelFile.State.EXTRACTED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        # Verify
+        re_txt_path = os.path.join(TestController.temp_dir, "local", "re.rar.txt")
+        self.assertTrue(os.path.isfile(re_txt_path))
+        with open(re_txt_path, "r") as f:
+            self.assertEqual("re.rar", f.read())
+
+    @timeout_decorator.timeout(20)
+    def test_command_extract_after_downloading_remote_directory(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue a download
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rd")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                if new_file.state == ModelFile.State.DOWNLOADED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        callback.on_success.reset_mock()
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "rd")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                if new_file.state == ModelFile.State.EXTRACTED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        # Verify
+        rd_txt_path = os.path.join(TestController.temp_dir, "local", "rd", "rd.zip.txt")
+        self.assertTrue(os.path.isfile(rd_txt_path))
+        with open(rd_txt_path, "r") as f:
+            self.assertEqual("rd.zip", f.read())
+
+    @timeout_decorator.timeout(20)
+    def test_command_extract_after_downloading_remote_directory_multilevel(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue a download
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rf")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rf", new_file.name)
+                if new_file.state == ModelFile.State.DOWNLOADED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        callback.on_success.reset_mock()
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "rf")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rf", new_file.name)
+                if new_file.state == ModelFile.State.EXTRACTED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        # Verify
+        rfa_txt_path = os.path.join(TestController.temp_dir, "local", "rf", "rfa", "rfa.zip.txt")
+        self.assertTrue(os.path.isfile(rfa_txt_path))
+        with open(rfa_txt_path, "r") as f:
+            self.assertEqual("rfa.zip", f.read())
+        rfb_txt_path = os.path.join(TestController.temp_dir, "local", "rf", "rfb", "rfb.zip.txt")
+        self.assertTrue(os.path.isfile(rfb_txt_path))
+        with open(rfb_txt_path, "r") as f:
+            self.assertEqual("rfb.zip", f.read())
+
+    @timeout_decorator.timeout(20)
+    def test_command_extract_local_directory(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "lc")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        # Can't rely on state changes since final state is back to Default
+        # Look for presence of extracted files
+        lca_txt_path = os.path.join(TestController.temp_dir, "local", "lc", "lca.rar.txt")
+        lcb_txt_path = os.path.join(TestController.temp_dir, "local", "lc", "lcb.zip.txt")
+        while True:
+            self.controller.process()
+            if os.path.isfile(lca_txt_path) and os.path.isfile(lcb_txt_path):
+                break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        # Verify
+        with open(lca_txt_path, "r") as f:
+            self.assertEqual("lca.rar", f.read())
+        with open(lcb_txt_path, "r") as f:
+            self.assertEqual("lcb.zip", f.read())
+
+    @timeout_decorator.timeout(20)
+    def test_command_reextract_after_extracting_remote_file(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue a download
+        command = Controller.Command(Controller.Command.Action.QUEUE, "re.rar")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("re.rar", new_file.name)
+                if new_file.state == ModelFile.State.DOWNLOADED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        callback.on_success.reset_mock()
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "re.rar")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("re.rar", new_file.name)
+                if new_file.state == ModelFile.State.EXTRACTED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_success.reset_mock()
+        callback.on_failure.assert_not_called()
+
+        # Verify
+        re_txt_path = os.path.join(TestController.temp_dir, "local", "re.rar.txt")
+        self.assertTrue(os.path.isfile(re_txt_path))
+        with open(re_txt_path, "r") as f:
+            self.assertEqual("re.rar", f.read())
+
+        # Delete the extracted file
+        os.remove(re_txt_path)
+        self.assertFalse(os.path.isfile(re_txt_path))
+
+        # Queue a re-extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "re.rar")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        # Can't rely on state changes since final state is back to Extracted
+        # Look for presence of extracted file
+        while True:
+            self.controller.process()
+            if os.path.isfile(re_txt_path):
+                break
+            time.sleep(0.5)
+
+        # Verify again
+        self.assertTrue(os.path.isfile(re_txt_path))
+        with open(re_txt_path, "r") as f:
+            self.assertEqual("re.rar", f.read())
+
+    @timeout_decorator.timeout(20)
+    def test_command_extract_remote_only_fails(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Verify that rc is Default
+        files = self.controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DEFAULT, files_dict["re.rar"].state)
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "re.rar")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        self.controller.process()
+
+        # Verify nothing happened
+        listener.file_updated.assert_not_called()
+        listener.file_added.assert_not_called()
+        listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 're.rar' does not exist locally", error)
+
+    @timeout_decorator.timeout(20)
+    def test_command_extract_after_downloading_remote_directory_to_separate_path(self):
+        # Change the extract path
+        extract_path = os.path.join(TestController.temp_dir, "extract")
+        os.mkdir(extract_path)
+        self.context.config.controller.extract_path = extract_path
+        self.context.config.controller.use_local_path_as_extract_path = False
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue a download
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rd")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                if new_file.state == ModelFile.State.DOWNLOADED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        callback.on_success.reset_mock()
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "rd")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                if new_file.state == ModelFile.State.EXTRACTED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        # Verify
+        rd_txt_path = os.path.join(extract_path, "rd", "rd.zip.txt")
+        self.assertTrue(os.path.isfile(rd_txt_path))
+        with open(rd_txt_path, "r") as f:
+            self.assertEqual("rd.zip", f.read())
 
     @timeout_decorator.timeout(20)
     def test_config_num_max_parallel_downloads(self):

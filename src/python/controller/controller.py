@@ -9,6 +9,7 @@ import copy
 
 # my libs
 from .scan import ScannerProcess, DownloadingScanner, LocalScanner, RemoteScanner
+from .extract import ExtractProcess
 from .model_builder import ModelBuilder
 from common import Context, AppError, MultiprocessingLogger
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
@@ -37,6 +38,7 @@ class Controller:
         class Action(Enum):
             QUEUE = 0
             STOP = 1
+            EXTRACT = 2
 
         class ICallback(ABC):
             """Command callback interface"""
@@ -82,6 +84,7 @@ class Controller:
         self.__model_builder = ModelBuilder()
         self.__model_builder.set_base_logger(self.logger)
         self.__model_builder.set_downloaded_files(self.__persist.downloaded_file_names)
+        self.__model_builder.set_extracted_files(self.__persist.extracted_file_names)
 
         # Lftp
         self.__lftp = Lftp(address=self.__context.config.lftp.remote_address,
@@ -124,11 +127,22 @@ class Controller:
             interval_in_ms=self.__context.config.controller.interval_ms_remote_scan,
         )
 
+        # Setup extract process
+        if self.__context.config.controller.use_local_path_as_extract_path:
+            out_dir_path = self.__context.config.lftp.local_path
+        else:
+            out_dir_path = self.__context.config.controller.extract_path
+        self.__extract_process = ExtractProcess(
+            out_dir_path=out_dir_path,
+            local_path=self.__context.config.lftp.local_path
+        )
+
         # Setup multiprocess logging
         self.__mp_logger = MultiprocessingLogger(self.logger)
         self.__downloading_scan_process.set_multiprocessing_logger(self.__mp_logger)
         self.__local_scan_process.set_multiprocessing_logger(self.__mp_logger)
         self.__remote_scan_process.set_multiprocessing_logger(self.__mp_logger)
+        self.__extract_process.set_multiprocessing_logger(self.__mp_logger)
 
         self.__started = False
 
@@ -142,6 +156,7 @@ class Controller:
         self.__downloading_scan_process.start()
         self.__local_scan_process.start()
         self.__remote_scan_process.start()
+        self.__extract_process.start()
         self.__mp_logger.start()
         self.__started = True
 
@@ -164,9 +179,11 @@ class Controller:
             self.__downloading_scan_process.terminate()
             self.__local_scan_process.terminate()
             self.__remote_scan_process.terminate()
+            self.__extract_process.terminate()
             self.__downloading_scan_process.join()
             self.__local_scan_process.join()
             self.__remote_scan_process.join()
+            self.__extract_process.join()
             self.__mp_logger.stop()
             self.__started = False
             self.logger.info("Exited controller")
@@ -250,12 +267,18 @@ class Controller:
         except LftpError as e:
             self.logger.warning("Caught lftp error: {}".format(str(e)))
 
+        # Grab the latest extract results
+        latest_extract_statuses = self.__extract_process.pop_latest_statuses()
+
+        # Grab the latest extracted file names
+        latest_extracted_results = self.__extract_process.pop_completed()
+
         # Update the downloading scanner's state
         if lftp_statuses is not None:
             downloading_file_names = [s.name for s in lftp_statuses if s.state == LftpJobStatus.State.RUNNING]
             self.__downloading_scanner.set_downloading_files(downloading_file_names)
 
-        # Build the new model
+        # Update model builder state
         if latest_remote_scan is not None:
             self.__model_builder.set_remote_files(latest_remote_scan.files)
         if latest_local_scan is not None:
@@ -264,6 +287,14 @@ class Controller:
             self.__model_builder.set_downloading_files(latest_downloading_scan.files)
         if lftp_statuses is not None:
             self.__model_builder.set_lftp_statuses(lftp_statuses)
+        if latest_extract_statuses is not None:
+            self.__model_builder.set_extract_statuses(latest_extract_statuses.statuses)
+        if latest_extracted_results:
+            for result in latest_extracted_results:
+                self.__persist.extracted_file_names.add(result.name)
+            self.__model_builder.set_extracted_files(self.__persist.extracted_file_names)
+
+        # Build the new model
         new_model = self.__model_builder.build_model()
 
         # Lock the model
@@ -285,6 +316,8 @@ class Controller:
             #   an Added file in Downloaded state
             #   an Updated file transitioning to Downloaded state
             # If so, update the persist state
+            # Note: This step is done after the new model is build because
+            #       model_builder is the one that discovers when a file is Downloaded
             downloaded = False
             if diff.change == ModelDiff.Change.ADDED and \
                     diff.new_file.state == ModelFile.State.DOWNLOADED:
@@ -301,49 +334,56 @@ class Controller:
         self.__model_lock.release()
 
     def __process_commands(self):
+        def _notify_failure(_command: Controller.Command, _msg: str):
+            self.logger.warning("Command failed. {}".format(_msg))
+            for _callback in _command.callbacks:
+                _callback.on_failure(_msg)
+
         while not self.__command_queue.empty():
             command = self.__command_queue.get()
             self.logger.info("Received command {} for file {}".format(str(command.action), command.filename))
             try:
                 file = self.__model.get_file(command.filename)
             except ModelError:
-                self.logger.warning("Command failed. File {} does not exist in model".format(command.filename))
-                for callback in command.callbacks:
-                    callback.on_failure("File '{}' not found".format(command.filename))
+                _notify_failure(command, "File '{}' not found".format(command.filename))
                 continue
 
             if command.action == Controller.Command.Action.QUEUE:
                 if file.remote_size is None:
-                    self.logger.warning("Command {} failed. File {} does not exist on remote".format(
-                        str(command.action),
-                        command.filename
-                    ))
-                    for callback in command.callbacks:
-                        callback.on_failure("File '{}' does not exist remotely".format(command.filename))
+                    _notify_failure(command, "File '{}' does not exist remotely".format(command.filename))
                     continue
                 try:
                     self.__lftp.queue(file.name, file.is_dir)
                 except LftpError as e:
-                    self.logger.warning("Caught lftp error: {}".format(str(e)))
-                    for callback in command.callbacks:
-                        callback.on_failure("Lftp error: ".format(str(e)))
+                    _notify_failure(command, "Lftp error: ".format(str(e)))
                     continue
+
             elif command.action == Controller.Command.Action.STOP:
                 if file.state not in (ModelFile.State.DOWNLOADING, ModelFile.State.QUEUED):
-                    self.logger.warning("Command {} failed. File {} is not downloading or queued".format(
-                        str(command.action),
-                        command.filename
-                    ))
-                    for callback in command.callbacks:
-                        callback.on_failure("File '{}' is not Queued or Downloading".format(command.filename))
+                    _notify_failure(command, "File '{}' is not Queued or Downloading".format(command.filename))
                     continue
                 try:
                     self.__lftp.kill(file.name)
                 except LftpError as e:
-                    self.logger.warning("Caught lftp error: {}".format(str(e)))
-                    for callback in command.callbacks:
-                        callback.on_failure("Lftp error: ".format(str(e)))
+                    _notify_failure(command, "Lftp error: ".format(str(e)))
                     continue
+
+            elif command.action == Controller.Command.Action.EXTRACT:
+                # Note: We don't check the is_extractable flag because it's just a guess
+                if file.state not in (
+                        ModelFile.State.DEFAULT,
+                        ModelFile.State.DOWNLOADED,
+                        ModelFile.State.EXTRACTED
+                ):
+                    _notify_failure(command, "File '{}' in state {} cannot be extracted".format(
+                        command.filename, str(file.state)
+                    ))
+                    continue
+                elif file.local_size is None:
+                    _notify_failure(command, "File '{}' does not exist locally".format(command.filename))
+                    continue
+                else:
+                    self.__extract_process.extract(file)
 
             # If we get here, it was a success
             for callback in command.callbacks:
@@ -358,3 +398,4 @@ class Controller:
         self.__local_scan_process.propagate_exception()
         self.__remote_scan_process.propagate_exception()
         self.__mp_logger.propagate_exception()
+        self.__extract_process.propagate_exception()

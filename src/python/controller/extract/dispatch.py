@@ -105,6 +105,8 @@ class ExtractDispatch:
         return statuses
 
     def extract(self, model_file: ModelFile):
+        self.logger.debug("Received extract for {}".format(model_file.name))
+
         # noinspection PyProtectedMember
         task = ExtractDispatch._Task(model_file.name, model_file.is_dir)
 
@@ -166,6 +168,7 @@ class ExtractDispatch:
                             completed = False
                             break
 
+                        self.logger.debug("Extracting {}".format(archive_path))
                         Extract.extract_archive(
                             archive_path=archive_path,
                             out_dir_path=out_dir_path
