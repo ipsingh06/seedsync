@@ -14,6 +14,7 @@ interface IViewFile {
     downloadingSpeed: number;
     eta: number;
     fullPath: string;
+    isExtractable: boolean;
     isSelected: boolean;
     isQueueable: boolean;
     isStoppable: boolean;
@@ -30,6 +31,7 @@ const DefaultViewFile: IViewFile = {
     downloadingSpeed: null,
     eta: null,
     fullPath: null,
+    isExtractable: null,
     isSelected: null,
     isQueueable: null,
     isStoppable: null
@@ -50,6 +52,7 @@ export class ViewFile extends ViewFileRecord implements IViewFile {
     eta: number;
     // noinspection JSUnusedGlobalSymbols
     fullPath: string;
+    isExtractable: boolean;
     isSelected: boolean;
     isQueueable: boolean;
     isStoppable: boolean;
@@ -66,6 +69,8 @@ export module ViewFile {
         DOWNLOADING     = <any> "downloading",
         DOWNLOADED      = <any> "downloaded",
         STOPPED         = <any> "stopped",
-        DELETED         = <any> "deleted"
+        DELETED         = <any> "deleted",
+        EXTRACTING      = <any> "extracting",
+        EXTRACTED       = <any> "extracted"
     }
 }

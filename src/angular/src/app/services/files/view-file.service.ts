@@ -348,6 +348,14 @@ export class ViewFileService {
                 status = ViewFile.Status.DELETED;
                 break;
             }
+            case ModelFile.State.EXTRACTING: {
+                status = ViewFile.Status.EXTRACTING;
+                break;
+            }
+            case ModelFile.State.EXTRACTED: {
+                status = ViewFile.Status.EXTRACTED;
+                break;
+            }
         }
 
         const isQueueable: boolean = [ViewFile.Status.DEFAULT,
@@ -367,6 +375,7 @@ export class ViewFileService {
             downloadingSpeed: modelFile.downloading_speed,
             eta: modelFile.eta,
             fullPath: modelFile.full_path,
+            isExtractable: modelFile.is_extractable,
             isSelected: isSelected,
             isQueueable: isQueueable,
             isStoppable: isStoppable
