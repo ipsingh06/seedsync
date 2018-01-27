@@ -12,7 +12,8 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: 512000,
         eta: 3612,
         full_path: null,
-        children: []
+        is_extractable: false,
+        children: Immutable.Set<ModelFile>()
     }),
 
     "Super.Secret.Folder.With.A.Long.Name.Separated.By.Dots": new ModelFile({
@@ -24,7 +25,8 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: 1212000,
         eta: 1514,
         full_path: null,
-        children: []
+        is_extractable: false,
+        children: Immutable.Set<ModelFile>()
     }),
 
     "Game.Of.Big.Bang.Last.Week.Breaking.Valley.Episode.8.03": new ModelFile({
@@ -36,7 +38,8 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: null,
         eta: null,
         full_path: null,
-        children: []
+        is_extractable: true,
+        children: Immutable.Set<ModelFile>()
     }),
 
     "Green.Archer.Dude.And.Fast.Red.Streaky.Guy.Show": new ModelFile({
@@ -48,7 +51,8 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: null,
         eta: null,
         full_path: null,
-        children: []
+        is_extractable: true,
+        children: Immutable.Set<ModelFile>()
     }),
 
     "OneLongFileWithNoSpacesNoDotsNoHypensJustLotsAndLotsOfTextOhGodWhoNamedThisFileDamnIt": new ModelFile({
@@ -60,7 +64,8 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: null,
         eta: null,
         full_path: null,
-        children: []
+        is_extractable: false,
+        children: Immutable.Set<ModelFile>()
     }),
 
     "My Local File": new ModelFile({
@@ -72,7 +77,8 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: null,
         eta: null,
         full_path: null,
-        children: []
+        is_extractable: false,
+        children: Immutable.Set<ModelFile>()
     }),
 
     "This_File_Needs_To_Be_Resumed.exe": new ModelFile({
@@ -84,7 +90,8 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: null,
         eta: null,
         full_path: null,
-        children: []
+        is_extractable: false,
+        children: Immutable.Set<ModelFile>()
     }),
 
     "Deleted Folder": new ModelFile({
@@ -96,6 +103,46 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         downloading_speed: null,
         eta: null,
         full_path: null,
-        children: []
+        is_extractable: false,
+        children: Immutable.Set<ModelFile>()
+    }),
+
+    "my.local.archive.rar": new ModelFile({
+        name: "my.local.archive.rar",
+        is_dir: false,
+        local_size: 28000,
+        remote_size: null,
+        state: ModelFile.State.EXTRACTED,
+        downloading_speed: null,
+        eta: null,
+        full_path: null,
+        is_extractable: true,
+        children: Immutable.Set<ModelFile>()
+    }),
+
+    "NextEpisode": new ModelFile({
+        name: "NextEpisode",
+        is_dir: true,
+        local_size: 1500000000,
+        remote_size: 1000000000,
+        state: ModelFile.State.EXTRACTING,
+        downloading_speed: null,
+        eta: null,
+        full_path: null,
+        is_extractable: true,
+        children: Immutable.Set<ModelFile>()
+    }),
+
+    "PreviousEpisode": new ModelFile({
+        name: "PreviousEpisode",
+        is_dir: true,
+        local_size: 2000000000,
+        remote_size: 1000000000,
+        state: ModelFile.State.EXTRACTED,
+        downloading_speed: null,
+        eta: null,
+        full_path: null,
+        is_extractable: true,
+        children: Immutable.Set<ModelFile>()
     }),
 });
