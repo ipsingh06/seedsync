@@ -93,7 +93,7 @@ export class ModelFileService extends BaseStreamService {
             const parsed = JSON.parse(data);
             const newFiles: ModelFile[] = [];
             for (const file of parsed) {
-                newFiles.push(new ModelFile(file));
+                newFiles.push(ModelFile.fromJson(file));
             }
             // Replace the entire model
             const newMap = Immutable.Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
@@ -103,7 +103,7 @@ export class ModelFileService extends BaseStreamService {
             // Added event receives old and new ModelFiles
             // Only new file is relevant
             const parsed: {new_file: any} = JSON.parse(data);
-            const file = new ModelFile(parsed.new_file);
+            const file = ModelFile.fromJson(parsed.new_file);
             if (this._files.getValue().has(file.name)) {
                 this._logger.error("ModelFile named " + file.name + " already exists");
             } else {
@@ -114,7 +114,7 @@ export class ModelFileService extends BaseStreamService {
             // Removed event receives old and new ModelFiles
             // Only old file is relevant
             const parsed: {old_file: any} = JSON.parse(data);
-            const file = new ModelFile(parsed.old_file);
+            const file = ModelFile.fromJson(parsed.old_file);
             if (this._files.getValue().has(file.name)) {
                 this._files.next(this._files.getValue().remove(file.name));
                 this._logger.debug("Removed file: %O", file.toJS());
@@ -125,7 +125,7 @@ export class ModelFileService extends BaseStreamService {
             // Updated event received old and new ModelFiles
             // We will only use the new one here
             const parsed: {new_file: any} = JSON.parse(data);
-            const file = new ModelFile(parsed.new_file);
+            const file = ModelFile.fromJson(parsed.new_file);
             if (this._files.getValue().has(file.name)) {
                 this._files.next(this._files.getValue().set(file.name, file));
                 this._logger.debug("Updated file: %O", file.toJS());

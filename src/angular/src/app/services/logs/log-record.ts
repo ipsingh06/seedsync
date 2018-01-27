@@ -27,9 +27,6 @@ export class LogRecord extends LogRecordRecord implements ILogRecord {
     exceptionTraceback: string;
 
     constructor(props) {
-        // State mapping
-        props.level = LogRecord.Level[props.level];
-
         super(props);
     }
 }
@@ -40,7 +37,7 @@ export module LogRecord {
         return new LogRecord({
             // str -> number, then sec -> ms
             time: new Date(1000 * +json.time),
-            level: json.level_name,
+            level: LogRecord.Level[json.level_name],
             loggerName: json.logger_name,
             message: json.message,
             exceptionTraceback: json.exc_tb

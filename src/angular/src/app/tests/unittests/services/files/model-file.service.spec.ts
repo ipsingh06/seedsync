@@ -76,11 +76,11 @@ describe("Testing model file service", () => {
                 is_dir: false,
                 local_size: 1234,
                 remote_size: 4567,
-                state: "default",
+                state: ModelFile.State.DEFAULT,
                 downloading_speed: 99,
                 eta: 54,
                 full_path: "/full/path/to/file.one",
-                children: []
+                children: Immutable.Set<ModelFile>()
             })
         ];
         modelFileService.notifyEvent("model-init", JSON.stringify(actualModelFiles));
@@ -139,22 +139,22 @@ describe("Testing model file service", () => {
                 is_dir: false,
                 local_size: 1234,
                 remote_size: 4567,
-                state: "default",
+                state: ModelFile.State.DEFAULT,
                 downloading_speed: 99,
                 eta: 54,
                 full_path: "/full/path/to/file.one",
-                children: []
+                children: Immutable.Set<ModelFile>()
             }),
             new ModelFile({
                 name: "File.Two",
                 is_dir: false,
                 local_size: 1234,
                 remote_size: 4567,
-                state: "default",
+                state: ModelFile.State.DEFAULT,
                 downloading_speed: 99,
                 eta: 54,
                 full_path: "/full/path/to/file.two",
-                children: []
+                children: Immutable.Set<ModelFile>()
             })
         ];
         modelFileService.notifyEvent("model-added", JSON.stringify(addedModelFile));
@@ -273,11 +273,11 @@ describe("Testing model file service", () => {
                 is_dir: false,
                 local_size: 4567,
                 remote_size: 9012,
-                state: "downloading",
+                state: ModelFile.State.DOWNLOADING,
                 downloading_speed: 55,
                 eta: 1,
                 full_path: "/new/path/to/file.one",
-                children: []
+                children: Immutable.Set<ModelFile>()
             })
         ];
         modelFileService.notifyEvent("model-updated", JSON.stringify(updatedModelFile));
@@ -317,11 +317,11 @@ describe("Testing model file service", () => {
             is_dir: false,
             local_size: 4567,
             remote_size: 9012,
-            state: "downloading",
+            state: ModelFile.State.DOWNLOADING,
             downloading_speed: 55,
             eta: 1,
             full_path: "/new/path/to/file.one",
-            children: []
+            children: Immutable.Set<ModelFile>()
         });
 
         let count = 0;
@@ -347,40 +347,40 @@ describe("Testing model file service", () => {
 
         modelFile = new ModelFile({
             name: "test",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.queue(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/queue/test").flush("done");
 
         modelFile = new ModelFile({
             name: "test space",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.queue(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/queue/test%2520space").flush("done");
 
         modelFile = new ModelFile({
             name: "test/slash",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.queue(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/queue/test%252Fslash").flush("done");
 
         modelFile = new ModelFile({
             name: "test\"doublequote",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.queue(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/queue/test%2522doublequote").flush("done");
 
         modelFile = new ModelFile({
             name: "/test/leadingslash",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.queue(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/queue/%252Ftest%252Fleadingslash").flush("done");
@@ -395,11 +395,11 @@ describe("Testing model file service", () => {
             is_dir: false,
             local_size: 4567,
             remote_size: 9012,
-            state: "downloading",
+            state: ModelFile.State.DOWNLOADING,
             downloading_speed: 55,
             eta: 1,
             full_path: "/new/path/to/file.one",
-            children: []
+            children: Immutable.Set<ModelFile>()
         });
 
         let count = 0;
@@ -424,40 +424,40 @@ describe("Testing model file service", () => {
 
         modelFile = new ModelFile({
             name: "test",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.stop(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/stop/test").flush("done");
 
         modelFile = new ModelFile({
             name: "test space",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.stop(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/stop/test%2520space").flush("done");
 
         modelFile = new ModelFile({
             name: "test/slash",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.stop(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/stop/test%252Fslash").flush("done");
 
         modelFile = new ModelFile({
             name: "test\"doublequote",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.stop(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/stop/test%2522doublequote").flush("done");
 
         modelFile = new ModelFile({
             name: "/test/leadingslash",
-            state: "default",
-            children: []
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
         });
         modelFileService.stop(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/stop/%252Ftest%252Fleadingslash").flush("done");

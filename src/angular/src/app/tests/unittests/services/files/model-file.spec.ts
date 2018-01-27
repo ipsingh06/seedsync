@@ -16,9 +16,10 @@ describe("Testing config record initialization", () => {
             downloading_speed: 99,
             eta: 54,
             full_path: "/full/path/to/file.one",
+            is_extractable: true,
             children: []
         };
-        baseModelFile = new ModelFile(baseJson);
+        baseModelFile = ModelFile.fromJson(baseJson);
     });
 
     it("should be immutable", () => {
@@ -31,20 +32,26 @@ describe("Testing config record initialization", () => {
 
     it("should correctly initialize all states", () => {
         baseJson.state = "default";
-        baseModelFile = new ModelFile(baseJson);
+        baseModelFile = ModelFile.fromJson(baseJson);
         expect(baseModelFile.state).toBe(ModelFile.State.DEFAULT);
         baseJson.state = "queued";
-        baseModelFile = new ModelFile(baseJson);
+        baseModelFile = ModelFile.fromJson(baseJson);
         expect(baseModelFile.state).toBe(ModelFile.State.QUEUED);
         baseJson.state = "downloading";
-        baseModelFile = new ModelFile(baseJson);
+        baseModelFile = ModelFile.fromJson(baseJson);
         expect(baseModelFile.state).toBe(ModelFile.State.DOWNLOADING);
         baseJson.state = "downloaded";
-        baseModelFile = new ModelFile(baseJson);
+        baseModelFile = ModelFile.fromJson(baseJson);
         expect(baseModelFile.state).toBe(ModelFile.State.DOWNLOADED);
         baseJson.state = "deleted";
-        baseModelFile = new ModelFile(baseJson);
+        baseModelFile = ModelFile.fromJson(baseJson);
         expect(baseModelFile.state).toBe(ModelFile.State.DELETED);
+        baseJson.state = "extracting";
+        baseModelFile = ModelFile.fromJson(baseJson);
+        expect(baseModelFile.state).toBe(ModelFile.State.EXTRACTING);
+        baseJson.state = "extracted";
+        baseModelFile = ModelFile.fromJson(baseJson);
+        expect(baseModelFile.state).toBe(ModelFile.State.EXTRACTED);
     });
 
     it("should initialize with correct values", () => {
@@ -56,6 +63,7 @@ describe("Testing config record initialization", () => {
         expect(baseModelFile.downloading_speed).toBe(99);
         expect(baseModelFile.eta).toBe(54);
         expect(baseModelFile.full_path).toBe("/full/path/to/file.one");
+        expect(baseModelFile.is_extractable).toBe(true);
         expect(baseModelFile.children.size).toBe(0);
     });
 
@@ -70,6 +78,7 @@ describe("Testing config record initialization", () => {
                 downloading_speed: 111,
                 eta: 1111,
                 full_path: "root/a",
+                is_extractable: true,
                 children: [
                     {
                         name: "aa",
@@ -80,6 +89,7 @@ describe("Testing config record initialization", () => {
                         downloading_speed: 111,
                         eta: 1111,
                         full_path: "root/a/aa",
+                        is_extractable: true,
                         children: []
                     },
                 ]
@@ -93,10 +103,11 @@ describe("Testing config record initialization", () => {
                 downloading_speed: 222,
                 eta: 2222,
                 full_path: "root/b",
+                is_extractable: false,
                 children: []
             }
         ];
-        baseModelFile = new ModelFile(baseJson);
+        baseModelFile = ModelFile.fromJson(baseJson);
         expect(baseModelFile.children.size).toBe(2);
 
         let a = baseModelFile.children.find(value => {return value.name === "a"});
@@ -108,6 +119,7 @@ describe("Testing config record initialization", () => {
         expect(a.downloading_speed).toBe(111);
         expect(a.eta).toBe(1111);
         expect(a.full_path).toBe("root/a");
+        expect(a.is_extractable).toBe(true);
         expect(a.children.size).toBe(1);
 
         let aa = a.children.find(value => {return value.name === "aa"});
@@ -119,6 +131,7 @@ describe("Testing config record initialization", () => {
         expect(aa.downloading_speed).toBe(111);
         expect(aa.eta).toBe(1111);
         expect(aa.full_path).toBe("root/a/aa");
+        expect(aa.is_extractable).toBe(true);
         expect(aa.children.size).toBe(0);
 
         let b = baseModelFile.children.find(value => {return value.name === "b"});
@@ -130,6 +143,7 @@ describe("Testing config record initialization", () => {
         expect(b.downloading_speed).toBe(222);
         expect(b.eta).toBe(2222);
         expect(b.full_path).toBe("root/b");
+        expect(b.is_extractable).toBe(false);
         expect(b.children.size).toBe(0);
     });
 });
