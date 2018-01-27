@@ -89,12 +89,14 @@ export class ViewFileService {
     private _comparator = (a: ViewFile, b: ViewFile): number => {
         if (a.status !== b.status) {
             const statusPriorities = {
-                [ViewFile.Status.DOWNLOADING]: 0,
-                [ViewFile.Status.QUEUED]: 1,
-                [ViewFile.Status.DOWNLOADED]: 2,
-                [ViewFile.Status.STOPPED]: 3,
-                [ViewFile.Status.DEFAULT]: 4,
-                [ViewFile.Status.DELETED]: 4  // intermix deleted and default
+                [ViewFile.Status.EXTRACTING]: 0,
+                [ViewFile.Status.DOWNLOADING]: 1,
+                [ViewFile.Status.QUEUED]: 2,
+                [ViewFile.Status.EXTRACTED]: 3,
+                [ViewFile.Status.DOWNLOADED]: 4,
+                [ViewFile.Status.STOPPED]: 5,
+                [ViewFile.Status.DEFAULT]: 6,
+                [ViewFile.Status.DELETED]: 6  // intermix deleted and default
             };
             if (statusPriorities[a.status] !== statusPriorities[b.status]) {
                 return statusPriorities[a.status] - statusPriorities[b.status];

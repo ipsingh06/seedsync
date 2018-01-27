@@ -428,4 +428,60 @@ describe("Testing view file service", () => {
         }
         expect(count).toBe(testVectors.length);
     }));
+
+    it("should sort view files by status then name", fakeAsync(() => {
+        // Test vectors to create model file
+        // name, ModelFile.State, local size, remote size
+        let testVector: any[][] = [
+            ["a", ModelFile.State.DEFAULT, null, 100],
+            ["b", ModelFile.State.DEFAULT, 100, null],
+            ["c", ModelFile.State.DEFAULT, 50, 100],
+            ["d", ModelFile.State.DELETED, null, 100],
+            ["e", ModelFile.State.QUEUED, null, 100],
+            ["f", ModelFile.State.DOWNLOADING, 50, 100],
+            ["g", ModelFile.State.DOWNLOADED, 50, 100],
+            ["h", ModelFile.State.EXTRACTING, 50, 100],
+            ["i", ModelFile.State.EXTRACTED, 50, 100]
+        ];
+
+        // Except result vector in order of view file name and state
+        let resultVector: any[][] = [
+            ["h", ViewFile.Status.EXTRACTING],
+            ["f", ViewFile.Status.DOWNLOADING],
+            ["e", ViewFile.Status.QUEUED],
+            ["i", ViewFile.Status.EXTRACTED],
+            ["g", ViewFile.Status.DOWNLOADED],
+            ["c", ViewFile.Status.STOPPED],
+            ["a", ViewFile.Status.DEFAULT],
+            ["b", ViewFile.Status.DEFAULT],
+            ["d", ViewFile.Status.DELETED]
+        ];
+
+        let model = Immutable.Map<string, ModelFile>();
+        for(let vector of testVector) {
+            model = model.set(vector[0], new ModelFile({
+                name: vector[0],
+                state: vector[1],
+                local_size: vector[2],
+                remote_size: vector[3],
+            }));
+        }
+        mockModelService._files.next(model);
+        tick();
+
+        let count = 0;
+        viewService.files.subscribe({
+            next: list => {
+                expect(list.size).toBe(resultVector.length);
+                resultVector.forEach((item, index) => {
+                    let file = list.get(index);
+                    expect(file.name).toBe(item[0]);
+                    expect(file.status).toBe(item[1]);
+                });
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(1);
+    }));
 });
