@@ -1553,6 +1553,113 @@ class TestController(unittest.TestCase):
             self.assertEqual("rd.zip", f.read())
 
     @timeout_decorator.timeout(20)
+    def test_command_redownload_after_deleting_extracted_file(self):
+        """
+        File is downloaded, then extracted, then deleted, then redownloaded
+        Verify that final state is Downloaded and NOT Extracted
+        """
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue a download
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rd")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                if new_file.state == ModelFile.State.DOWNLOADED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        callback.on_success.reset_mock()
+
+        # Queue an extraction
+        command = Controller.Command(Controller.Command.Action.EXTRACT, "rd")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until extract complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                if new_file.state == ModelFile.State.EXTRACTED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_success.reset_mock()
+        callback.on_failure.assert_not_called()
+
+        # Verify
+        re_txt_path = os.path.join(TestController.temp_dir, "local", "rd", "rd.zip.txt")
+        self.assertTrue(os.path.isfile(re_txt_path))
+        with open(re_txt_path, "r") as f:
+            self.assertEqual("rd.zip", f.read())
+
+        # Delete the whole thing
+        shutil.rmtree(os.path.join(TestController.temp_dir, "local", "rd"))
+
+        # Process until deleted state
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                if new_file.state == ModelFile.State.DELETED:
+                    break
+            time.sleep(0.5)
+
+        # Queue the download AGAIN
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rd")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download complete
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rd", new_file.name)
+                # EXTRACTED is wrong, but we check for that later on
+                if new_file.state == ModelFile.State.DOWNLOADED or \
+                        new_file.state == ModelFile.State.EXTRACTED:
+                    break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        callback.on_success.reset_mock()
+
+        time.sleep(0.5)
+        self.controller.process()
+        # Verify file is in DOWNLOADED state
+        files = self.controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DOWNLOADED, files_dict["rd"].state)
+
+    @timeout_decorator.timeout(20)
     def test_config_num_max_parallel_downloads(self):
         self.context.config.lftp.num_max_parallel_downloads = 2
         self.controller = Controller(self.context, ControllerPersist())

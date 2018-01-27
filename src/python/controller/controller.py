@@ -330,6 +330,22 @@ class Controller:
                 self.__persist.downloaded_file_names.add(diff.new_file.name)
                 self.__model_builder.set_downloaded_files(self.__persist.downloaded_file_names)
 
+        # Prune the extracted files list of any files that were deleted locally
+        # This prevents these files from going to EXTRACTED state if they are re-downloaded
+        remove_extracted_file_names = set()
+        existing_file_names = self.__model.get_file_names()
+        for extracted_file_name in self.__persist.extracted_file_names:
+            if extracted_file_name in existing_file_names:
+                file = self.__model.get_file(extracted_file_name)
+                if file.state == ModelFile.State.DELETED:
+                    # Deleted locally, remove
+                    remove_extracted_file_names.add(extracted_file_name)
+            else:
+                # Not in the model at all, remove
+                remove_extracted_file_names.add(extracted_file_name)
+        if remove_extracted_file_names:
+            self.__persist.extracted_file_names.difference_update(remove_extracted_file_names)
+
         # Release the model
         self.__model_lock.release()
 
