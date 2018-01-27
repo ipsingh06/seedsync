@@ -484,4 +484,76 @@ describe("Testing view file service", () => {
         tick();
         expect(count).toBe(1);
     }));
+
+    it("should correctly set and unset the selected file", fakeAsync(() => {
+        let model = Immutable.Map<string, ModelFile>();
+        model = model.set("a", new ModelFile({name: "a"}));
+        model = model.set("b", new ModelFile({name: "b"}));
+        model = model.set("c", new ModelFile({name: "c"}));
+
+        let expectedSelectedFileIndex = -1;
+
+        mockModelService._files.next(model);
+        tick();
+
+        let viewFileList;
+        let count = 0;
+        viewService.files.subscribe({
+            next: list => {
+                viewFileList = list;
+                expect(list.size).toBe(3);
+                expect(list.get(0).name).toBe("a");
+                expect(list.get(1).name).toBe("b");
+                expect(list.get(2).name).toBe("c");
+                list.forEach((item, index) => {
+                    // Only 1 file is selected at a time
+                    if(index == expectedSelectedFileIndex) {
+                        expect(item.isSelected).toBe(true);
+                    } else {
+                        expect(item.isSelected).toBe(false);
+                    }
+                });
+                count++;
+            }
+        });
+
+        tick();
+        expect(count).toBe(1);
+
+        // select "a"
+        expectedSelectedFileIndex = 0;
+        viewService.setSelected(viewFileList.get(0));
+        tick();
+        expect(count).toBe(2);
+
+        // unselect "a"
+        expectedSelectedFileIndex = -1;
+        viewService.unsetSelected();
+        tick();
+        expect(count).toBe(3);
+
+        // select "b"
+        expectedSelectedFileIndex = 1;
+        viewService.setSelected(viewFileList.get(1));
+        tick();
+        expect(count).toBe(4);
+
+        // select "c"
+        expectedSelectedFileIndex = 2;
+        viewService.setSelected(viewFileList.get(2));
+        tick();
+        expect(count).toBe(5);
+
+        // select "b" again
+        expectedSelectedFileIndex = 1;
+        viewService.setSelected(viewFileList.get(1));
+        tick();
+        expect(count).toBe(6);
+
+        // unselect "b"
+        expectedSelectedFileIndex = -1;
+        viewService.unsetSelected();
+        tick();
+        expect(count).toBe(7);
+    }));
 });
