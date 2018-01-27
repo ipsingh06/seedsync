@@ -364,6 +364,11 @@ export class ViewFileService {
                                     && remoteSize > 0;
         const isStoppable: boolean = [ViewFile.Status.QUEUED,
                                     ViewFile.Status.DOWNLOADING].includes(status);
+        const isExtractable: boolean = [ViewFile.Status.DEFAULT,
+                                    ViewFile.Status.STOPPED,
+                                    ViewFile.Status.DOWNLOADED,
+                                    ViewFile.Status.EXTRACTED].includes(status)
+                                    && localSize > 0;
 
         return new ViewFile({
             name: modelFile.name,
@@ -375,10 +380,11 @@ export class ViewFileService {
             downloadingSpeed: modelFile.downloading_speed,
             eta: modelFile.eta,
             fullPath: modelFile.full_path,
-            isExtractable: modelFile.is_extractable,
+            isArchive: modelFile.is_extractable,
             isSelected: isSelected,
             isQueueable: isQueueable,
-            isStoppable: isStoppable
+            isStoppable: isStoppable,
+            isExtractable: isExtractable
         });
     }
 

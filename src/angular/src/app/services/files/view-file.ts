@@ -14,10 +14,12 @@ interface IViewFile {
     downloadingSpeed: number;
     eta: number;
     fullPath: string;
-    isExtractable: boolean;
+    isArchive: boolean;  // corresponds to is_extractable in ModelFile
     isSelected: boolean;
     isQueueable: boolean;
     isStoppable: boolean;
+    // whether file can be queued for extraction (independent of isArchive)
+    isExtractable: boolean;
 }
 
 // Boiler plate code to set up an immutable class
@@ -31,10 +33,11 @@ const DefaultViewFile: IViewFile = {
     downloadingSpeed: null,
     eta: null,
     fullPath: null,
-    isExtractable: null,
+    isArchive: null,
     isSelected: null,
     isQueueable: null,
-    isStoppable: null
+    isStoppable: null,
+    isExtractable: null,
 };
 const ViewFileRecord = Record(DefaultViewFile);
 
@@ -52,10 +55,11 @@ export class ViewFile extends ViewFileRecord implements IViewFile {
     eta: number;
     // noinspection JSUnusedGlobalSymbols
     fullPath: string;
-    isExtractable: boolean;
+    isArchive: boolean;
     isSelected: boolean;
     isQueueable: boolean;
     isStoppable: boolean;
+    isExtractable: boolean;
 
     constructor(props) {
         super(props);
