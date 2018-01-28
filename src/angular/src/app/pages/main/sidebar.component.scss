@@ -25,6 +25,10 @@
             background-color: $secondary-color;
             color: white;
             border-color: #6ac19e;
+
+            img {
+                filter: invert(1.0);
+            }
         }
 
         &[disabled] {
@@ -32,8 +36,11 @@
             background-color: inherit;
         }
 
-        .icon {
-            margin-right: 3px;
+        img {
+            width: 18px;
+            height: 18px;
+            margin-right: 4px;
+            margin-bottom: 2px;
         }
     }
 

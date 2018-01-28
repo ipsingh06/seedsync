@@ -19,31 +19,31 @@ export const ROUTE_INFOS: Immutable.List<RouteInfo> = Immutable.List([
     {
         path: "dashboard",
         name: "Dashboard",
-        icon: "glyphicon-dashboard",
+        icon: "assets/icons/dashboard.svg",
         component: FilesPageComponent
     },
     {
         path: "settings",
         name: "Settings",
-        icon: "glyphicon-cog",
+        icon: "assets/icons/settings.svg",
         component: SettingsPageComponent
     },
     {
         path: "autoqueue",
         name: "AutoQueue",
-        icon: "glyphicon-list",
+        icon: "assets/icons/autoqueue.svg",
         component: AutoQueuePageComponent
     },
     {
         path: "logs",
         name: "Logs",
-        icon: "glyphicon-list-alt",
+        icon: "assets/icons/logs.svg",
         component: LogsPageComponent
     },
     {
         path: "about",
         name: "About",
-        icon: "glyphicon-heart",
+        icon: "assets/icons/about.svg",
         component: AboutPageComponent
     }
 ]);

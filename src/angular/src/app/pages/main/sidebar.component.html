@@ -3,7 +3,7 @@
        class="button"
        routerLink="{{routeInfo.path}}"
        routerLinkActive="selected">
-        <span class="icon glyphicon {{routeInfo.icon}}"></span>
+        <img src="{{routeInfo.icon}}" />
         <span class="text">{{routeInfo.name}}</span>
     </a>
 
@@ -12,7 +12,7 @@
     <a class="button"
        [attr.disabled]="commandsEnabled ? null : true"
        (click)="!commandsEnabled || onCommandRestart()">
-        <span class="icon glyphicon glyphicon-refresh"></span>
+        <img src="assets/icons/refresh.svg" />
         <span class="text">Restart</span>
     </a>
 </div>
