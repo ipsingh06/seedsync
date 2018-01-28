@@ -10,35 +10,35 @@
         <div class="button" appClickStopPropagation
              [class.selected]="(filter | async)?.allFilterSelected"
              (click)="onFilterAll()">
-            <span class="icon glyphicon glyphicon-align-justify"></span>
+            <img src="assets/icons/hamburger.svg" id="all" />
             <span class="text">All</span>
         </div>
         <div class="button" appClickStopPropagation
              [class.selected]="(filter | async)?.downloadedFilterSelected"
              [attr.disabled]="(filter | async)?.downloadedFilterEnabled ? null : true"
              (click)="onFilterDownloaded()">
-            <span class="icon glyphicon glyphicon-saved"></span>
+            <img src="assets/icons/downloaded.svg" id="downloaded" />
             <span class="text">Downloaded</span>
         </div>
         <div class="button" appClickStopPropagation
              [class.selected]="(filter | async)?.downloadingFilterSelected"
              [attr.disabled]="(filter | async)?.downloadingFilterEnabled ? null : true"
              (click)="onFilterDownloading()">
-            <span class="icon glyphicon glyphicon-save"></span>
+            <img src="assets/icons/downloading.svg" id="downloading" />
             <span class="text">Downloading</span>
         </div>
         <div class="button" appClickStopPropagation
              [class.selected]="(filter | async)?.queuedFilterSelected"
              [attr.disabled]="(filter | async)?.queuedFilterEnabled ? null : true"
              (click)="onFilterQueued()">
-            <span class="icon glyphicon glyphicon-list"></span>
+            <img src="assets/icons/queued.svg" id="queued" />
             <span class="text">Queued</span>
         </div>
         <div class="button" appClickStopPropagation
              [class.selected]="(filter | async)?.stoppedFilterSelected"
              [attr.disabled]="(filter | async)?.stoppedFilterEnabled ? null : true"
              (click)="onFilterStopped()">
-            <span class="icon glyphicon glyphicon-stop"></span>
+            <img src="assets/icons/stopped.svg" id="stopped" />
             <span class="text">Stopped</span>
         </div>
     </div>

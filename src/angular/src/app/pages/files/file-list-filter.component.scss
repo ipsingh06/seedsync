@@ -48,15 +48,24 @@
     margin-right: 8px;
     height: 30px;
     flex-grow: 1;
-}
 
-#filter-status .button .icon {
-    margin-top: -2px;
-}
+    img {
+        width: 15px;
+        height: 15px;
+        filter: invert(1.0);
+    }
+    img#downloaded,
+    img#downloading {
+        width: 20px;
+    }
+    img#stopped {
+        width: 13px;
+    }
 
-#filter-status .button .text {
-    margin-left: 5px;
-    display: none;
+    .text {
+        margin-left: 5px;
+        display: none;
+    }
 }
 /* Do show the text for 'All' button */
 #filter-status .button:first-of-type .text {
