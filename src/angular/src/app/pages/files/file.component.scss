@@ -123,12 +123,16 @@
     width: 50px;
     min-width: 50px;
     height: 50px;
-}
-.actions .button .icon {
-    font-size: 26px;
-}
-.actions .button .text {
-    font-size: 12px;
+
+    .text {
+        font-size: 12px;
+    }
+
+    img {
+        width: 25px;
+        height: 25px;
+        filter: invert(1.0);
+    }
 }
 
 /* action toolbar show and hide */

@@ -59,12 +59,12 @@
     <div class="actions">
         <div class="button" appClickStopPropagation [attr.disabled]="file.isQueueable ? null : true"
              (click)="!file.isQueueable || onQueue(file)">
-            <span class="icon glyphicon glyphicon-plus-sign"></span>
+            <img src="assets/icons/queue.svg" />
             <span class="text">Queue</span>
         </div>
         <div class="button" appClickStopPropagation [attr.disabled]="file.isStoppable ? null : true"
              (click)="!file.isStoppable || onStop(file)">
-            <span class="icon glyphicon glyphicon-stop"></span>
+            <img src="assets/icons/stop.svg" />
             <span class="text">Stop</span>
         </div>
     </div>
