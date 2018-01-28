@@ -43,10 +43,13 @@
 .content .name {
     display: flex;
     flex-direction: row;
-}
-.content .name .icon {
-    padding-right: 8px;
-    padding-top: 3px;
+
+    img {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        margin-top: 3px;
+    }
 }
 
 /* Status */
@@ -55,8 +58,6 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-}
-.content .status {
     height: 62px;
     max-height: 62px;
 
@@ -76,10 +77,11 @@
     img#stopped {
         width: 30px;
     }
-}
-.content .status .text {
-    margin-top: 3px;
-    font-size: 70%;
+
+    .text {
+        margin-top: 3px;
+        font-size: 70%;
+    }
 }
 
 /* Speed */
