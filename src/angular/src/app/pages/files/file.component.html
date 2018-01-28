@@ -1,18 +1,22 @@
 <div class="file" [class.selected]="file.isSelected">
     <div class="content">
         <div class="status">
-            <span *ngIf="file.status === ViewFile.Status.DEFAULT"
-                  class="icon glyphicon glyphicon-unchecked"></span>
-            <span *ngIf="file.status === ViewFile.Status.QUEUED"
-                  class="icon glyphicon glyphicon-list"></span>
-            <span *ngIf="file.status === ViewFile.Status.DOWNLOADING"
-                  class="icon glyphicon glyphicon-save"></span>
-            <span *ngIf="file.status === ViewFile.Status.DOWNLOADED"
-                  class="icon glyphicon glyphicon-saved"></span>
-            <span *ngIf="file.status === ViewFile.Status.STOPPED"
-                  class="icon glyphicon glyphicon glyphicon-stop"></span>
-            <span *ngIf="file.status === ViewFile.Status.DELETED"
-                  class="icon glyphicon glyphicon glyphicon-remove"></span>
+            <img src="assets/icons/default-remote.svg" id="default-remote"
+                 *ngIf="file.status === ViewFile.Status.DEFAULT && file.remoteSize > 0" />
+            <img src="assets/icons/queued.svg" id="queued"
+                 *ngIf="file.status === ViewFile.Status.QUEUED" />
+            <img src="assets/icons/downloading.svg" id="downloading"
+                 *ngIf="file.status === ViewFile.Status.DOWNLOADING" />
+            <img src="assets/icons/downloaded.svg" id="downloaded"
+                 *ngIf="file.status === ViewFile.Status.DOWNLOADED" />
+            <img src="assets/icons/stopped.svg" id="stopped"
+                 *ngIf="file.status === ViewFile.Status.STOPPED" />
+            <img src="assets/icons/deleted.svg" id="deleted"
+                 *ngIf="file.status === ViewFile.Status.DELETED" />
+            <img src="assets/icons/extracting.svg" id="extracting"
+                 *ngIf="file.status === ViewFile.Status.EXTRACTING" />
+            <img src="assets/icons/extracted.svg" id="extracted"
+                 *ngIf="file.status === ViewFile.Status.EXTRACTED" />
             <!-- don't show text for default status -->
             <span *ngIf="file.status != ViewFile.Status.DEFAULT"
                   class="text">{{file.status | capitalize}}</span>

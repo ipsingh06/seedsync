@@ -53,9 +53,29 @@
 .content .status {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
-.content .status .icon {
-    font-size: 32px;
+.content .status {
+    height: 62px;
+    max-height: 62px;
+
+    img {
+        height: 35px;
+        width: 35px;
+    }
+
+    // Optical weighting
+    img#downloading, img#downloaded {
+        width: 45px;
+    }
+    img#default-remote {
+        width: 45px;
+        height: 45px;
+    }
+    img#stopped {
+        width: 30px;
+    }
 }
 .content .status .text {
     margin-top: 3px;
