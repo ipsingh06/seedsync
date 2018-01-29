@@ -53,4 +53,10 @@ export class FileListComponent {
             this._logger.info(data);
         });
     }
+
+    onExtract(file: ViewFile) {
+        this.viewFileService.extract(file).subscribe(data => {
+            this._logger.info(data);
+        });
+    }
 }

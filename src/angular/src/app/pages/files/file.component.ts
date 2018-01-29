@@ -21,6 +21,7 @@ export class FileComponent {
 
     @Output() queueEvent = new EventEmitter<ViewFile>();
     @Output() stopEvent = new EventEmitter<ViewFile>();
+    @Output() extractEvent = new EventEmitter<ViewFile>();
 
     onQueue(file: ViewFile) {
         // Pass to parent component
@@ -30,5 +31,10 @@ export class FileComponent {
     onStop(file: ViewFile) {
         // Pass to parent component
         this.stopEvent.emit(file);
+    }
+
+    onExtract(file: ViewFile) {
+        // Pass to parent component
+        this.extractEvent.emit(file);
     }
 }

@@ -462,4 +462,81 @@ describe("Testing model file service", () => {
         modelFileService.stop(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/stop/%252Ftest%252Fleadingslash").flush("done");
     }));
+
+    it("should send a GET on extract command", fakeAsync(() => {
+        // Connect the service
+        modelFileService.notifyConnected();
+
+        let modelFile = new ModelFile({
+            name: "File.One",
+            is_dir: false,
+            local_size: 4567,
+            remote_size: 9012,
+            state: ModelFile.State.DOWNLOADING,
+            downloading_speed: 55,
+            eta: 1,
+            full_path: "/new/path/to/file.one",
+            children: Immutable.Set<ModelFile>()
+        });
+
+        let count = 0;
+        modelFileService.extract(modelFile).subscribe({
+            next: reaction => {
+                expect(reaction.success).toBe(true);
+                count++;
+            }
+        });
+        httpMock.expectOne("/server/command/extract/File.One").flush("done");
+
+        tick();
+        expect(count).toBe(1);
+        httpMock.verify();
+    }));
+
+    it("should send correct GET requests on extract command", fakeAsync(() => {
+        // Connect the service
+        modelFileService.notifyConnected();
+
+        let modelFile;
+
+        modelFile = new ModelFile({
+            name: "test",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.extract(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/extract/test").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test space",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.extract(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/extract/test%2520space").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test/slash",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.extract(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/extract/test%252Fslash").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test\"doublequote",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.extract(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/extract/test%2522doublequote").flush("done");
+
+        modelFile = new ModelFile({
+            name: "/test/leadingslash",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.extract(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/extract/%252Ftest%252Fleadingslash").flush("done");
+    }));
 });

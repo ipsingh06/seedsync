@@ -69,6 +69,19 @@ export class ModelFileService extends BaseStreamService {
         return this._restService.sendRequest(url);
     }
 
+    /**
+     * Extract a file
+     * @param {ModelFile} file
+     * @returns {Observable<WebReaction>}
+     */
+    public extract(file: ModelFile): Observable<WebReaction> {
+        this._logger.debug("Extract model file: " + file.name);
+        // Double-encode the value
+        const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
+        const url: string = "/server/command/extract/" + fileNameEncoded;
+        return this._restService.sendRequest(url);
+    }
+
     protected onEvent(eventName: string, data: string) {
         this.parseEvent(eventName, data);
     }

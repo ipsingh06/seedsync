@@ -75,5 +75,11 @@
             <img src="assets/icons/stop.svg" />
             <span class="text">Stop</span>
         </div>
+        <div class="button" appClickStopPropagation
+             [attr.disabled]="file.isExtractable && file.isArchive ? null : true"
+             (click)="!(file.isExtractable && file.isArchive) || onExtract(file)">
+            <img src="assets/icons/extract.svg" />
+            <span class="text">Extract</span>
+        </div>
     </div>
 </div>

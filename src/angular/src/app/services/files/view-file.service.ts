@@ -290,6 +290,16 @@ export class ViewFileService {
     }
 
     /**
+     * Extract a file
+     * @param {ViewFile} file
+     * @returns {Observable<WebReaction>}
+     */
+    public extract(file: ViewFile): Observable<WebReaction> {
+        this._logger.debug("Extract view file: " + file.name);
+        return this.createAction(file, (f) => this.modelFileService.extract(f));
+    }
+
+    /**
      * Set a new filter criteria
      * @param {ViewFileFilterCriteria} criteria
      */
