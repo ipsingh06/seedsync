@@ -42,10 +42,18 @@
         <div class="size">
             <div class="progress">
                 <div class="progress-bar" role="progressbar"
-                     [class.active]="file.status === ViewFile.Status.DOWNLOADING"
-                     [class.progress-bar-striped]="file.status === ViewFile.Status.DOWNLOADING"
+                     [class.active]="
+                        file.status === ViewFile.Status.DOWNLOADING ||
+                        file.status === ViewFile.Status.EXTRACTING
+                     "
+                     [class.progress-bar-striped]="
+                        file.status === ViewFile.Status.DOWNLOADING ||
+                        file.status === ViewFile.Status.EXTRACTING
+                     "
                      [attr.aria-valuenow]="file.percentDownloaded" aria-valuemin="0" aria-valuemax="100"
-                     [style.width]="file.percentDownloaded + '%'">
+                     [style.width]="
+                        min(file.percentDownloaded,100) + '%'
+                     ">
                     {{file.percentDownloaded}}%
                 </div>
             </div>

@@ -14,6 +14,9 @@ export class FileComponent {
     // Make ViewFile optionType accessible from template
     ViewFile = ViewFile;
 
+    // Expose min function for template
+    min = Math.min;
+
     @Input() file: ViewFile;
 
     @Output() queueEvent = new EventEmitter<ViewFile>();
