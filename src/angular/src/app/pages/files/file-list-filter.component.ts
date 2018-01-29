@@ -26,6 +26,14 @@ export class FileListFilterComponent {
         this.viewFileFilterService.filterStatus(null);
     }
 
+    onFilterExtracted() {
+        this.viewFileFilterService.filterStatus(ViewFile.Status.EXTRACTED);
+    }
+
+    onFilterExtracting() {
+        this.viewFileFilterService.filterStatus(ViewFile.Status.EXTRACTING);
+    }
+
     onFilterDownloaded() {
         this.viewFileFilterService.filterStatus(ViewFile.Status.DOWNLOADED);
     }

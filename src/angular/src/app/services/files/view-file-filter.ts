@@ -5,6 +5,8 @@ import {Record} from "immutable";
  * Describes filter state and provider filtering helpers
  */
 interface IViewFileFilter {
+    extractedFilterEnabled: boolean;
+    extractingFilterEnabled: boolean;
     downloadedFilterEnabled: boolean;
     downloadingFilterEnabled: boolean;
     queuedFilterEnabled: boolean;
@@ -12,6 +14,8 @@ interface IViewFileFilter {
     defaultFilterEnabled: boolean;
 
     allFilterSelected: boolean;
+    extractedFilterSelected: boolean;
+    extractingFilterSelected: boolean;
     downloadedFilterSelected: boolean;
     downloadingFilterSelected: boolean;
     queuedFilterSelected: boolean;
@@ -21,6 +25,8 @@ interface IViewFileFilter {
 
 // Boiler plate code to set up an immutable class
 const DefaultViewFileFilter: IViewFileFilter = {
+    extractedFilterEnabled: null,
+    extractingFilterEnabled: null,
     downloadedFilterEnabled: null,
     downloadingFilterEnabled: null,
     queuedFilterEnabled: null,
@@ -28,6 +34,8 @@ const DefaultViewFileFilter: IViewFileFilter = {
     defaultFilterEnabled: null,
 
     allFilterSelected: null,
+    extractedFilterSelected: null,
+    extractingFilterSelected: null,
     downloadedFilterSelected: null,
     downloadingFilterSelected: null,
     queuedFilterSelected: null,
@@ -40,6 +48,8 @@ const ViewFileFilterRecord = Record(DefaultViewFileFilter);
  * Immutable class that implements the interface
  */
 export class ViewFileFilter extends ViewFileFilterRecord implements IViewFileFilter {
+    extractedFilterEnabled: boolean;
+    extractingFilterEnabled: boolean;
     downloadedFilterEnabled: boolean;
     downloadingFilterEnabled: boolean;
     queuedFilterEnabled: boolean;
@@ -48,6 +58,8 @@ export class ViewFileFilter extends ViewFileFilterRecord implements IViewFileFil
     defaultFilterEnabled: boolean;
 
     allFilterSelected: boolean;
+    extractedFilterSelected: boolean;
+    extractingFilterSelected: boolean;
     downloadedFilterSelected: boolean;
     downloadingFilterSelected: boolean;
     queuedFilterSelected: boolean;

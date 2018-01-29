@@ -127,6 +127,8 @@ export class ViewFileFilterService {
     }
 
     private updateState() {
+        const extractedEn = this.isStatusEnabled(ViewFile.Status.EXTRACTED);
+        const extractingEn = this.isStatusEnabled(ViewFile.Status.EXTRACTING);
         const downloadedEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADED);
         const downloadingEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADING);
         const queuedEn = this.isStatusEnabled(ViewFile.Status.QUEUED);
@@ -134,6 +136,8 @@ export class ViewFileFilterService {
         const defaultEn = this.isStatusEnabled(ViewFile.Status.DEFAULT);
 
         const allSel = this._statusFilter.status == null;
+        const extractedSel = this._statusFilter.status === ViewFile.Status.EXTRACTED;
+        const extractingSel = this._statusFilter.status === ViewFile.Status.EXTRACTING;
         const downloadedSel = this._statusFilter.status === ViewFile.Status.DOWNLOADED;
         const downloadingSel = this._statusFilter.status === ViewFile.Status.DOWNLOADING;
         const queuedSel = this._statusFilter.status === ViewFile.Status.QUEUED;
@@ -141,6 +145,8 @@ export class ViewFileFilterService {
         const defaultSel = this._statusFilter.status === ViewFile.Status.DEFAULT;
 
         const filter: ViewFileFilter = new ViewFileFilter({
+            extractedFilterEnabled: extractedEn,
+            extractingFilterEnabled: extractingEn,
             downloadedFilterEnabled: downloadedEn,
             downloadingFilterEnabled: downloadingEn,
             queuedFilterEnabled: queuedEn,
@@ -148,6 +154,8 @@ export class ViewFileFilterService {
             defaultFilterEnabled: defaultEn,
 
             allFilterSelected: allSel,
+            extractedFilterSelected: extractedSel,
+            extractingFilterSelected: extractingSel,
             downloadedFilterSelected: downloadedSel,
             downloadingFilterSelected: downloadingSel,
             queuedFilterSelected: queuedSel,

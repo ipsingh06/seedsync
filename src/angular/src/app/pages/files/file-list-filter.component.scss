@@ -39,10 +39,15 @@
 
 #filter-status {
     margin-top: 8px;
+    // To offset the margin bottom of buttons
+    margin-bottom: -10px;
 }
 
 #filter-status .button {
     @extend %button;
+
+    // For when buttons get wrapper to multiple rows
+    margin-bottom: 10px;
 
     flex-direction: row;
     padding: 5px;

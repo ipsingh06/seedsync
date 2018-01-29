@@ -14,6 +14,20 @@
             <span class="text">All</span>
         </div>
         <div class="button" appClickStopPropagation
+             [class.selected]="(filter | async)?.extractedFilterSelected"
+             [attr.disabled]="(filter | async)?.extractedFilterEnabled ? null : true"
+             (click)="onFilterExtracted()">
+            <img src="assets/icons/extracted.svg" id="extracted" />
+            <span class="text">Extracted</span>
+        </div>
+        <div class="button" appClickStopPropagation
+             [class.selected]="(filter | async)?.extractingFilterSelected"
+             [attr.disabled]="(filter | async)?.extractingFilterEnabled ? null : true"
+             (click)="onFilterExtracting()">
+            <img src="assets/icons/extracting.svg" id="extracting" />
+            <span class="text">Extracting</span>
+        </div>
+        <div class="button" appClickStopPropagation
              [class.selected]="(filter | async)?.downloadedFilterSelected"
              [attr.disabled]="(filter | async)?.downloadedFilterEnabled ? null : true"
              (click)="onFilterDownloaded()">
