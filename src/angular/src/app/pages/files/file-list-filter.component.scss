@@ -15,15 +15,16 @@
 
 #filter-search {
     position: relative;
-}
 
-#filter-search .icon {
-    position: absolute;
-    left: 7px;
-    top: 7px;
-    font-size: 20px;
-    z-index: $zindex-file-search;
-    color: $header-color;
+    img {
+        width: 20px;
+        height: 20px;
+        position: absolute;
+        left: 7px;
+        top: 7px;
+        z-index: $zindex-file-search;
+        filter: invert(0.8666);
+    }
 }
 
 #filter-search .input-group{

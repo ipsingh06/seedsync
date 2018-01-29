@@ -7,12 +7,13 @@
         border-radius: 0;
 
         button.close {
-            top: -1px;
+            top: 0px;
             right: 0;
             cursor: default;
             user-select: none;
             outline: none;
             opacity: .2;
+            font-size: 160%;
 
             &:active {
                 color: red;

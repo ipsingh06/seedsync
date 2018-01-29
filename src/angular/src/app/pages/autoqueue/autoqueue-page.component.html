@@ -22,7 +22,7 @@
             <div class="button" appClickStopPropagation
                  [attr.disabled]="enabled && patternsOnly ? null : true"
                  (click)="!(enabled && patternsOnly) || onRemovePattern(pattern)">
-                <span class="glyphicon glyphicon-minus"></span>
+                <span>&#8722;</span>
             </div>
             <span class="text">{{pattern.pattern}}</span>
         </div>
@@ -30,11 +30,12 @@
             <div class="button" appClickStopPropagation
                  (click)="!(newPattern && enabled && patternsOnly) || onAddPattern()"
                  [attr.disabled]="newPattern && enabled && patternsOnly ? null : true">
-                <span class="glyphicon glyphicon-plus"></span>
+                <span>&#43;</span>
             </div>
             <label>
                 <input type="search"
                        class="form-control"
+                       (keyup.enter)="!(newPattern && enabled && patternsOnly) || onAddPattern()"
                        [(ngModel)]="newPattern"
                        [disabled]="!connected || !enabled || !patternsOnly"/>
             </label>
