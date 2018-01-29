@@ -59,6 +59,11 @@ class Extract:
         if not Extract.is_archive(archive_path):
             raise ExtractError("Path is not a valid archive: {}".format(archive_path))
         try:
+            # Try to create the outdir path
+            if not os.path.exists(out_dir_path):
+                os.makedirs(out_dir_path)
             patoolib.extract_archive(archive_path, outdir=out_dir_path, interactive=False)
+        except FileNotFoundError as e:
+            raise ExtractError(str(e))
         except patoolib.util.PatoolError as e:
             raise ExtractError(str(e))

@@ -165,7 +165,7 @@ class TestExtract(unittest.TestCase):
 
     def test_extract_archive_creates_sub_directories(self):
         out_path = os.path.join(TestExtract.temp_dir, "bunch", "of", "sub", "dir")
-        Extract.extract_archive(archive_path=TestExtract.ar_zip,
+        Extract.extract_archive(archive_path=TestExtract.ar_rar,
                                 out_dir_path=out_path)
         self._assert_extracted_files(out_path)
 
