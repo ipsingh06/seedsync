@@ -10,7 +10,7 @@ import {NotificationService} from "../../services/utils/notification.service";
 import {ServerCommandService} from "../../services/server/server-command.service";
 import {
     OPTIONS_CONTEXT_CONNECTIONS, OPTIONS_CONTEXT_DISCOVERY, OPTIONS_CONTEXT_OTHER,
-    OPTIONS_CONTEXT_SERVER, OPTIONS_CONTEXT_AUTOQUEUE
+    OPTIONS_CONTEXT_SERVER, OPTIONS_CONTEXT_AUTOQUEUE, OPTIONS_CONTEXT_EXTRACT
 } from "./options-list";
 import {ConnectedService} from "../../services/utils/connected.service";
 import {StreamServiceRegistry} from "../../services/base/stream-service.registry";
@@ -29,6 +29,7 @@ export class SettingsPageComponent implements OnInit {
     public OPTIONS_CONTEXT_CONNECTIONS = OPTIONS_CONTEXT_CONNECTIONS;
     public OPTIONS_CONTEXT_OTHER = OPTIONS_CONTEXT_OTHER;
     public OPTIONS_CONTEXT_AUTOQUEUE = OPTIONS_CONTEXT_AUTOQUEUE;
+    public OPTIONS_CONTEXT_EXTRACT = OPTIONS_CONTEXT_EXTRACT;
 
     public config: Observable<Config>;
 

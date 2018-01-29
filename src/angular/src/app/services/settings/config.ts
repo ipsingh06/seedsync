@@ -54,11 +54,15 @@ interface IController {
     interval_ms_remote_scan: number;
     interval_ms_local_scan: number;
     interval_ms_downloading_scan: number;
+    extract_path: string;
+    use_local_path_as_extract_path: boolean;
 }
 const DefaultController: IController = {
     interval_ms_remote_scan: null,
     interval_ms_local_scan: null,
     interval_ms_downloading_scan: null,
+    extract_path: null,
+    use_local_path_as_extract_path: null,
 };
 const ControllerRecord = Record(DefaultController);
 

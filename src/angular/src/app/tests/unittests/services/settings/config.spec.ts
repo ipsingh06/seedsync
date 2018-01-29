@@ -26,7 +26,9 @@ describe("Testing config record initialization", () => {
             controller: {
                 interval_ms_remote_scan: 30000,
                 interval_ms_local_scan: 10000,
-                interval_ms_downloading_scan: 1000
+                interval_ms_downloading_scan: 1000,
+                extract_path: "/path/to/extract",
+                use_local_path_as_extract_path: true,
             },
             web: {
                 port: 8800
@@ -56,6 +58,8 @@ describe("Testing config record initialization", () => {
         expect(config.controller.interval_ms_remote_scan).toBe(30000);
         expect(config.controller.interval_ms_local_scan).toBe(10000);
         expect(config.controller.interval_ms_downloading_scan).toBe(1000);
+        expect(config.controller.extract_path).toBe("/path/to/extract");
+        expect(config.controller.use_local_path_as_extract_path).toBe(true);
         expect(config.web.port).toBe(8800);
         expect(config.autoqueue.enabled).toBe(true);
         expect(config.autoqueue.patterns_only).toBe(false);

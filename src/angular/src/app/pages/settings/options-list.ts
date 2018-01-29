@@ -153,3 +153,21 @@ export const OPTIONS_CONTEXT_AUTOQUEUE: IOptionsContext = {
         },
     ]
 };
+
+export const OPTIONS_CONTEXT_EXTRACT: IOptionsContext = {
+    header: "Archive Extraction",
+    options: [
+        {
+            type: OptionType.Checkbox,
+            label: "Extract archives in the downloads directory",
+            valuePath: ["controller", "use_local_path_as_extract_path"],
+            description: null
+        },
+        {
+            type: OptionType.Text,
+            label: "Extract Path",
+            valuePath: ["controller", "extract_path"],
+            description: "When option above is disabled, extract archives to this directory"
+        },
+    ]
+};
