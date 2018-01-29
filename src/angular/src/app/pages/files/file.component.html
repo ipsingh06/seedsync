@@ -22,10 +22,10 @@
                   class="text">{{file.status | capitalize}}</span>
         </div>
         <div class="name">
-            <img src="assets/icons/file.svg" *ngIf="!file.isDir && !file.isArchive" />
-            <img src="assets/icons/file-archive.svg" *ngIf="!file.isDir && file.isArchive" />
-            <img src="assets/icons/directory.svg" *ngIf="file.isDir && !file.isArchive" />
-            <img src="assets/icons/directory-archive.svg" *ngIf="file.isDir && file.isArchive" />
+            <img src="assets/icons/file-light.svg" *ngIf="!file.isDir && !file.isArchive" />
+            <img src="assets/icons/file-archive-light.svg" *ngIf="!file.isDir && file.isArchive" />
+            <img src="assets/icons/directory-light.svg" *ngIf="file.isDir && !file.isArchive" />
+            <img src="assets/icons/directory-archive-light.svg" *ngIf="file.isDir && file.isArchive" />
             <div class="text">{{file.name}}</div>
         </div>
         <div class="speed">
