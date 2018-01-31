@@ -4,6 +4,8 @@ import unittest
 import os
 from unittest.mock import patch, MagicMock, call
 import time
+import logging
+import sys
 
 import timeout_decorator
 
@@ -41,6 +43,13 @@ class TestExtractDispatch(unittest.TestCase):
         self.listener = DummyExtractListener()
         self.listener.extract_completed = MagicMock()
         self.listener.extract_failed = MagicMock()
+
+        logger = logging.getLogger()
+        handler = logging.StreamHandler(sys.stdout)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+        handler.setFormatter(formatter)
 
         self.dispatch.start()
 
@@ -692,3 +701,34 @@ class TestExtractDispatch(unittest.TestCase):
 
         status = self.dispatch.status()
         self.assertEqual(0, len(status))
+
+    @timeout_decorator.timeout(2)
+    def test_extract_ignores_duplicate_calls(self):
+        # Send two extract commands to same file
+        # Expect that only one extract operation is performed
+        self.mock_is_archive.return_value = True
+
+        self.barrier = False
+
+        def _extract_archive(**kwargs):
+            print(kwargs)
+            while not self.barrier:
+                pass
+
+        self.mock_extract_archive.side_effect = _extract_archive
+
+        a = ModelFile("a", False)
+        a.local_size = 200
+
+        self.dispatch.add_listener(self.listener)
+        self.dispatch.extract(a)
+        self.dispatch.extract(a)
+
+        time.sleep(0.1)
+        self.barrier = True
+
+        while self.mock_extract_archive.call_count < 1:
+            pass
+        self.listener.extract_completed.assert_called_once_with("a", False)
+        self.listener.extract_failed.assert_not_called()
+        self.assertEqual(1, self.mock_extract_archive.call_count)

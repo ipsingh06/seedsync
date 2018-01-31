@@ -107,6 +107,11 @@ class ExtractDispatch:
     def extract(self, model_file: ModelFile):
         self.logger.debug("Received extract for {}".format(model_file.name))
 
+        for task in self.__task_queue.queue:
+            if task.root_name == model_file.name:
+                self.logger.info("Ignoring extract for {}, already exists".format(model_file.name))
+                return
+
         # noinspection PyProtectedMember
         task = ExtractDispatch._Task(model_file.name, model_file.is_dir)
 
@@ -153,7 +158,8 @@ class ExtractDispatch:
 
         while not self.__worker_shutdown.is_set():
             # Try to grab next task
-            if len(self.__task_queue.queue) > 0:
+            # Do another check for shutdown
+            while len(self.__task_queue.queue) > 0 and not self.__worker_shutdown.is_set():
                 # peek the task
                 task = self.__task_queue.queue[0]
 
