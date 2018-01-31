@@ -293,7 +293,8 @@ class TestController(unittest.TestCase):
             },
             "AutoQueue": {
                 "enabled": "True",
-                "patterns_only": "True"
+                "patterns_only": "True",
+                "auto_extract": "True"
             }
         }
 

@@ -2,7 +2,7 @@
 
 import json
 from abc import ABC, abstractmethod
-from typing import Set
+from typing import Set, List, Callable, Tuple
 
 from common import overrides, Constants, Context, Persist, PersistError, Serializable
 from model import IModelListener, ModelFile
@@ -158,6 +158,7 @@ class AutoQueue:
         self.__persist_listener = AutoQueuePersistListener()
         self.__enabled = context.config.autoqueue.enabled
         self.__patterns_only = context.config.autoqueue.patterns_only
+        self.__auto_extract_enabled = context.config.autoqueue.auto_extract
 
         if self.__enabled:
             persist.add_listener(self.__persist_listener)
@@ -180,45 +181,63 @@ class AutoQueue:
         if not self.__enabled:
             return
 
-        # Build a list of candidate files
-        new_files = []
+        ###
+        # Queue
+        ###
+        queue_candidate_files = []
 
-        # Accept new files that exist remotely
-        for file in self.__model_listener.new_files:
-            if AutoQueue.__accept(file):
-                new_files.append(file)
+        # Candidate all new files
+        queue_candidate_files += self.__model_listener.new_files
 
-        # Accept modified files where the remote size changed
+        # Candidate modified files where the remote size changed
         for old_file, new_file in self.__model_listener.modified_files:
-            if AutoQueue.__accept(new_file):
-                if old_file.remote_size != new_file.remote_size:
-                    # File was just discovered
-                    # (remote old size is None, new size is not None)
-                    new_files.append(new_file)
+            if old_file.remote_size != new_file.remote_size:
+                queue_candidate_files.append(new_file)
 
-        # Files to queue, filename -> pattern map
-        # Filename key prevents a file from being queued twice
-        files_to_queue = dict()
+        files_to_queue = self.__filter_candidates(
+            candidates=queue_candidate_files,
+            accept=lambda f: f.remote_size is not None and f.state == ModelFile.State.DEFAULT
+        )
 
-        # Step 1: run new file through all the patterns
-        for file in new_files:
-            for pattern in self.__persist.patterns:
-                if self.__match(pattern, file):
-                    files_to_queue[file.name] = pattern
-                    break
+        ###
+        # Extract
+        ###
+        files_to_extract = []
 
-        # Step 2: run new pattern through all the files
-        if self.__persist_listener.new_patterns:
-            model_files = self.__controller.get_model_files()
-            for new_pattern in self.__persist_listener.new_patterns:
-                for file in model_files:
-                    if AutoQueue.__accept(file) and self.__match(new_pattern, file):
-                        files_to_queue[file.name] = new_pattern
+        if self.__auto_extract_enabled:
+            extract_candidate_files = []
+
+            # Candidate all new files
+            extract_candidate_files += self.__model_listener.new_files
+
+            # Candidate modified files that just became DOWNLOADED
+            for old_file, new_file in self.__model_listener.modified_files:
+                if old_file.state != ModelFile.State.DOWNLOADED and \
+                        new_file.state == ModelFile.State.DOWNLOADED:
+                    extract_candidate_files.append(new_file)
+
+            files_to_extract = self.__filter_candidates(
+                candidates=extract_candidate_files,
+                accept=lambda f:
+                    f.state == ModelFile.State.DOWNLOADED and
+                    f.local_size is not None and
+                    f.local_size > 0
+            )
+
+        ###
+        # Send commands
+        ###
 
         # Send the queue commands
-        for filename, pattern in files_to_queue.items():
+        for filename, pattern in files_to_queue:
             self.logger.info("Auto queueing '{}' for pattern '{}'".format(filename, pattern.pattern))
             command = Controller.Command(Controller.Command.Action.QUEUE, filename)
+            self.__controller.queue_command(command)
+
+        # Send the extract commands
+        for filename, pattern in files_to_extract:
+            self.logger.info("Auto extracting '{}' for pattern '{}'".format(filename, pattern.pattern))
+            command = Controller.Command(Controller.Command.Action.EXTRACT, filename)
             self.__controller.queue_command(command)
 
         # Clear the processed files
@@ -226,6 +245,39 @@ class AutoQueue:
         self.__model_listener.modified_files.clear()
         # Clear the new patterns
         self.__persist_listener.new_patterns.clear()
+
+    def __filter_candidates(self,
+                            candidates: List[ModelFile],
+                            accept: Callable[[ModelFile], bool]) -> List[Tuple[str, AutoQueuePattern]]:
+        """
+        Given a list of candidate files, filter out those that match the accept criteria
+        Also takes into consideration new patterns that were added
+        The accept criteria is applied to candidates AND all existing files in case of
+        new patterns
+        :param candidates:
+        :param accept:
+        :return: list of (filename, pattern) pairs
+        """
+        # Files accepted and matched, filename -> pattern map
+        # Filename key prevents a file from being accepted twice
+        files_matched = dict()
+
+        # Step 1: run candidates through all the patterns
+        for file in candidates:
+            for pattern in self.__persist.patterns:
+                if accept(file) and self.__match(pattern, file):
+                    files_matched[file.name] = pattern
+                    break
+
+        # Step 2: run new pattern through all the files
+        if self.__persist_listener.new_patterns:
+            model_files = self.__controller.get_model_files()
+            for new_pattern in self.__persist_listener.new_patterns:
+                for file in model_files:
+                    if accept(file) and self.__match(new_pattern, file):
+                        files_matched[file.name] = new_pattern
+
+        return list(zip(files_matched.keys(), files_matched.values()))
 
     def __match(self, pattern: AutoQueuePattern, file: ModelFile) -> bool:
         """
@@ -236,14 +288,3 @@ class AutoQueue:
         """
         return not self.__patterns_only or \
             pattern.pattern.lower() in file.name.lower()
-
-    @staticmethod
-    def __accept(file: ModelFile) -> bool:
-        """
-        Returns true if file is a candidate for queueing (must exist remotely
-        in the default state)
-        :param file:
-        :return:
-        """
-        return file.remote_size is not None and \
-            file.state == ModelFile.State.DEFAULT

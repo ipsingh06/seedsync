@@ -281,11 +281,13 @@ class Config(Persist):
     class AutoQueue(InnerConfig):
         enabled = PROP("enabled", Checkers.null, Converters.bool)
         patterns_only = PROP("patterns_only", Checkers.null, Converters.bool)
+        auto_extract = PROP("auto_extract", Checkers.null, Converters.bool)
 
         def __init__(self):
             super().__init__()
             self.enabled = None
             self.patterns_only = None
+            self.auto_extract = None
 
     def __init__(self):
         self.general = Config.General()

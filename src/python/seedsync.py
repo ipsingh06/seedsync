@@ -299,6 +299,7 @@ class Seedsync:
 
         config.autoqueue.enabled = True
         config.autoqueue.patterns_only = False
+        config.autoqueue.auto_extract = True
 
         return config
 

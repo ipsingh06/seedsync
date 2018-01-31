@@ -304,6 +304,7 @@ class TestAutoQueue(unittest.TestCase):
         self.context.config = Config()
         self.context.config.autoqueue.enabled = True
         self.context.config.autoqueue.patterns_only = True
+        self.context.config.autoqueue.auto_extract = True
         self.context.logger = self.logger
         self.controller = MagicMock()
         self.controller.get_model_files_and_add_listener = MagicMock()
@@ -492,6 +493,9 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.queue_command.assert_not_called()
 
     def test_matching_downloaded_files_are_not_queued(self):
+        # Disable auto-extract
+        self.context.config.autoqueue.auto_extract = False
+
         persist = AutoQueuePersist()
         persist.add_pattern(AutoQueuePattern(pattern="File.One"))
         # noinspection PyTypeChecker
@@ -668,6 +672,9 @@ class TestAutoQueue(unittest.TestCase):
         self.controller.queue_command.assert_not_called()
 
     def test_downloaded_file_with_changed_remote_size_is_queued(self):
+        # Disable auto-extract
+        self.context.config.autoqueue.auto_extract = False
+
         persist = AutoQueuePersist()
         persist.add_pattern(AutoQueuePattern(pattern="File.One"))
         # noinspection PyTypeChecker
@@ -756,3 +763,321 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual(set([Controller.Command.Action.QUEUE]*5), {c.action for c in commands})
         self.assertEqual({"File.One", "File.Two", "File.Three", "File.Four", "File.Five"},
                          {c.filename for c in commands})
+
+    def test_matching_new_files_are_extracted(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        file_one = ModelFile("File.One", True)
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_one.local_size = 100
+        file_two = ModelFile("File.Two", True)
+        file_two.state = ModelFile.State.DOWNLOADED
+        file_two.local_size = 200
+        file_three = ModelFile("File.Three", True)
+        file_three.state = ModelFile.State.DOWNLOADED
+        file_three.local_size = 300
+
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.One", command.filename)
+
+        self.model_listener.file_added(file_two)
+        auto_queue.process()
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.Two", command.filename)
+
+        self.model_listener.file_added(file_three)
+        auto_queue.process()
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.Three", command.filename)
+
+        # All at once
+        self.model_listener.file_added(file_one)
+        self.model_listener.file_added(file_two)
+        self.model_listener.file_added(file_three)
+        auto_queue.process()
+        calls = self.controller.queue_command.call_args_list[-3:]
+        commands = [calls[i][0][0] for i in range(3)]
+        self.assertEqual(set([Controller.Command.Action.EXTRACT]*3), {c.action for c in commands})
+        self.assertEqual({"File.One", "File.Two", "File.Three"}, {c.filename for c in commands})
+
+    def test_matching_initial_files_are_extracted(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+
+        file_one = ModelFile("File.One", True)
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_one.local_size = 100
+        file_two = ModelFile("File.Two", True)
+        file_two.state = ModelFile.State.DOWNLOADED
+        file_two.local_size = 200
+        file_three = ModelFile("File.Three", True)
+        file_three.state = ModelFile.State.DOWNLOADED
+        file_three.local_size = 300
+        file_four = ModelFile("File.Four", True)
+        file_four.state = ModelFile.State.DOWNLOADED
+        file_four.local_size = 400
+        file_five = ModelFile("File.Five", True)
+        file_five.state = ModelFile.State.DOWNLOADED
+        file_five.local_size = 500
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        auto_queue.process()
+
+        calls = self.controller.queue_command.call_args_list
+        self.assertEqual(3, len(calls))
+        commands = [calls[i][0][0] for i in range(3)]
+        self.assertEqual(set([Controller.Command.Action.EXTRACT]*3), {c.action for c in commands})
+        self.assertEqual({"File.One", "File.Two", "File.Three"}, {c.filename for c in commands})
+
+    def test_new_matching_pattern_extracts_existing_files(self):
+        persist = AutoQueuePersist()
+
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_two = ModelFile("File.Two", True)
+        file_two.local_size = 200
+        file_two.state = ModelFile.State.DOWNLOADED
+        file_three = ModelFile("File.Three", True)
+        file_three.local_size = 300
+        file_three.state = ModelFile.State.DOWNLOADED
+        file_four = ModelFile("File.Four", True)
+        file_four.local_size = 400
+        file_four.state = ModelFile.State.DOWNLOADED
+        file_five = ModelFile("File.Five", True)
+        file_five.local_size = 500
+        file_five.state = ModelFile.State.DOWNLOADED
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.One", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.Two", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.Three", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_no_files_are_extracted_when_disabled(self):
+        self.context.config.autoqueue.enabled = False
+
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_two = ModelFile("File.Two", True)
+        file_two.local_size = 200
+        file_two.state = ModelFile.State.DOWNLOADED
+        file_three = ModelFile("File.Three", True)
+        file_three.local_size = 300
+        file_three.state = ModelFile.State.DOWNLOADED
+        file_four = ModelFile("File.Four", True)
+        file_four.local_size = 400
+        file_four.state = ModelFile.State.DOWNLOADED
+        file_five = ModelFile("File.Five", True)
+        file_five.local_size = 500
+        file_five.state = ModelFile.State.DOWNLOADED
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # First with patterns_only ON
+        self.context.config.autoqueue.patterns_only = True
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        # Second with patterns_only OFF
+        self.context.config.autoqueue.patterns_only = False
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_no_files_are_extracted_when_auto_extract_disabled(self):
+        self.context.config.autoqueue.enabled = True
+        self.context.config.autoqueue.auto_extract = False
+
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_two = ModelFile("File.Two", True)
+        file_two.local_size = 200
+        file_two.state = ModelFile.State.DOWNLOADED
+        file_three = ModelFile("File.Three", True)
+        file_three.local_size = 300
+        file_three.state = ModelFile.State.DOWNLOADED
+        file_four = ModelFile("File.Four", True)
+        file_four.local_size = 400
+        file_four.state = ModelFile.State.DOWNLOADED
+        file_five = ModelFile("File.Five", True)
+        file_five.local_size = 500
+        file_five.state = ModelFile.State.DOWNLOADED
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # First with patterns_only ON
+        self.context.config.autoqueue.patterns_only = True
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        # Second with patterns_only OFF
+        self.context.config.autoqueue.patterns_only = False
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_all_files_are_extracted_when_patterns_only_disabled(self):
+        self.context.config.autoqueue.patterns_only = False
+
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
+        persist.add_pattern(AutoQueuePattern(pattern="File.Three"))
+
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_two = ModelFile("File.Two", True)
+        file_two.local_size = 200
+        file_two.state = ModelFile.State.DOWNLOADED
+        file_three = ModelFile("File.Three", True)
+        file_three.local_size = 300
+        file_three.state = ModelFile.State.DOWNLOADED
+        file_four = ModelFile("File.Four", True)
+        file_four.local_size = 400
+        file_four.state = ModelFile.State.DOWNLOADED
+        file_five = ModelFile("File.Five", True)
+        file_five.local_size = 500
+        file_five.state = ModelFile.State.DOWNLOADED
+
+        self.initial_model = [file_one, file_two, file_three, file_four, file_five]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        auto_queue.process()
+        calls = self.controller.queue_command.call_args_list
+        self.assertEqual(5, len(calls))
+        commands = [calls[i][0][0] for i in range(5)]
+        self.assertEqual(set([Controller.Command.Action.EXTRACT]*5), {c.action for c in commands})
+        self.assertEqual({"File.One", "File.Two", "File.Three", "File.Four", "File.Five"},
+                         {c.filename for c in commands})
+
+    def test_file_is_extracted_after_finishing_download(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        # File exists remotely and is auto-queued
+        file_one = ModelFile("File.One", True)
+        file_one.remote_size = 100
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
+        self.assertEqual("File.One", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        # File starts downloading
+        file_one_new = ModelFile("File.One", True)
+        file_one_new.remote_size = 100
+        file_one_new.local_size = 50
+        file_one_new.state = ModelFile.State.DOWNLOADING
+        self.model_listener.file_updated(file_one, file_one_new)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        # File finishes downloading
+        file_one = file_one_new
+        file_one_new = ModelFile("File.One", True)
+        file_one_new.remote_size = 100
+        file_one_new.local_size = 100
+        file_one_new.state = ModelFile.State.DOWNLOADED
+        self.model_listener.file_updated(file_one, file_one_new)
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.One", command.filename)
+
+    def test_downloaded_file_is_NOT_re_extracted_after_modified(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        # File is auto-extracted
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.One", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        # File is modified
+        file_one_new = ModelFile("File.One", True)
+        file_one_new.local_size = 101
+        file_one_new.state = ModelFile.State.DOWNLOADED
+        self.model_listener.file_updated(file_one, file_one_new)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()

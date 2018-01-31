@@ -316,7 +316,8 @@ class TestConfig(unittest.TestCase):
     def test_autoqueue(self):
         good_dict = {
             "enabled": "True",
-            "patterns_only": "False"
+            "patterns_only": "False",
+            "auto_extract": "True"
         }
         autoqueue = Config.AutoQueue.from_dict(good_dict)
         self.assertEqual(True, autoqueue.enabled)
@@ -326,7 +327,8 @@ class TestConfig(unittest.TestCase):
                           good_dict,
                           {
                               "enabled",
-                              "patterns_only"
+                              "patterns_only",
+                              "auto_extract"
                           })
 
         # bad values
@@ -334,6 +336,8 @@ class TestConfig(unittest.TestCase):
         self.check_bad_value_error(Config.AutoQueue, good_dict, "enabled", "-1")
         self.check_bad_value_error(Config.AutoQueue, good_dict, "patterns_only", "SomeString")
         self.check_bad_value_error(Config.AutoQueue, good_dict, "patterns_only", "-1")
+        self.check_bad_value_error(Config.AutoQueue, good_dict, "auto_extract", "SomeString")
+        self.check_bad_value_error(Config.AutoQueue, good_dict, "auto_extract", "-1")
 
     def test_from_file(self):
         # Create empty config file
@@ -369,6 +373,7 @@ class TestConfig(unittest.TestCase):
         [AutoQueue]
         enabled=False
         patterns_only=True
+        auto_extract=True
         """)
         config_file.flush()
         config = Config.from_file(config_file.name)
@@ -397,6 +402,7 @@ class TestConfig(unittest.TestCase):
 
         self.assertEqual(False, config.autoqueue.enabled)
         self.assertEqual(True, config.autoqueue.patterns_only)
+        self.assertEqual(True, config.autoqueue.auto_extract)
 
         # unknown section error
         config_file.write("""
@@ -436,6 +442,7 @@ class TestConfig(unittest.TestCase):
         config.web.port = 13
         config.autoqueue.enabled = True
         config.autoqueue.patterns_only = True
+        config.autoqueue.auto_extract = False
         config.to_file(config_file_path)
         with open(config_file_path, "r") as f:
             actual_str = f.read()
@@ -471,6 +478,7 @@ class TestConfig(unittest.TestCase):
         [AutoQueue]
         enabled = True
         patterns_only = True
+        auto_extract = False
         """
 
         golden_lines = [s.strip() for s in golden_str.splitlines()]

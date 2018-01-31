@@ -727,6 +727,8 @@ class TestExtractDispatch(unittest.TestCase):
         time.sleep(0.1)
         self.barrier = True
 
+        time.sleep(0.1)
+
         while self.mock_extract_archive.call_count < 1:
             pass
         self.listener.extract_completed.assert_called_once_with("a", False)
