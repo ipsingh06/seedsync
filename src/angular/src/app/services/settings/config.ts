@@ -83,10 +83,12 @@ const WebRecord = Record(DefaultWeb);
 interface IAutoQueue {
     enabled: boolean;
     patterns_only: boolean;
+    auto_extract: boolean;
 }
 const DefaultAutoQueue: IAutoQueue = {
     enabled: null,
-    patterns_only: null
+    patterns_only: null,
+    auto_extract: null,
 };
 const AutoQueueRecord = Record(DefaultAutoQueue);
 

@@ -31,11 +31,6 @@
             *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_EXTRACT">
         </ng-container>
 
-        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
-        <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_OTHER">
-        </ng-container>
-
     </div>
     <div id="right">
         <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
@@ -46,6 +41,11 @@
         <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
         <ng-container
             *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_DISCOVERY">
+        </ng-container>
+
+        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+        <ng-container
+            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_OTHER">
         </ng-container>
     </div>
 

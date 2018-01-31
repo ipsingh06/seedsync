@@ -35,7 +35,8 @@ describe("Testing config record initialization", () => {
             },
             autoqueue: {
                 enabled: true,
-                patterns_only: false
+                patterns_only: false,
+                auto_extract: true,
             }
         };
         config = new Config(configJson);
@@ -63,6 +64,7 @@ describe("Testing config record initialization", () => {
         expect(config.web.port).toBe(8800);
         expect(config.autoqueue.enabled).toBe(true);
         expect(config.autoqueue.patterns_only).toBe(false);
+        expect(config.autoqueue.auto_extract).toBe(true);
     });
 
     it("should be immutable", () => {

@@ -151,6 +151,12 @@ export const OPTIONS_CONTEXT_AUTOQUEUE: IOptionsContext = {
             valuePath: ["autoqueue", "patterns_only"],
             description: "Only autoqueue files that match a pattern"
         },
+        {
+            type: OptionType.Checkbox,
+            label: "Enable auto extraction",
+            valuePath: ["autoqueue", "auto_extract"],
+            description: "Automatically extract files"
+        },
     ]
 };
 
