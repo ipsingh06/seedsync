@@ -4,6 +4,7 @@ FROM ubuntu:16.04
 RUN apt-get update && apt-get install -y \
     openssh-server \
     lftp \
+    rar \
     python3-pip
 
 # install python dependencies
