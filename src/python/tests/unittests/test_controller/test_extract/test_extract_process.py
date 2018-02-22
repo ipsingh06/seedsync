@@ -42,11 +42,11 @@ class TestExtractProcess(unittest.TestCase):
 
     @timeout_decorator.timeout(2)
     def test_param_out_dir_path(self):
-        self.out_dir_path = multiprocessing.Manager().Value(ctypes.c_char_p, "")
+        self.out_dir_path = multiprocessing.Array(ctypes.c_char, 100)
         self.ctor_called = multiprocessing.Value('i', 0)
 
         def mock_ctor(**kwargs):
-            self.out_dir_path.value = kwargs["out_dir_path"]
+            self.out_dir_path.value = str.encode(kwargs["out_dir_path"])
             self.ctor_called.value = 1
             return self.mock_dispatch
         self.mock_dispatch_cls.side_effect = mock_ctor
@@ -57,15 +57,15 @@ class TestExtractProcess(unittest.TestCase):
         # Wait for ctor to be called
         while self.ctor_called.value == 0:
             pass
-        self.assertEqual("/test/out/path", self.out_dir_path.value)
+        self.assertEqual("/test/out/path", self.out_dir_path.value.decode())
 
     @timeout_decorator.timeout(2)
     def test_param_out_local_path(self):
-        self.local_path = multiprocessing.Manager().Value(ctypes.c_char_p, "")
+        self.local_path = multiprocessing.Array(ctypes.c_char, 100)
         self.ctor_called = multiprocessing.Value('i', 0)
 
         def mock_ctor(**kwargs):
-            self.local_path.value = kwargs["local_path"]
+            self.local_path.value = str.encode(kwargs["local_path"])
             self.ctor_called.value = 1
             return self.mock_dispatch
         self.mock_dispatch_cls.side_effect = mock_ctor
@@ -76,7 +76,7 @@ class TestExtractProcess(unittest.TestCase):
         # Wait for ctor to be called
         while self.ctor_called.value == 0:
             pass
-        self.assertEqual("/test/local/path", self.local_path.value)
+        self.assertEqual("/test/local/path", self.local_path.value.decode())
 
     @timeout_decorator.timeout(2)
     def test_calls_start_dispatch(self):
