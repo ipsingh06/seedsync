@@ -7,7 +7,7 @@ import queue
 from typing import Optional, List
 import logging
 
-from .dispatch import ExtractDispatch, ExtractStatus, ExtractListener
+from .dispatch import ExtractDispatch, ExtractStatus, ExtractListener, ExtractDispatchError
 from common import overrides, AppProcess
 from model import ModelFile
 
@@ -78,7 +78,10 @@ class ExtractProcess(AppProcess):
         try:
             while True:
                 file = self.__command_queue.get(block=False)
-                self.__dispatch.extract(file)
+                try:
+                    self.__dispatch.extract(file)
+                except ExtractDispatchError as e:
+                    self.logger.warning(str(e))
         except queue.Empty:
             pass
 
