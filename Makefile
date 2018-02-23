@@ -17,6 +17,7 @@ py: builddir
 		--distpath ${BUILDDIR}/py-dist \
 		--workpath ${BUILDDIR}/py-work \
 		--specpath ${BUILDDIR} \
+		--additional-hooks-dir ${SOURCEDIR}/pyinstaller_hooks/ \
 		--name seedsync
 
 scanfs: builddir
