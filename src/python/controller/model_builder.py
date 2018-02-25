@@ -3,6 +3,7 @@
 import os
 import logging
 from typing import List, Optional, Set
+import math
 
 # my libs
 from system import SystemFile
@@ -206,6 +207,16 @@ class ModelBuilder:
                                       _child_transfer_state)
                     # add child to frontier
                     frontier.append((_remote_child, _local_child, _status, _child_model_file))
+
+            # estimate the ETA for the root if it's not available
+            if model_file.state == ModelFile.State.DOWNLOADING and \
+                    model_file.eta is None and \
+                    model_file.downloading_speed is not None and \
+                    model_file.downloading_speed > 0 and \
+                    model_file.transferred_size is not None:
+                # First-order estimate
+                remaining_size = max(model_file.remote_size - model_file.transferred_size, 0)
+                model_file.eta = int(math.ceil(remaining_size / model_file.downloading_speed))
 
             # now we can determine if root is Downloaded
             # root is Downloaded if all child remote files are Downloaded

@@ -455,6 +455,65 @@ class TestModelBuilder(unittest.TestCase):
         model = self.model_builder.build_model()
         self.assertEqual(None, model.get_file("a").eta)
 
+    def test_build_estimated_eta(self):
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(None, None, None, 100, None)
+        self.model_builder.set_lftp_statuses([s])
+        self.model_builder.set_remote_files([SystemFile("a", 2000, False)])
+        self.model_builder.set_local_files([SystemFile("a", 1000, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(10, model.get_file("a").eta)
+
+        # round up
+        self.model_builder.clear()
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(None, None, None, 133, None)
+        self.model_builder.set_lftp_statuses([s])
+        self.model_builder.set_remote_files([SystemFile("a", 2000, False)])
+        self.model_builder.set_local_files([SystemFile("a", 1000, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(8, model.get_file("a").eta)
+
+        # round up
+        self.model_builder.clear()
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(None, None, None, 133, None)
+        self.model_builder.set_lftp_statuses([s])
+        self.model_builder.set_remote_files([SystemFile("a", 2000, False)])
+        self.model_builder.set_local_files([SystemFile("a", 1999, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(1, model.get_file("a").eta)
+
+        # zero downloading speed
+        self.model_builder.clear()
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(None, None, None, 0, None)
+        self.model_builder.set_lftp_statuses([s])
+        self.model_builder.set_remote_files([SystemFile("a", 2000, False)])
+        self.model_builder.set_local_files([SystemFile("a", 1000, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(None, model.get_file("a").eta)
+
+        # finished
+        self.model_builder.clear()
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(None, None, None, 200, None)
+        self.model_builder.set_lftp_statuses([s])
+        self.model_builder.set_remote_files([SystemFile("a", 2000, False)])
+        self.model_builder.set_local_files([SystemFile("a", 2000, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(0, model.get_file("a").eta)
+
+        # local size larger than remote
+        self.model_builder.clear()
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(None, None, None, 200, None)
+        self.model_builder.set_lftp_statuses([s])
+        self.model_builder.set_remote_files([SystemFile("a", 2000, False)])
+        self.model_builder.set_local_files([SystemFile("a", 3000, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(0, model.get_file("a").eta)
+
     def test_build_children_names(self):
         model = self.__build_test_model_children_tree_1()
         self.assertEqual({"a", "b", "c", "d"}, model.get_file_names())
