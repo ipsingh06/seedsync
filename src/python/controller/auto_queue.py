@@ -221,7 +221,8 @@ class AutoQueue:
                 accept=lambda f:
                     f.state == ModelFile.State.DOWNLOADED and
                     f.local_size is not None and
-                    f.local_size > 0
+                    f.local_size > 0 and
+                    f.is_extractable
             )
 
         ###

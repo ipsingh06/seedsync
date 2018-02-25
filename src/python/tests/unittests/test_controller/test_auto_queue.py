@@ -776,12 +776,15 @@ class TestAutoQueue(unittest.TestCase):
         file_one = ModelFile("File.One", True)
         file_one.state = ModelFile.State.DOWNLOADED
         file_one.local_size = 100
+        file_one.is_extractable = True
         file_two = ModelFile("File.Two", True)
         file_two.state = ModelFile.State.DOWNLOADED
         file_two.local_size = 200
+        file_two.is_extractable = True
         file_three = ModelFile("File.Three", True)
         file_three.state = ModelFile.State.DOWNLOADED
         file_three.local_size = 300
+        file_three.is_extractable = True
 
         self.model_listener.file_added(file_one)
         auto_queue.process()
@@ -820,18 +823,23 @@ class TestAutoQueue(unittest.TestCase):
         file_one = ModelFile("File.One", True)
         file_one.state = ModelFile.State.DOWNLOADED
         file_one.local_size = 100
+        file_one.is_extractable = True
         file_two = ModelFile("File.Two", True)
         file_two.state = ModelFile.State.DOWNLOADED
         file_two.local_size = 200
+        file_two.is_extractable = True
         file_three = ModelFile("File.Three", True)
         file_three.state = ModelFile.State.DOWNLOADED
         file_three.local_size = 300
+        file_three.is_extractable = True
         file_four = ModelFile("File.Four", True)
         file_four.state = ModelFile.State.DOWNLOADED
         file_four.local_size = 400
+        file_four.is_extractable = True
         file_five = ModelFile("File.Five", True)
         file_five.state = ModelFile.State.DOWNLOADED
         file_five.local_size = 500
+        file_five.is_extractable = True
 
         self.initial_model = [file_one, file_two, file_three, file_four, file_five]
 
@@ -852,18 +860,23 @@ class TestAutoQueue(unittest.TestCase):
         file_one = ModelFile("File.One", True)
         file_one.local_size = 100
         file_one.state = ModelFile.State.DOWNLOADED
+        file_one.is_extractable = True
         file_two = ModelFile("File.Two", True)
         file_two.local_size = 200
         file_two.state = ModelFile.State.DOWNLOADED
+        file_two.is_extractable = True
         file_three = ModelFile("File.Three", True)
         file_three.local_size = 300
         file_three.state = ModelFile.State.DOWNLOADED
+        file_three.is_extractable = True
         file_four = ModelFile("File.Four", True)
         file_four.local_size = 400
         file_four.state = ModelFile.State.DOWNLOADED
+        file_four.is_extractable = True
         file_five = ModelFile("File.Five", True)
         file_five.local_size = 500
         file_five.state = ModelFile.State.DOWNLOADED
+        file_five.is_extractable = True
 
         self.initial_model = [file_one, file_two, file_three, file_four, file_five]
 
@@ -897,6 +910,38 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual("File.Three", command.filename)
         self.controller.queue_command.reset_mock()
 
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_non_extractable_files_are_not_extracted(self):
+        persist = AutoQueuePersist()
+
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_one.is_extractable = True
+        file_two = ModelFile("File.Two", True)
+        file_two.local_size = 200
+        file_two.state = ModelFile.State.DOWNLOADED
+        file_two.is_extractable = False
+
+        self.initial_model = [file_one, file_two]
+
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.One", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        persist.add_pattern(AutoQueuePattern(pattern="File.Two"))
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
 
@@ -992,18 +1037,23 @@ class TestAutoQueue(unittest.TestCase):
         file_one = ModelFile("File.One", True)
         file_one.local_size = 100
         file_one.state = ModelFile.State.DOWNLOADED
+        file_one.is_extractable = True
         file_two = ModelFile("File.Two", True)
         file_two.local_size = 200
         file_two.state = ModelFile.State.DOWNLOADED
+        file_two.is_extractable = True
         file_three = ModelFile("File.Three", True)
         file_three.local_size = 300
         file_three.state = ModelFile.State.DOWNLOADED
+        file_three.is_extractable = True
         file_four = ModelFile("File.Four", True)
         file_four.local_size = 400
         file_four.state = ModelFile.State.DOWNLOADED
+        file_four.is_extractable = True
         file_five = ModelFile("File.Five", True)
         file_five.local_size = 500
         file_five.state = ModelFile.State.DOWNLOADED
+        file_five.is_extractable = True
 
         self.initial_model = [file_one, file_two, file_three, file_four, file_five]
 
@@ -1026,6 +1076,7 @@ class TestAutoQueue(unittest.TestCase):
         # File exists remotely and is auto-queued
         file_one = ModelFile("File.One", True)
         file_one.remote_size = 100
+        file_one.is_extractable = True
         self.model_listener.file_added(file_one)
         auto_queue.process()
         self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
@@ -1039,6 +1090,7 @@ class TestAutoQueue(unittest.TestCase):
         file_one_new.remote_size = 100
         file_one_new.local_size = 50
         file_one_new.state = ModelFile.State.DOWNLOADING
+        file_one_new.is_extractable = True
         self.model_listener.file_updated(file_one, file_one_new)
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
@@ -1049,6 +1101,7 @@ class TestAutoQueue(unittest.TestCase):
         file_one_new.remote_size = 100
         file_one_new.local_size = 100
         file_one_new.state = ModelFile.State.DOWNLOADED
+        file_one_new.is_extractable = True
         self.model_listener.file_updated(file_one, file_one_new)
         auto_queue.process()
         self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
@@ -1066,6 +1119,7 @@ class TestAutoQueue(unittest.TestCase):
         file_one = ModelFile("File.One", True)
         file_one.local_size = 100
         file_one.state = ModelFile.State.DOWNLOADED
+        file_one.is_extractable = True
         self.model_listener.file_added(file_one)
         auto_queue.process()
         self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
@@ -1078,6 +1132,7 @@ class TestAutoQueue(unittest.TestCase):
         file_one_new = ModelFile("File.One", True)
         file_one_new.local_size = 101
         file_one_new.state = ModelFile.State.DOWNLOADED
+        file_one_new.is_extractable = True
         self.model_listener.file_updated(file_one, file_one_new)
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
