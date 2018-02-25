@@ -532,36 +532,36 @@ class TestModelBuilder(unittest.TestCase):
     def test_build_children_sizes(self):
         model = self.__build_test_model_children_tree_1()
         m_a = model.get_file("a")
-        self.assertEqual((1024, 1024), (m_a.remote_size, m_a.local_size))
+        self.assertEqual((1024, 1024, 1024), (m_a.remote_size, m_a.local_size, m_a.transferred_size))
         m_a_ch = {m.name: m for m in model.get_file("a").get_children()}
         m_aa = m_a_ch["aa"]
-        self.assertEqual((512, 512), (m_aa.remote_size, m_aa.local_size))
+        self.assertEqual((512, 512, 512), (m_aa.remote_size, m_aa.local_size, m_aa.transferred_size))
         m_ab = m_a_ch["ab"]
-        self.assertEqual((512, 512), (m_ab.remote_size, m_ab.local_size))
+        self.assertEqual((512, 512, 512), (m_ab.remote_size, m_ab.local_size, m_ab.transferred_size))
         m_b = model.get_file("b")
-        self.assertEqual((3090, 1611), (m_b.remote_size, m_b.local_size))
+        self.assertEqual((3090, 1611, 1512), (m_b.remote_size, m_b.local_size, m_b.transferred_size))
         m_b_ch = {m.name: m for m in model.get_file("b").get_children()}
         m_ba = m_b_ch["ba"]
-        self.assertEqual((2048, 512), (m_ba.remote_size, m_ba.local_size))
+        self.assertEqual((2048, 512, 512), (m_ba.remote_size, m_ba.local_size, m_ba.transferred_size))
         m_baa = m_ba.get_children()[0]
-        self.assertEqual((2048, 512), (m_baa.remote_size, m_baa.local_size))
+        self.assertEqual((2048, 512, 512), (m_baa.remote_size, m_baa.local_size, m_baa.transferred_size))
         m_bb = m_b_ch["bb"]
-        self.assertEqual((42, None), (m_bb.remote_size, m_bb.local_size))
+        self.assertEqual((42, None, None), (m_bb.remote_size, m_bb.local_size, m_bb.transferred_size))
         m_bba = m_bb.get_children()[0]
-        self.assertEqual((42, None), (m_bba.remote_size, m_bba.local_size))
+        self.assertEqual((42, None, None), (m_bba.remote_size, m_bba.local_size, m_bba.transferred_size))
         m_bc = m_b_ch["bc"]
-        self.assertEqual((None, 99), (m_bc.remote_size, m_bc.local_size))
+        self.assertEqual((None, 99, None), (m_bc.remote_size, m_bc.local_size, m_bc.transferred_size))
         m_bca = m_bc.get_children()[0]
-        self.assertEqual((None, 99), (m_bca.remote_size, m_bca.local_size))
+        self.assertEqual((None, 99, None), (m_bca.remote_size, m_bca.local_size, m_bca.transferred_size))
         m_bd = m_b_ch["bd"]
-        self.assertEqual((1000, 1000), (m_bd.remote_size, m_bd.local_size))
+        self.assertEqual((1000, 1000, 1000), (m_bd.remote_size, m_bd.local_size, m_bd.transferred_size))
         m_c = model.get_file("c")
-        self.assertEqual((1234, None), (m_c.remote_size, m_c.local_size))
+        self.assertEqual((1234, None, None), (m_c.remote_size, m_c.local_size, m_c.transferred_size))
         m_d = model.get_file("d")
-        self.assertEqual((5678, None), (m_d.remote_size, m_d.local_size))
+        self.assertEqual((5678, None, None), (m_d.remote_size, m_d.local_size, m_d.transferred_size))
         m_d_ch = {m.name: m for m in model.get_file("d").get_children()}
         m_da = m_d_ch["da"]
-        self.assertEqual((5678, None), (m_da.remote_size, m_da.local_size))
+        self.assertEqual((5678, None, None), (m_da.remote_size, m_da.local_size, m_da.transferred_size))
 
     def test_build_children_state_default(self):
         """File only exists remotely"""
@@ -1107,3 +1107,48 @@ class TestModelBuilder(unittest.TestCase):
         self.assertFalse(model.get_file("a").is_extractable)
         self.assertEqual("aa", model.get_file("a").get_children()[0].name)
         self.assertFalse(model.get_file("a").get_children()[0].is_extractable)
+
+    def test_build_transferred_size(self):
+        # both remote and local
+        self.model_builder.set_remote_files([SystemFile("a", 42, False)])
+        self.model_builder.set_local_files([SystemFile("a", 22, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(22, model.get_file("a").transferred_size)
+
+        # remote but no local
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 42, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(None, model.get_file("a").transferred_size)
+
+        # local but no remote
+        self.model_builder.clear()
+        self.model_builder.set_local_files([SystemFile("a", 22, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(None, model.get_file("a").transferred_size)
+
+        # local size larger than remote
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 42, False)])
+        self.model_builder.set_local_files([SystemFile("a", 55, False)])
+        model = self.model_builder.build_model()
+        self.assertEqual(42, model.get_file("a").transferred_size)
+
+        # both remote and local directory (but no children specified)
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 42, True)])
+        self.model_builder.set_local_files([SystemFile("a", 22, True)])
+        model = self.model_builder.build_model()
+        self.assertEqual(0, model.get_file("a").transferred_size)
+
+        # remote only directory
+        self.model_builder.clear()
+        self.model_builder.set_remote_files([SystemFile("a", 42, True)])
+        model = self.model_builder.build_model()
+        self.assertEqual(None, model.get_file("a").transferred_size)
+
+        # local only directory
+        self.model_builder.clear()
+        self.model_builder.set_local_files([SystemFile("a", 22, True)])
+        model = self.model_builder.build_model()
+        self.assertEqual(None, model.get_file("a").transferred_size)

@@ -103,6 +103,20 @@ class ModelBuilder:
                     _model_file.downloading_speed = _transfer_state.speed
                     _model_file.eta = _transfer_state.eta
 
+                # set the transferred size (only if file or dir exists on both ends)
+                if _local and _remote:
+                    if _model_file.is_dir:
+                        # dir transferred size is updated by child files
+                        _model_file.transferred_size = 0
+                    else:
+                        _model_file.transferred_size = min(_local.size, _remote.size)
+
+                        # also update all parent directories
+                        _parent_file = _model_file.parent
+                        while _parent_file is not None:
+                            _parent_file.transferred_size += _model_file.transferred_size
+                            _parent_file = _parent_file.parent
+
                 # set the is_extractable flag
                 if not _model_file.is_dir and Extract.is_archive_fast(_model_file.name):
                     _model_file.is_extractable = True

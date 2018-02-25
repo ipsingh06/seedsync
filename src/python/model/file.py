@@ -31,6 +31,7 @@ class ModelFile:
         self.__state = ModelFile.State.DEFAULT  # status
         self.__remote_size = None  # remote size in bytes, None if file does not exist
         self.__local_size = None  # local size in bytes, None if file does not exist
+        self.__transferred_size = None  # transferred size in bytes, None if file does not exist
         self.__downloading_speed = None  # in bytes / sec, None if not downloading
         self.__eta = None  # est. time remaining in seconds, None if not available
         self.__is_extractable = False  # whether file is an archive or dir contains archives
@@ -117,6 +118,20 @@ class ModelFile:
             self.__local_size = local_size
         elif local_size is None:
             self.__local_size = local_size
+        else:
+            raise TypeError
+
+    @property
+    def transferred_size(self) -> Optional[int]: return self.__transferred_size
+
+    @transferred_size.setter
+    def transferred_size(self, transferred_size: Optional[int]):
+        if type(transferred_size) == int:
+            if transferred_size < 0:
+                raise ValueError
+            self.__transferred_size = transferred_size
+        elif transferred_size is None:
+            self.__transferred_size = transferred_size
         else:
             raise TypeError
 
