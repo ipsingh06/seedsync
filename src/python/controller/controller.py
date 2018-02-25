@@ -341,10 +341,13 @@ class Controller:
                     # Deleted locally, remove
                     remove_extracted_file_names.add(extracted_file_name)
             else:
-                # Not in the model at all, remove
-                remove_extracted_file_names.add(extracted_file_name)
+                # Not in the model at all
+                # This could be because local and remote scans are not yet available
+                pass
         if remove_extracted_file_names:
+            self.logger.info("Removing from extracted list: {}".format(remove_extracted_file_names))
             self.__persist.extracted_file_names.difference_update(remove_extracted_file_names)
+            self.__model_builder.set_extracted_files(self.__persist.extracted_file_names)
 
         # Release the model
         self.__model_lock.release()
