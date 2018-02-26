@@ -112,10 +112,20 @@ class Status(BaseStatus):
             self.up = True
             self.error_msg = None
 
+    class ControllerStatus(StatusComponent):
+        latest_local_scan_time = StatusComponent._create_property("latest_local_scan_time")
+        latest_remote_scan_time = StatusComponent._create_property("latest_remote_scan_time")
+
+        def __init__(self):
+            super().__init__()
+            self.latest_local_scan_time = None
+            self.latest_remote_scan_time = None
+
     # ----- End of component definition -----
 
     # Component registration
     server = BaseStatus._create_property("server")
+    controller = BaseStatus._create_property("controller")
 
     def __init__(self):
         self._listeners = []
@@ -124,6 +134,7 @@ class Status(BaseStatus):
 
         # Component initialization
         self.server = self.__create_component(Status.ServerStatus)
+        self.controller = self.__create_component(Status.ControllerStatus)
 
     def copy(self) -> "Status":
         copy = Status()

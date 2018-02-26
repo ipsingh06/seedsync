@@ -2,6 +2,7 @@
 
 import unittest
 from unittest.mock import MagicMock
+from datetime import datetime
 
 from common import overrides, Status, IStatusListener, StatusComponent, IStatusComponentListener
 
@@ -130,6 +131,27 @@ class TestStatus(unittest.TestCase):
         status = Status()
         self.assertEqual(True, status.server.up)
         self.assertEqual(None, status.server.error_msg)
+        self.assertEqual(None, status.controller.latest_local_scan_time)
+        self.assertEqual(None, status.controller.latest_remote_scan_time)
+
+    def test_components_registered(self):
+        # Test that all components were registered
+        # This is done through the copy method
+        status = Status()
+
+        status.server.up = False
+        status.server.error_msg = "an error message"
+        copy = status.copy()
+        self.assertEqual(False, copy.server.up)
+        self.assertEqual("an error message", copy.server.error_msg)
+
+        time1 = datetime.now()
+        time2 = datetime.now()
+        status.controller.latest_local_scan_time = time1
+        status.controller.latest_remote_scan_time = time2
+        copy = status.copy()
+        self.assertEqual(time1, copy.controller.latest_local_scan_time)
+        self.assertEqual(time2, copy.controller.latest_remote_scan_time)
 
     def test_copy_values(self):
         status = Status()

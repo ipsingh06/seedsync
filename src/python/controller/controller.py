@@ -366,6 +366,12 @@ class Controller:
         # Release the model
         self.__model_lock.release()
 
+        # Update the controller status
+        if latest_remote_scan is not None:
+            self.__context.status.controller.latest_remote_scan_time = latest_remote_scan.timestamp
+        if latest_local_scan is not None:
+            self.__context.status.controller.latest_local_scan_time = latest_local_scan.timestamp
+
     def __process_commands(self):
         def _notify_failure(_command: Controller.Command, _msg: str):
             self.logger.warning("Command failed. {}".format(_msg))

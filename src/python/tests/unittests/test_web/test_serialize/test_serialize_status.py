@@ -2,6 +2,8 @@
 
 import unittest
 import json
+from datetime import datetime
+import time
 
 from .test_serialize import parse_stream
 from common import Status
@@ -45,3 +47,31 @@ class TestSerializeStatus(unittest.TestCase):
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
         self.assertEqual("Bad stuff happened", data["server"]["error_msg"])
+
+    def test_controller_status_latest_local_scan_time(self):
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertIsNone(data["controller"]["latest_local_scan_time"])
+
+        timestamp = datetime.now()
+        time_float = time.mktime(timestamp.timetuple()) + timestamp.microsecond / 1E6
+        status.controller.latest_local_scan_time = timestamp
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertEqual(str(time_float), data["controller"]["latest_local_scan_time"])
+
+    def test_controller_status_latest_remote_scan_time(self):
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertIsNone(data["controller"]["latest_remote_scan_time"])
+
+        timestamp = datetime.now()
+        time_float = time.mktime(timestamp.timetuple()) + timestamp.microsecond / 1E6
+        status.controller.latest_remote_scan_time = timestamp
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertEqual(str(time_float), data["controller"]["latest_remote_scan_time"])
