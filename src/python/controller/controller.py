@@ -9,7 +9,7 @@ import copy
 
 # my libs
 from .scan import ScannerProcess, DownloadingScanner, LocalScanner, RemoteScanner
-from .extract import ExtractProcess
+from .extract import ExtractProcess, ExtractStatus
 from .model_builder import ModelBuilder
 from common import Context, AppError, MultiprocessingLogger
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
@@ -144,6 +144,10 @@ class Controller:
         self.__remote_scan_process.set_multiprocessing_logger(self.__mp_logger)
         self.__extract_process.set_multiprocessing_logger(self.__mp_logger)
 
+        # Keep track of active files
+        self.__active_downloading_file_names = []
+        self.__active_extracting_file_names = []
+
         self.__started = False
 
     def start(self):
@@ -273,10 +277,21 @@ class Controller:
         # Grab the latest extracted file names
         latest_extracted_results = self.__extract_process.pop_completed()
 
-        # Update the downloading scanner's state
+        # Update list of active file names
         if lftp_statuses is not None:
-            downloading_file_names = [s.name for s in lftp_statuses if s.state == LftpJobStatus.State.RUNNING]
-            self.__downloading_scanner.set_downloading_files(downloading_file_names)
+            self.__active_downloading_file_names = [
+                s.name for s in lftp_statuses if s.state == LftpJobStatus.State.RUNNING
+            ]
+        if latest_extract_statuses is not None:
+            self.__active_extracting_file_names = [
+                s.name for s in latest_extract_statuses.statuses if s.state == ExtractStatus.State.EXTRACTING
+            ]
+
+        # Update the downloading scanner's state
+        # Include extracting files too
+        self.__downloading_scanner.set_downloading_files(
+            self.__active_downloading_file_names + self.__active_extracting_file_names
+        )
 
         # Update model builder state
         if latest_remote_scan is not None:
