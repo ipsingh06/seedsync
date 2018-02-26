@@ -19,6 +19,8 @@ class RemoteScanner(IScanner):
     """
     Scanner implementation to scan the remote filesystem
     """
+    RETRY_COUNT = 5
+
     def __init__(self,
                  remote_address: str,
                  remote_username: str,
@@ -49,11 +51,23 @@ class RemoteScanner(IScanner):
         if self.__first_run:
             self._install_scanfs()
             self.__first_run = False
-        try:
-            out = self.__ssh.run_command("{} {}".format(self.__remote_path_to_scan_script, self.__remote_path_to_scan))
-        except SshError:
-            self.logger.exception("Caught an SshError")
-            raise AppError(Localization.Error.REMOTE_SERVER_SCAN)
+
+        retries = 0
+        out = None
+        while out is None:
+            try:
+                out = self.__ssh.run_command("{} {}".format(self.__remote_path_to_scan_script, self.__remote_path_to_scan))
+            except SshError as e:
+                # Suppress specific errors and retry a fixed number of times
+                # Otherwise raise a fatal AppError
+                if RemoteScanner.__suppress_error(e) and retries < RemoteScanner.RETRY_COUNT:
+                    self.logger.warning("Retrying remote scan after error: {}".format(str(e)))
+                    out = None
+                    retries += 1
+                else:
+                    self.logger.exception("Caught an SshError")
+                    raise AppError(Localization.Error.REMOTE_SERVER_SCAN)
+
         remote_files = pickle.loads(out)
         return remote_files
 
@@ -72,3 +86,7 @@ class RemoteScanner(IScanner):
         except ScpError:
             self.logger.exception("Caught scp exception")
             raise AppError(Localization.Error.REMOTE_SERVER_INSTALL)
+
+    @staticmethod
+    def __suppress_error(error: SshError) -> bool:
+        return "text file busy" in str(error).lower()
