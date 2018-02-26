@@ -10,44 +10,44 @@ from common import overrides
 from system import SystemScanner, SystemScannerError, SystemFile
 
 
-class DownloadingScanner(IScanner):
+class ActiveScanner(IScanner):
     """
-    Scanner implementation to scan the downloading files only
-    A caller sets the names of the downloading files that need to be scanned.
+    Scanner implementation to scan the active files only
+    A caller sets the names of the active files that need to be scanned.
     A multiprocessing.Queue is used to store the names because the set and scan
     methods are called by different processes.
     """
     def __init__(self, local_path: str):
         self.__scanner = SystemScanner(local_path)
-        self.__downloading_files_queue = multiprocessing.Queue()
-        self.__downloading_files = []  # latest state
-        self.logger = logging.getLogger("DownloadingScanner")
+        self.__active_files_queue = multiprocessing.Queue()
+        self.__active_files = []  # latest state
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     @overrides(IScanner)
     def set_base_logger(self, base_logger: logging.Logger):
-        self.logger = base_logger.getChild("DownloadingScanner")
+        self.logger = base_logger.getChild(self.__class__.__name__)
 
-    def set_downloading_files(self, file_names: List[str]):
+    def set_active_files(self, file_names: List[str]):
         """
-        Set the list of downloading files. Only these files will be scanned.
+        Set the list of active file names. Only these files will be scanned.
         :param file_names:
         :return:
         """
-        self.__downloading_files_queue.put(file_names)
+        self.__active_files_queue.put(file_names)
 
     @overrides(IScanner)
     def scan(self) -> List[SystemFile]:
-        # Grab the latest list of downloading files, if any
+        # Grab the latest list of active files, if any
         try:
             while True:
-                self.__downloading_files = self.__downloading_files_queue.get(block=False)
+                self.__active_files = self.__active_files_queue.get(block=False)
         except queue.Empty:
             pass
 
         # Do the scan
-        # self.logger.debug("Scanning files: {}".format(str(self.__downloading_files)))
+        # self.logger.debug("Scanning files: {}".format(str(self.__active_files)))
         result = []
-        for file_name in self.__downloading_files:
+        for file_name in self.__active_files:
             try:
                 result.append(self.__scanner.scan_single(file_name))
             except SystemScannerError as ex:

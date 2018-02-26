@@ -23,7 +23,6 @@ class ModelBuilder:
     """
     def __init__(self):
         self.logger = logging.getLogger("ModelBuilder")
-        self.__downloading_files = dict()
         self.__local_files = dict()
         self.__remote_files = dict()
         self.__lftp_statuses = dict()
@@ -34,8 +33,10 @@ class ModelBuilder:
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("ModelBuilder")
 
-    def set_downloading_files(self, downloading_files: List[SystemFile]):
-        self.__downloading_files = {file.name: file for file in downloading_files}
+    def set_active_files(self, active_files: List[SystemFile]):
+        # Update the local file state with this latest information
+        for file in active_files:
+            self.__local_files[file.name] = file
 
     def set_local_files(self, local_files: List[SystemFile]):
         self.__local_files = {file.name: file for file in local_files}
@@ -71,8 +72,7 @@ class ModelBuilder:
                                      self.__lftp_statuses.keys())
         for name in all_file_names:
             remote = self.__remote_files.get(name, None)
-            # use downloading file if it exists, otherwise local
-            local = self.__downloading_files.get(name, None) or self.__local_files.get(name, None)
+            local = self.__local_files.get(name, None)
             status = self.__lftp_statuses.get(name, None)
 
             if remote is None and local is None and status is None:

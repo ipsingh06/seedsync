@@ -402,7 +402,26 @@ class TestModelBuilder(unittest.TestCase):
 
     def test_build_local_size_downloading(self):
         self.model_builder.set_local_files([SystemFile("a", 42, False)])
-        self.model_builder.set_downloading_files([SystemFile("a", 99, False)])
+        self.model_builder.set_active_files([SystemFile("a", 99, False)])
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(12345, 1000, 0.25, None, None)
+        self.model_builder.set_lftp_statuses([s])
+        model = self.model_builder.build_model()
+        self.assertEqual(99, model.get_file("a").local_size)
+
+    def test_build_downloading_state_is_retained(self):
+        # downloading files latest info should be retained even after
+        # they have stopped downloading
+        self.model_builder.set_local_files([SystemFile("a", 42, False)])
+        self.model_builder.set_active_files([SystemFile("a", 99, False)])
+        s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
+        s.total_transfer_state = LftpJobStatus.TransferState(12345, 1000, 0.25, None, None)
+        self.model_builder.set_lftp_statuses([s])
+        model = self.model_builder.build_model()
+        self.assertEqual(99, model.get_file("a").local_size)
+
+        # set active files to empty
+        self.model_builder.set_active_files([])
         s = LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.RUNNING, "a", "")
         s.total_transfer_state = LftpJobStatus.TransferState(12345, 1000, 0.25, None, None)
         self.model_builder.set_lftp_statuses([s])

@@ -8,7 +8,7 @@ from enum import Enum
 import copy
 
 # my libs
-from .scan import ScannerProcess, DownloadingScanner, LocalScanner, RemoteScanner
+from .scan import ScannerProcess, ActiveScanner, LocalScanner, RemoteScanner
 from .extract import ExtractProcess, ExtractStatus
 from .model_builder import ModelBuilder
 from common import Context, AppError, MultiprocessingLogger
@@ -102,7 +102,7 @@ class Controller:
         self.__lftp.num_max_total_connections = self.__context.config.lftp.num_max_total_connections
 
         # Setup the scanners and scanner processes
-        self.__downloading_scanner = DownloadingScanner(self.__context.config.lftp.local_path)
+        self.__active_scanner = ActiveScanner(self.__context.config.lftp.local_path)
         self.__local_scanner = LocalScanner(self.__context.config.lftp.local_path)
         self.__remote_scanner = RemoteScanner(
             remote_address=self.__context.config.lftp.remote_address,
@@ -113,8 +113,8 @@ class Controller:
             remote_path_to_scan_script=self.__context.config.lftp.remote_path_to_scan_script
         )
 
-        self.__downloading_scan_process = ScannerProcess(
-            scanner=self.__downloading_scanner,
+        self.__active_scan_process = ScannerProcess(
+            scanner=self.__active_scanner,
             interval_in_ms=self.__context.config.controller.interval_ms_downloading_scan,
             verbose=False
         )
@@ -139,7 +139,7 @@ class Controller:
 
         # Setup multiprocess logging
         self.__mp_logger = MultiprocessingLogger(self.logger)
-        self.__downloading_scan_process.set_multiprocessing_logger(self.__mp_logger)
+        self.__active_scan_process.set_multiprocessing_logger(self.__mp_logger)
         self.__local_scan_process.set_multiprocessing_logger(self.__mp_logger)
         self.__remote_scan_process.set_multiprocessing_logger(self.__mp_logger)
         self.__extract_process.set_multiprocessing_logger(self.__mp_logger)
@@ -157,7 +157,7 @@ class Controller:
         :return:
         """
         self.logger.debug("Starting controller")
-        self.__downloading_scan_process.start()
+        self.__active_scan_process.start()
         self.__local_scan_process.start()
         self.__remote_scan_process.start()
         self.__extract_process.start()
@@ -180,11 +180,11 @@ class Controller:
         self.logger.debug("Exiting controller")
         if self.__started:
             self.__lftp.exit()
-            self.__downloading_scan_process.terminate()
+            self.__active_scan_process.terminate()
             self.__local_scan_process.terminate()
             self.__remote_scan_process.terminate()
             self.__extract_process.terminate()
-            self.__downloading_scan_process.join()
+            self.__active_scan_process.join()
             self.__local_scan_process.join()
             self.__remote_scan_process.join()
             self.__extract_process.join()
@@ -262,7 +262,7 @@ class Controller:
         # Grab the latest scan results
         latest_remote_scan = self.__remote_scan_process.pop_latest_result()
         latest_local_scan = self.__local_scan_process.pop_latest_result()
-        latest_downloading_scan = self.__downloading_scan_process.pop_latest_result()
+        latest_active_scan = self.__active_scan_process.pop_latest_result()
 
         # Grab the Lftp status
         lftp_statuses = None
@@ -287,9 +287,8 @@ class Controller:
                 s.name for s in latest_extract_statuses.statuses if s.state == ExtractStatus.State.EXTRACTING
             ]
 
-        # Update the downloading scanner's state
-        # Include extracting files too
-        self.__downloading_scanner.set_downloading_files(
+        # Update the active scanner's state
+        self.__active_scanner.set_active_files(
             self.__active_downloading_file_names + self.__active_extracting_file_names
         )
 
@@ -298,8 +297,8 @@ class Controller:
             self.__model_builder.set_remote_files(latest_remote_scan.files)
         if latest_local_scan is not None:
             self.__model_builder.set_local_files(latest_local_scan.files)
-        if latest_downloading_scan is not None:
-            self.__model_builder.set_downloading_files(latest_downloading_scan.files)
+        if latest_active_scan is not None:
+            self.__model_builder.set_active_files(latest_active_scan.files)
         if lftp_statuses is not None:
             self.__model_builder.set_lftp_statuses(lftp_statuses)
         if latest_extract_statuses is not None:
@@ -428,7 +427,7 @@ class Controller:
         Propagate any exceptions from child processes/threads to this thread
         :return:
         """
-        self.__downloading_scan_process.propagate_exception()
+        self.__active_scan_process.propagate_exception()
         self.__local_scan_process.propagate_exception()
         self.__remote_scan_process.propagate_exception()
         self.__mp_logger.propagate_exception()
