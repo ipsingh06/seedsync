@@ -126,7 +126,7 @@ export class ModelFileService extends BaseStreamService {
             this._logger.debug("ModelFile map creation took", (t1 - t0).toFixed(0), "ms");
 
             this._files.next(newMap);
-            this._logger.debug("New model: %O", this._files.getValue().toJS());
+            // this._logger.debug("New model: %O", this._files.getValue().toJS());
         } else if (name === this.EVENT_ADDED) {
             // Added event receives old and new ModelFiles
             // Only new file is relevant
