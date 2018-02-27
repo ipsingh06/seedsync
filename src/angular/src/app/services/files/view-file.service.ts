@@ -112,7 +112,12 @@ export class ViewFileService {
 
         if (!this.USE_MOCK_MODEL) {
             this.modelFileService.files.subscribe({
-                next: modelFiles => _viewFileService.buildViewFromModelFiles(modelFiles)
+                next: modelFiles => {
+                    let t0 = performance.now();
+                    _viewFileService.buildViewFromModelFiles(modelFiles);
+                    let t1 = performance.now();
+                    this._logger.debug("ViewFile creation took", (t1 - t0).toFixed(0), "ms");
+                }
             });
         } else {
             // For layout/style testing

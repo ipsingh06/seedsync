@@ -103,13 +103,28 @@ export class ModelFileService extends BaseStreamService {
     private parseEvent(name: string, data: string) {
         if (name === this.EVENT_INIT) {
             // Init event receives an array of ModelFiles
-            const parsed = JSON.parse(data);
+            let t0: number;
+            let t1: number;
+
+            t0 = performance.now();
+            const parsed: [any] = JSON.parse(data);
+            t1 = performance.now();
+            this._logger.debug("Parsing took", (t1 - t0).toFixed(0), "ms");
+
+            t0 = performance.now();
             const newFiles: ModelFile[] = [];
             for (const file of parsed) {
                 newFiles.push(ModelFile.fromJson(file));
             }
+            t1 = performance.now();
+            this._logger.debug("ModelFile creation took", (t1 - t0).toFixed(0), "ms");
+
             // Replace the entire model
+            t0 = performance.now();
             const newMap = Immutable.Map<string, ModelFile>(newFiles.map(value => ([value.name, value])));
+            t1 = performance.now();
+            this._logger.debug("ModelFile map creation took", (t1 - t0).toFixed(0), "ms");
+
             this._files.next(newMap);
             this._logger.debug("New model: %O", this._files.getValue().toJS());
         } else if (name === this.EVENT_ADDED) {
