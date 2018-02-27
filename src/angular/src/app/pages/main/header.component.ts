@@ -8,6 +8,7 @@ import {ServerStatusService} from "../../services/server/server-status.service";
 import {Notification} from "../../services/utils/notification";
 import {NotificationService} from "../../services/utils/notification.service";
 import {StreamServiceRegistry} from "../../services/base/stream-service.registry";
+import {Localization} from "../../common/localization";
 
 @Component({
     selector: "app-header",
@@ -24,6 +25,7 @@ export class HeaderComponent implements OnInit {
     private _serverStatusService: ServerStatusService;
 
     private _prevServerNotification: Notification;
+    private _prevWaitingForRemoteScanNotification: Notification;
 
     constructor(private _logger: LoggerService,
                 _streamServiceRegistry: StreamServiceRegistry,
@@ -31,6 +33,7 @@ export class HeaderComponent implements OnInit {
         this._serverStatusService = _streamServiceRegistry.serverStatusService;
         this.notifications = this._notificationService.notifications;
         this._prevServerNotification = null;
+        this._prevWaitingForRemoteScanNotification = null;
     }
 
     public dismiss(notif: Notification) {
@@ -65,6 +68,28 @@ export class HeaderComponent implements OnInit {
                         this._prevServerNotification = notification;
                         this._notificationService.show(this._prevServerNotification);
                         this._logger.debug("New server notification: %O", this._prevServerNotification);
+                    }
+                }
+            }
+        });
+
+        // Set up a subscriber to show waiting for remote scan notification
+        this._serverStatusService.status.subscribe({
+            next: status => {
+                if (status.server.up && status.controller.latestRemoteScanTime == null) {
+                    // Server up and no remote scan - show notification if not already shown
+                    if(this._prevWaitingForRemoteScanNotification == null) {
+                        this._prevWaitingForRemoteScanNotification = new Notification({
+                            level: Notification.Level.INFO,
+                            text: Localization.Notification.STATUS_REMOTE_SCAN_WAITING
+                        });
+                        this._notificationService.show(this._prevWaitingForRemoteScanNotification);
+                    }
+                } else {
+                    // Server down or remote scan available - hide notification if showing
+                    if(this._prevWaitingForRemoteScanNotification != null) {
+                        this._notificationService.hide(this._prevWaitingForRemoteScanNotification);
+                        this._prevWaitingForRemoteScanNotification = null;
                     }
                 }
             }
