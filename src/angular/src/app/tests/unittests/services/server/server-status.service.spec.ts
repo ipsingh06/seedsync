@@ -2,7 +2,7 @@ import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 
 import {ServerStatusService} from "../../../../services/server/server-status.service";
 import {LoggerService} from "../../../../services/utils/logger.service";
-import {ServerStatus} from "../../../../services/server/server-status";
+import {ServerStatus, ServerStatusJson} from "../../../../services/server/server-status";
 
 
 describe("Testing server status service", () => {
@@ -45,23 +45,25 @@ describe("Testing server status service", () => {
         expect(latestStatus.server.up).toBe(false);
 
         // New status
-        serverStatusService.notifyEvent("status", JSON.stringify({
+        let statusJson: ServerStatusJson = {
             server: {
                 up: true,
                 error_msg: null
+            },
+            controller: {
+                latest_local_scan_time: null,
+                latest_remote_scan_time: null
             }
-        }));
+        };
+        serverStatusService.notifyEvent("status", JSON.stringify(statusJson));
         tick();
         expect(count).toBe(2);
         expect(latestStatus.server.up).toBe(true);
 
         // Status update
-        serverStatusService.notifyEvent("status", JSON.stringify({
-            server: {
-                up: false,
-                error_msg: "uh oh spaghettios"
-            }
-        }));
+        statusJson.server.up = false;
+        statusJson.server.error_msg = "uh oh spaghettios";
+        serverStatusService.notifyEvent("status", JSON.stringify(statusJson));
         tick();
         expect(count).toBe(3);
         expect(latestStatus.server.up).toBe(false);
@@ -70,12 +72,17 @@ describe("Testing server status service", () => {
 
     it("should send correct status on disconnect", fakeAsync(() => {
         // Initial status
-        serverStatusService.notifyEvent("status", JSON.stringify({
+        let statusJson: ServerStatusJson = {
             server: {
                 up: true,
                 error_msg: null
+            },
+            controller: {
+                latest_local_scan_time: null,
+                latest_remote_scan_time: null
             }
-        }));
+        };
+        serverStatusService.notifyEvent("status", JSON.stringify(statusJson));
 
         let count = 0;
         let latestStatus: ServerStatus = null;

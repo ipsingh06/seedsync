@@ -50,12 +50,7 @@ export class ServerStatusService extends BaseStreamService {
      */
     private parseStatus(data: string) {
         const statusJson: ServerStatusJson = JSON.parse(data);
-        const status = new ServerStatus({
-            server: {
-                up: statusJson.server.up,
-                errorMessage: statusJson.server.error_msg
-            }
-        });
+        const status = ServerStatus.fromJson(statusJson);
         this._status.next(status);
     }
 }

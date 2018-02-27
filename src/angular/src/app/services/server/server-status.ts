@@ -8,11 +8,20 @@ interface IServerStatus {
         up: boolean;
         errorMessage: string;
     };
+
+    controller: {
+        latestLocalScanTime: number;
+        latestRemoteScanTime: number;
+    };
 }
 const DefaultServerStatus: IServerStatus = {
     server: {
         up: null,
         errorMessage: null
+    },
+    controller: {
+        latestLocalScanTime: null,
+        latestRemoteScanTime: null
     }
 };
 const ServerStatusRecord = Record(DefaultServerStatus);
@@ -22,8 +31,41 @@ export class ServerStatus extends ServerStatusRecord implements IServerStatus {
         errorMessage: string;
     };
 
+    controller: {
+        latestLocalScanTime: number;
+        latestRemoteScanTime: number;
+    };
+
     constructor(props) {
         super(props);
+    }
+}
+
+
+export module ServerStatus {
+    export function fromJson(json: ServerStatusJson): ServerStatus {
+        let latestLocalScanTime: Date = null;
+        if(json.controller.latest_local_scan_time != null) {
+            // str -> number, then sec -> ms
+            latestLocalScanTime = new Date(1000 * +json.controller.latest_local_scan_time);
+        }
+
+        let latestRemoteScanTime: Date = null;
+        if(json.controller.latest_remote_scan_time != null) {
+            // str -> number, then sec -> ms
+            latestRemoteScanTime = new Date(1000 * +json.controller.latest_remote_scan_time);
+        }
+
+        return new ServerStatus({
+            server: {
+                up: json.server.up,
+                errorMessage: json.server.error_msg
+            },
+            controller: {
+                latestLocalScanTime: latestLocalScanTime,
+                latestRemoteScanTime: latestRemoteScanTime
+            }
+        });
     }
 }
 
@@ -36,4 +78,9 @@ export interface ServerStatusJson {
         up: boolean;
         error_msg: string;
     };
+
+    controller: {
+        latest_local_scan_time: string;
+        latest_remote_scan_time: string;
+    }
 }
