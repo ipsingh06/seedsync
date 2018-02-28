@@ -49,7 +49,7 @@ class AppProcess(Process):
         self.mp_logger = None
         self.logger = logging.getLogger(self.__name)
         self.__exception_queue = Queue()
-        self.__terminate = Event()
+        self._terminate = Event()
 
     def set_multiprocessing_logger(self, mp_logger: MultiprocessingLogger):
         self.mp_logger = mp_logger
@@ -83,7 +83,7 @@ class AppProcess(Process):
         self.run_init()
 
         try:
-            while not self.__terminate.is_set():
+            while not self._terminate.is_set():
                 self.run_loop()
             self.logger.debug("Process received terminate flag")
         except ServiceExit:
@@ -100,7 +100,7 @@ class AppProcess(Process):
     @overrides(Process)
     def terminate(self):
         # Send a terminate signal, and force terminate after a timeout
-        self.__terminate.set()
+        self._terminate.set()
 
         def elapsed_ms(start):
             delta_in_s = (datetime.now() - start).total_seconds()
@@ -148,6 +148,29 @@ class AppProcess(Process):
         This function is repeatedly called until process exits.
         The check for graceful shutdown is performed between the loop iterations,
         so try to limit the run time for this method.
+        :return:
+        """
+        pass
+
+
+class AppOneShotProcess(AppProcess):
+    """
+    App process that runs only once and then exits
+    """
+    def run_loop(self):
+        self.run_once()
+        self._terminate.set()
+
+    def run_cleanup(self):
+        pass
+
+    def run_init(self):
+        pass
+
+    @abstractmethod
+    def run_once(self):
+        """
+        Process behaviour should be implemented here
         :return:
         """
         pass

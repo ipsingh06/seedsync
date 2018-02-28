@@ -9,7 +9,7 @@ import threading
 
 import timeout_decorator
 
-from common import AppProcess
+from common import AppProcess, AppOneShotProcess
 
 
 class DummyException(Exception):
@@ -72,6 +72,24 @@ class LongRunningThreadProcess(AppProcess):
     # noinspection PyMethodMayBeStatic
     def long_task(self):
         print("Thread task started")
+        while True:
+            pass
+
+
+class DummyOneShotProcess(AppOneShotProcess):
+    def __init__(self):
+        super().__init__(name=self.__class__.__name__)
+        self.time = Value('i', 0)
+
+    def run_once(self):
+        self.time.value += 1
+
+
+class OneShotLongRunningProcess(AppOneShotProcess):
+    def __init__(self):
+        super().__init__(name=self.__class__.__name__)
+
+    def run_once(self):
         while True:
             pass
 
@@ -142,6 +160,40 @@ class TestAppProcess(unittest.TestCase):
     @timeout_decorator.timeout(5)
     def test_process_with_long_running_thread_terminates_properly(self):
         self.process = LongRunningThreadProcess()
+        self.process.start()
+        time.sleep(0.2)
+        self.process.terminate()
+        self.process.join()
+        self.process = None
+
+
+class TestAppOneShotProcess(unittest.TestCase):
+    def setUp(self):
+        logger = logging.getLogger()
+        handler = logging.StreamHandler(sys.stdout)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+        handler.setFormatter(formatter)
+
+        # Assign process to this variable so that it can be cleaned up
+        # even after an error
+        self.process = None
+
+    def tearDown(self):
+        if self.process:
+            self.process.terminate()
+
+    @timeout_decorator.timeout(2)
+    def test_run_once_called_once(self):
+        self.process = DummyOneShotProcess()
+        self.process.start()
+        time.sleep(0.2)
+        self.assertEqual(self.process.time.value, 1)
+
+    @timeout_decorator.timeout(5)
+    def test_long_running_process_is_force_terminated(self):
+        self.process = OneShotLongRunningProcess()
         self.process.start()
         time.sleep(0.2)
         self.process.terminate()
