@@ -3,7 +3,6 @@
 import logging
 from abc import ABC, abstractmethod
 import multiprocessing
-import time
 from datetime import datetime
 from typing import List, Optional
 import queue
@@ -50,6 +49,7 @@ class ScannerProcess(AppProcess):
         """
         super().__init__(name=scanner.__class__.__name__)
         self.__queue = multiprocessing.Queue()
+        self.__wake_event = multiprocessing.Event()
         self.__scanner = scanner
         self.__interval_in_ms = interval_in_ms
         self.verbose = verbose
@@ -76,8 +76,12 @@ class ScannerProcess(AppProcess):
         delta_in_ms = int(delta_in_s * 1000)
         if self.verbose:
             self.logger.debug("Scan took {:.3f}s".format(delta_in_s))
+
+        # Wait until the next interval, or until a wake event is fired
         if delta_in_ms < self.__interval_in_ms:
-            time.sleep(float(self.__interval_in_ms - delta_in_ms) / 1000.0)
+            wait_time_in_s = float(self.__interval_in_ms - delta_in_ms) / 1000.0
+            self.__wake_event.wait(timeout=wait_time_in_s)
+            self.__wake_event.clear()
 
     def pop_latest_result(self) -> Optional[ScannerResult]:
         """
@@ -93,3 +97,7 @@ class ScannerProcess(AppProcess):
         except queue.Empty:
             pass
         return latest_scan
+
+    def force_scan(self):
+        """Force process to wake and do an immediate scan"""
+        self.__wake_event.set()
