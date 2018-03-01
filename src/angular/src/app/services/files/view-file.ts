@@ -20,6 +20,8 @@ interface IViewFile {
     isStoppable: boolean;
     // whether file can be queued for extraction (independent of isArchive)
     isExtractable: boolean;
+    isLocallyDeletable: boolean;
+    isRemotelyDeletable: boolean;
 }
 
 // Boiler plate code to set up an immutable class
@@ -38,6 +40,8 @@ const DefaultViewFile: IViewFile = {
     isQueueable: null,
     isStoppable: null,
     isExtractable: null,
+    isLocallyDeletable: null,
+    isRemotelyDeletable: null
 };
 const ViewFileRecord = Record(DefaultViewFile);
 
@@ -60,6 +64,8 @@ export class ViewFile extends ViewFileRecord implements IViewFile {
     isQueueable: boolean;
     isStoppable: boolean;
     isExtractable: boolean;
+    isLocallyDeletable: boolean;
+    isRemotelyDeletable: boolean;
 
     constructor(props) {
         super(props);

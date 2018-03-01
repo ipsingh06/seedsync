@@ -82,6 +82,32 @@ export class ModelFileService extends BaseStreamService {
         return this._restService.sendRequest(url);
     }
 
+    /**
+     * Delete file locally
+     * @param {ModelFile} file
+     * @returns {Observable<WebReaction>}
+     */
+    public deleteLocal(file: ModelFile): Observable<WebReaction> {
+        this._logger.debug("Delete locally model file: " + file.name);
+        // Double-encode the value
+        const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
+        const url: string = "/server/command/delete_local/" + fileNameEncoded;
+        return this._restService.sendRequest(url);
+    }
+
+    /**
+     * Delete file remotely
+     * @param {ModelFile} file
+     * @returns {Observable<WebReaction>}
+     */
+    public deleteRemote(file: ModelFile): Observable<WebReaction> {
+        this._logger.debug("Delete remotely model file: " + file.name);
+        // Double-encode the value
+        const fileNameEncoded = encodeURIComponent(encodeURIComponent(file.name));
+        const url: string = "/server/command/delete_remote/" + fileNameEncoded;
+        return this._restService.sendRequest(url);
+    }
+
     protected onEvent(eventName: string, data: string) {
         this.parseEvent(eventName, data);
     }

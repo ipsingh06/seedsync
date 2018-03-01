@@ -305,6 +305,26 @@ export class ViewFileService {
     }
 
     /**
+     * Locally delete a file
+     * @param {ViewFile} file
+     * @returns {Observable<WebReaction>}
+     */
+    public deleteLocal(file: ViewFile): Observable<WebReaction> {
+        this._logger.debug("Locally delete view file: " + file.name);
+        return this.createAction(file, (f) => this.modelFileService.deleteLocal(f));
+    }
+
+    /**
+     * Remotely delete a file
+     * @param {ViewFile} file
+     * @returns {Observable<WebReaction>}
+     */
+    public deleteRemote(file: ViewFile): Observable<WebReaction> {
+        this._logger.debug("Remotely delete view file: " + file.name);
+        return this.createAction(file, (f) => this.modelFileService.deleteRemote(f));
+    }
+
+    /**
      * Set a new filter criteria
      * @param {ViewFileFilterCriteria} criteria
      */
@@ -386,6 +406,17 @@ export class ViewFileService {
                                     ViewFile.Status.DOWNLOADED,
                                     ViewFile.Status.EXTRACTED].includes(status)
                                     && localSize > 0;
+        const isLocallyDeletable: boolean = [ViewFile.Status.DEFAULT,
+                                    ViewFile.Status.STOPPED,
+                                    ViewFile.Status.DOWNLOADED,
+                                    ViewFile.Status.EXTRACTED].includes(status)
+                                    && localSize > 0;
+        const isRemotelyDeletable: boolean = [ViewFile.Status.DEFAULT,
+                                    ViewFile.Status.STOPPED,
+                                    ViewFile.Status.DOWNLOADED,
+                                    ViewFile.Status.EXTRACTED,
+                                    ViewFile.Status.DELETED].includes(status)
+                                    && remoteSize > 0;
 
         return new ViewFile({
             name: modelFile.name,
@@ -401,7 +432,9 @@ export class ViewFileService {
             isSelected: isSelected,
             isQueueable: isQueueable,
             isStoppable: isStoppable,
-            isExtractable: isExtractable
+            isExtractable: isExtractable,
+            isLocallyDeletable: isLocallyDeletable,
+            isRemotelyDeletable: isRemotelyDeletable
         });
     }
 

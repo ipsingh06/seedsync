@@ -556,4 +556,120 @@ describe("Testing view file service", () => {
         tick();
         expect(count).toBe(7);
     }));
+
+    it("should should correctly set ViewFile isLocallyDeletable", fakeAsync(() => {
+        // Test and expected result vectors
+        // test - [ModelFile.State, local size, remote size]
+        // result - [isLocallyDeletable, ViewFile.Status]
+        let testVectors: any[][][] = [
+            // Default remote file is NOT locally deletable
+            [[ModelFile.State.DEFAULT, null, 100], [false, ViewFile.Status.DEFAULT]],
+            // Default local file is locally deletable
+            [[ModelFile.State.DEFAULT, 100, null], [true, ViewFile.Status.DEFAULT]],
+            // Stopped file is locally deletable
+            [[ModelFile.State.DEFAULT, 50, 100], [true, ViewFile.Status.STOPPED]],
+            // Deleted file is NOT locally deletable
+            [[ModelFile.State.DELETED, null, 100], [false, ViewFile.Status.DELETED]],
+            // Queued file is NOT locally deletable
+            [[ModelFile.State.QUEUED, null, 100], [false, ViewFile.Status.QUEUED]],
+            // Downloading file is NOT locally deletable
+            [[ModelFile.State.DOWNLOADING, 10, 100], [false, ViewFile.Status.DOWNLOADING]],
+            // Downloaded file is locally deletable
+            [[ModelFile.State.DOWNLOADED, 100, 100], [true, ViewFile.Status.DOWNLOADED]],
+            // Extracting file is NOT locally deletable
+            [[ModelFile.State.EXTRACTING, 100, 100], [false, ViewFile.Status.EXTRACTING]],
+            // Extracted file is locally deletable
+            [[ModelFile.State.EXTRACTED, 100, 100], [true, ViewFile.Status.EXTRACTED]],
+        ];
+
+        let count = -1;
+        viewService.files.subscribe({
+            next: list => {
+                // Ignore first
+                if(count >= 0) {
+                    expect(list.size).toBe(1);
+                    let file = list.get(0);
+                    let resultVector = testVectors[count][1];
+                    expect(file.isLocallyDeletable).toBe(resultVector[0]);
+                    expect(file.status).toBe(resultVector[1]);
+                }
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(0);
+
+        // Send over the test vectors
+        for(let vector of testVectors) {
+            let testVector = vector[0];
+            let model = Immutable.Map<string, ModelFile>();
+            model = model.set("a", new ModelFile({
+                name: "a",
+                state: testVector[0],
+                local_size: testVector[1],
+                remote_size: testVector[2],
+            }));
+            mockModelService._files.next(model);
+            tick();
+        }
+        expect(count).toBe(testVectors.length);
+    }));
+
+    it("should should correctly set ViewFile isRemotelyDeletable", fakeAsync(() => {
+        // Test and expected result vectors
+        // test - [ModelFile.State, local size, remote size]
+        // result - [isRemotelyDeletable, ViewFile.Status]
+        let testVectors: any[][][] = [
+            // Default remote file is remotely deletable
+            [[ModelFile.State.DEFAULT, null, 100], [true, ViewFile.Status.DEFAULT]],
+            // Default local file is NOT remotely deletable
+            [[ModelFile.State.DEFAULT, 100, null], [false, ViewFile.Status.DEFAULT]],
+            // Stopped file is remotely deletable
+            [[ModelFile.State.DEFAULT, 50, 100], [true, ViewFile.Status.STOPPED]],
+            // Deleted file is remotely deletable
+            [[ModelFile.State.DELETED, null, 100], [true, ViewFile.Status.DELETED]],
+            // Queued file is NOT remotely deletable
+            [[ModelFile.State.QUEUED, null, 100], [false, ViewFile.Status.QUEUED]],
+            // Downloading file is NOT remotely deletable
+            [[ModelFile.State.DOWNLOADING, 10, 100], [false, ViewFile.Status.DOWNLOADING]],
+            // Downloaded file is remotely deletable
+            [[ModelFile.State.DOWNLOADED, 100, 100], [true, ViewFile.Status.DOWNLOADED]],
+            // Extracting file is NOT remotely deletable
+            [[ModelFile.State.EXTRACTING, 100, 100], [false, ViewFile.Status.EXTRACTING]],
+            // Extracted file is remotely deletable
+            [[ModelFile.State.EXTRACTED, 100, 100], [true, ViewFile.Status.EXTRACTED]],
+        ];
+
+        let count = -1;
+        viewService.files.subscribe({
+            next: list => {
+                // Ignore first
+                if(count >= 0) {
+                    expect(list.size).toBe(1);
+                    let file = list.get(0);
+                    let resultVector = testVectors[count][1];
+                    expect(file.isRemotelyDeletable).toBe(resultVector[0]);
+                    expect(file.status).toBe(resultVector[1]);
+                }
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(0);
+
+        // Send over the test vectors
+        for(let vector of testVectors) {
+            let testVector = vector[0];
+            let model = Immutable.Map<string, ModelFile>();
+            model = model.set("a", new ModelFile({
+                name: "a",
+                state: testVector[0],
+                local_size: testVector[1],
+                remote_size: testVector[2],
+            }));
+            mockModelService._files.next(model);
+            tick();
+        }
+        expect(count).toBe(testVectors.length);
+    }));
 });

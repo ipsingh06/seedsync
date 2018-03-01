@@ -539,4 +539,158 @@ describe("Testing model file service", () => {
         modelFileService.extract(modelFile).subscribe(DoNothing);
         httpMock.expectOne("/server/command/extract/%252Ftest%252Fleadingslash").flush("done");
     }));
+
+    it("should send a GET on delete local command", fakeAsync(() => {
+        // Connect the service
+        modelFileService.notifyConnected();
+
+        let modelFile = new ModelFile({
+            name: "File.One",
+            is_dir: false,
+            local_size: 4567,
+            remote_size: 9012,
+            state: ModelFile.State.DOWNLOADING,
+            downloading_speed: 55,
+            eta: 1,
+            full_path: "/new/path/to/file.one",
+            children: Immutable.Set<ModelFile>()
+        });
+
+        let count = 0;
+        modelFileService.deleteLocal(modelFile).subscribe({
+            next: reaction => {
+                expect(reaction.success).toBe(true);
+                count++;
+            }
+        });
+        httpMock.expectOne("/server/command/delete_local/File.One").flush("done");
+
+        tick();
+        expect(count).toBe(1);
+        httpMock.verify();
+    }));
+
+    it("should send correct GET requests on delete local command", fakeAsync(() => {
+        // Connect the service
+        modelFileService.notifyConnected();
+
+        let modelFile;
+
+        modelFile = new ModelFile({
+            name: "test",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteLocal(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_local/test").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test space",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteLocal(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_local/test%2520space").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test/slash",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteLocal(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_local/test%252Fslash").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test\"doublequote",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteLocal(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_local/test%2522doublequote").flush("done");
+
+        modelFile = new ModelFile({
+            name: "/test/leadingslash",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteLocal(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_local/%252Ftest%252Fleadingslash").flush("done");
+    }));
+
+    it("should send a GET on delete remote command", fakeAsync(() => {
+        // Connect the service
+        modelFileService.notifyConnected();
+
+        let modelFile = new ModelFile({
+            name: "File.One",
+            is_dir: false,
+            local_size: 4567,
+            remote_size: 9012,
+            state: ModelFile.State.DOWNLOADING,
+            downloading_speed: 55,
+            eta: 1,
+            full_path: "/new/path/to/file.one",
+            children: Immutable.Set<ModelFile>()
+        });
+
+        let count = 0;
+        modelFileService.deleteRemote(modelFile).subscribe({
+            next: reaction => {
+                expect(reaction.success).toBe(true);
+                count++;
+            }
+        });
+        httpMock.expectOne("/server/command/delete_remote/File.One").flush("done");
+
+        tick();
+        expect(count).toBe(1);
+        httpMock.verify();
+    }));
+
+    it("should send correct GET requests on delete remote command", fakeAsync(() => {
+        // Connect the service
+        modelFileService.notifyConnected();
+
+        let modelFile;
+
+        modelFile = new ModelFile({
+            name: "test",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteRemote(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_remote/test").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test space",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteRemote(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_remote/test%2520space").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test/slash",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteRemote(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_remote/test%252Fslash").flush("done");
+
+        modelFile = new ModelFile({
+            name: "test\"doublequote",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteRemote(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_remote/test%2522doublequote").flush("done");
+
+        modelFile = new ModelFile({
+            name: "/test/leadingslash",
+            state: ModelFile.State.DEFAULT,
+            children: Immutable.Set<ModelFile>()
+        });
+        modelFileService.deleteRemote(modelFile).subscribe(DoNothing);
+        httpMock.expectOne("/server/command/delete_remote/%252Ftest%252Fleadingslash").flush("done");
+    }));
 });
