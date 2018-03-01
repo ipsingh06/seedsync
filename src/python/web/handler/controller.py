@@ -47,6 +47,8 @@ class ControllerHandler(IHandler):
         web_app.add_handler("/server/command/queue/<file_name>", self.__handle_action_queue)
         web_app.add_handler("/server/command/stop/<file_name>", self.__handle_action_stop)
         web_app.add_handler("/server/command/extract/<file_name>", self.__handle_action_extract)
+        web_app.add_handler("/server/command/delete_local/<file_name>", self.__handle_action_delete_local)
+        web_app.add_handler("/server/command/delete_remote/<file_name>", self.__handle_action_delete_remote)
 
     def __handle_action_queue(self, file_name: str):
         """
@@ -102,5 +104,43 @@ class ControllerHandler(IHandler):
         callback.wait()
         if callback.success:
             return HTTPResponse(body="Requested extraction for file '{}'".format(file_name))
+        else:
+            return HTTPResponse(body=callback.error, status=400)
+
+    def __handle_action_delete_local(self, file_name: str):
+        """
+        Request a DELETE LOCAL action
+        :param file_name:
+        :return:
+        """
+        # value is double encoded
+        file_name = unquote(file_name)
+
+        command = Controller.Command(Controller.Command.Action.DELETE_LOCAL, file_name)
+        callback = WebResponseActionCallback()
+        command.add_callback(callback)
+        self.__controller.queue_command(command)
+        callback.wait()
+        if callback.success:
+            return HTTPResponse(body="Requested local delete for file '{}'".format(file_name))
+        else:
+            return HTTPResponse(body=callback.error, status=400)
+
+    def __handle_action_delete_remote(self, file_name: str):
+        """
+        Request a DELETE REMOTE action
+        :param file_name:
+        :return:
+        """
+        # value is double encoded
+        file_name = unquote(file_name)
+
+        command = Controller.Command(Controller.Command.Action.DELETE_REMOTE, file_name)
+        callback = WebResponseActionCallback()
+        command.add_callback(callback)
+        self.__controller.queue_command(command)
+        callback.wait()
+        if callback.success:
+            return HTTPResponse(body="Requested remote delete for file '{}'".format(file_name))
         else:
             return HTTPResponse(body=callback.error, status=400)
