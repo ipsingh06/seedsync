@@ -1,7 +1,7 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Callable
 from threading import Lock
 from queue import Queue
 from enum import Enum
@@ -11,10 +11,11 @@ import copy
 from .scan import ScannerProcess, ActiveScanner, LocalScanner, RemoteScanner
 from .extract import ExtractProcess, ExtractStatus
 from .model_builder import ModelBuilder
-from common import Context, AppError, MultiprocessingLogger
+from common import Context, AppError, MultiprocessingLogger, AppOneShotProcess
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
 from lftp import Lftp, LftpError, LftpJobStatus
 from .controller_persist import ControllerPersist
+from .delete import DeleteLocalProcess, DeleteRemoteProcess
 
 
 class ControllerError(AppError):
@@ -39,6 +40,8 @@ class Controller:
             QUEUE = 0
             STOP = 1
             EXTRACT = 2
+            DELETE_LOCAL = 3
+            DELETE_REMOTE = 4
 
         class ICallback(ABC):
             """Command callback interface"""
@@ -59,6 +62,14 @@ class Controller:
 
         def add_callback(self, callback: ICallback):
             self.callbacks.append(callback)
+
+    class CommandProcessWrapper:
+        """
+        Wraps any one-shot command processes launched by the controller
+        """
+        def __init__(self, process: AppOneShotProcess, post_callback: Callable):
+            self.process = process
+            self.post_callback = post_callback
 
     def __init__(self,
                  context: Context,
@@ -148,6 +159,9 @@ class Controller:
         self.__active_downloading_file_names = []
         self.__active_extracting_file_names = []
 
+        # Keep track of active command processes
+        self.__active_command_processes = []
+
         self.__started = False
 
     def start(self):
@@ -173,6 +187,7 @@ class Controller:
         if not self.__started:
             raise ControllerError("Cannot process, controller is not started")
         self.__propagate_exceptions()
+        self.__cleanup_commands()
         self.__process_commands()
         self.__update_model()
 
@@ -424,6 +439,64 @@ class Controller:
                 else:
                     self.__extract_process.extract(file)
 
+            elif command.action == Controller.Command.Action.DELETE_LOCAL:
+                if file.state not in (
+                    ModelFile.State.DEFAULT,
+                    ModelFile.State.DOWNLOADED,
+                    ModelFile.State.EXTRACTED
+                ):
+                    _notify_failure(command, "Local file '{}' cannot be deleted in state {}".format(
+                        command.filename, str(file.state)
+                    ))
+                    continue
+                elif file.local_size is None:
+                    _notify_failure(command, "File '{}' does not exist locally".format(command.filename))
+                    continue
+                else:
+                    process = DeleteLocalProcess(
+                        local_path=self.__context.config.lftp.local_path,
+                        file_name=file.name
+                    )
+                    process.set_multiprocessing_logger(self.__mp_logger)
+                    post_callback = self.__local_scan_process.force_scan
+                    command_wrapper = Controller.CommandProcessWrapper(
+                        process=process,
+                        post_callback=post_callback
+                    )
+                    self.__active_command_processes.append(command_wrapper)
+                    command_wrapper.process.start()
+
+            elif command.action == Controller.Command.Action.DELETE_REMOTE:
+                if file.state not in (
+                    ModelFile.State.DEFAULT,
+                    ModelFile.State.DOWNLOADED,
+                    ModelFile.State.EXTRACTED,
+                    ModelFile.State.DELETED
+                ):
+                    _notify_failure(command, "Remote file '{}' cannot be deleted in state {}".format(
+                        command.filename, str(file.state)
+                    ))
+                    continue
+                elif file.remote_size is None:
+                    _notify_failure(command, "File '{}' does not exist remotely".format(command.filename))
+                    continue
+                else:
+                    process = DeleteRemoteProcess(
+                        remote_address=self.__context.config.lftp.remote_address,
+                        remote_username=self.__context.config.lftp.remote_username,
+                        remote_port=self.__context.config.lftp.remote_port,
+                        remote_path=self.__context.config.lftp.remote_path,
+                        file_name=file.name
+                    )
+                    process.set_multiprocessing_logger(self.__mp_logger)
+                    post_callback = self.__remote_scan_process.force_scan
+                    command_wrapper = Controller.CommandProcessWrapper(
+                        process=process,
+                        post_callback=post_callback
+                    )
+                    self.__active_command_processes.append(command_wrapper)
+                    command_wrapper.process.start()
+
             # If we get here, it was a success
             for callback in command.callbacks:
                 callback.on_success()
@@ -438,3 +511,19 @@ class Controller:
         self.__remote_scan_process.propagate_exception()
         self.__mp_logger.propagate_exception()
         self.__extract_process.propagate_exception()
+
+    def __cleanup_commands(self):
+        """
+        Cleanup the list of active commands and do any callbacks
+        :return:
+        """
+        still_active_processes = []
+        for command_process in self.__active_command_processes:
+            if command_process.process.is_alive():
+                still_active_processes.append(command_process)
+            else:
+                # Do the post callback
+                command_process.post_callback()
+                # Propagate the exception
+                command_process.process.propagate_exception()
+        self.__active_command_processes = still_active_processes

@@ -1861,3 +1861,302 @@ class TestController(unittest.TestCase):
         files = self.controller.get_model_files()
         files_dict = {f.name: f for f in files}
         self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["ra"].state)
+
+    @timeout_decorator.timeout(20)
+    def test_command_delete_local_file(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        file_path = os.path.join(TestController.temp_dir, "local", "lb")
+        self.assertTrue(os.path.isfile(file_path))
+
+        # Send delete command
+        command = Controller.Command(Controller.Command.Action.DELETE_LOCAL, "lb")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until file is removed from model
+        while True:
+            self.controller.process()
+            call = listener.file_removed.call_args
+            if call:
+                file = call[0][0]
+                self.assertEqual("lb", file.name)
+                break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        self.assertFalse(os.path.exists(file_path))
+
+    @timeout_decorator.timeout(20)
+    def test_command_delete_local_dir(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        file_path = os.path.join(TestController.temp_dir, "local", "la")
+        self.assertTrue(os.path.isdir(file_path))
+
+        # Send delete command
+        command = Controller.Command(Controller.Command.Action.DELETE_LOCAL, "la")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until file is removed from model
+        while True:
+            self.controller.process()
+            call = listener.file_removed.call_args
+            if call:
+                file = call[0][0]
+                self.assertEqual("la", file.name)
+                break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        self.assertFalse(os.path.exists(file_path))
+
+    @timeout_decorator.timeout(20)
+    def test_command_delete_remote_dir(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        file_path = os.path.join(TestController.temp_dir, "remote", "ra")
+        self.assertTrue(os.path.isdir(file_path))
+
+        # Send delete command
+        command = Controller.Command(Controller.Command.Action.DELETE_REMOTE, "ra")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until file is removed from model
+        while True:
+            self.controller.process()
+            call = listener.file_removed.call_args
+            if call:
+                file = call[0][0]
+                self.assertEqual("ra", file.name)
+                break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        self.assertFalse(os.path.exists(file_path))
+
+    @timeout_decorator.timeout(20)
+    def test_command_delete_local_fails_on_remote_file(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        file_path = os.path.join(TestController.temp_dir, "remote", "ra")
+        self.assertTrue(os.path.isdir(file_path))
+
+        # Send delete command
+        command = Controller.Command(Controller.Command.Action.DELETE_LOCAL, "ra")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        self.controller.process()
+
+        # Verify nothing happened
+        listener.file_updated.assert_not_called()
+        listener.file_added.assert_not_called()
+        listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'ra' does not exist locally", error)
+
+        self.assertTrue(os.path.isdir(file_path))
+
+    @timeout_decorator.timeout(20)
+    def test_command_delete_remote_fails_on_local_file(self):
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        file_path = os.path.join(TestController.temp_dir, "local", "la")
+        self.assertTrue(os.path.isdir(file_path))
+
+        # Send delete command
+        command = Controller.Command(Controller.Command.Action.DELETE_REMOTE, "la")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        self.controller.process()
+
+        # Verify nothing happened
+        listener.file_updated.assert_not_called()
+        listener.file_added.assert_not_called()
+        listener.file_removed.assert_not_called()
+        callback.on_success.assert_not_called()
+        self.assertEqual(1, len(callback.on_failure.call_args_list))
+        error = callback.on_failure.call_args[0][0]
+        self.assertEqual("File 'la' does not exist remotely", error)
+
+        self.assertTrue(os.path.isdir(file_path))
+
+    @timeout_decorator.timeout(20)
+    def test_command_delete_remote_forces_immediate_rescan(self):
+        # Test that after a remote delete a remote scan is immediately done
+        # Test this by simply setting the remote scan interval to a really large value
+        # that would timeout the test if it wasn't forced
+        self.context.config.controller.interval_ms_remote_scan = 90000
+
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        file_path = os.path.join(TestController.temp_dir, "remote", "ra")
+        self.assertTrue(os.path.isdir(file_path))
+
+        # Send delete command
+        command = Controller.Command(Controller.Command.Action.DELETE_REMOTE, "ra")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until file is removed from model
+        while True:
+            self.controller.process()
+            call = listener.file_removed.call_args
+            if call:
+                file = call[0][0]
+                self.assertEqual("ra", file.name)
+                break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        self.assertFalse(os.path.exists(file_path))
+
+    @timeout_decorator.timeout(20)
+    def test_command_delete_local_forces_immediate_rescan(self):
+        # Test that after a local delete a local scan is immediately done
+        # Test this by simply setting the local scan interval to a really large value
+        # that would timeout the test if it wasn't forced
+        self.context.config.controller.interval_ms_local_scan = 90000
+
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        file_path = os.path.join(TestController.temp_dir, "local", "la")
+        self.assertTrue(os.path.isdir(file_path))
+
+        # Send delete command
+        command = Controller.Command(Controller.Command.Action.DELETE_LOCAL, "la")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until file is removed from model
+        while True:
+            self.controller.process()
+            call = listener.file_removed.call_args
+            if call:
+                file = call[0][0]
+                self.assertEqual("la", file.name)
+                break
+            time.sleep(0.5)
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+
+        self.assertFalse(os.path.exists(file_path))
