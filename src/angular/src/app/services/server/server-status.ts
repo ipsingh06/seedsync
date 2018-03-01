@@ -10,8 +10,8 @@ interface IServerStatus {
     };
 
     controller: {
-        latestLocalScanTime: number;
-        latestRemoteScanTime: number;
+        latestLocalScanTime: Date;
+        latestRemoteScanTime: Date;
     };
 }
 const DefaultServerStatus: IServerStatus = {
@@ -32,8 +32,8 @@ export class ServerStatus extends ServerStatusRecord implements IServerStatus {
     };
 
     controller: {
-        latestLocalScanTime: number;
-        latestRemoteScanTime: number;
+        latestLocalScanTime: Date;
+        latestRemoteScanTime: Date;
     };
 
     constructor(props) {
