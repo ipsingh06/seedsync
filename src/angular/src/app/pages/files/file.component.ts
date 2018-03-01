@@ -22,6 +22,8 @@ export class FileComponent {
     @Output() queueEvent = new EventEmitter<ViewFile>();
     @Output() stopEvent = new EventEmitter<ViewFile>();
     @Output() extractEvent = new EventEmitter<ViewFile>();
+    @Output() deleteLocalEvent = new EventEmitter<ViewFile>();
+    @Output() deleteRemoteEvent = new EventEmitter<ViewFile>();
 
     onQueue(file: ViewFile) {
         // Pass to parent component
@@ -36,5 +38,15 @@ export class FileComponent {
     onExtract(file: ViewFile) {
         // Pass to parent component
         this.extractEvent.emit(file);
+    }
+
+    onDeleteLocal(file: ViewFile) {
+        // Pass to parent component
+        this.deleteLocalEvent.emit(file);
+    }
+
+    onDeleteRemote(file: ViewFile) {
+        // Pass to parent component
+        this.deleteRemoteEvent.emit(file);
     }
 }

@@ -12,7 +12,9 @@
             (click)="onSelect(file)"
             (queueEvent)="onQueue($event)"
             (stopEvent)="onStop($event)"
-            (extractEvent)="onExtract($event)">
+            (extractEvent)="onExtract($event)"
+            (deleteLocalEvent)="onDeleteLocal($event)"
+            (deleteRemoteEvent)="onDeleteRemote($event)">
         </app-file>
     </div>
 </div>

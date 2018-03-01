@@ -59,4 +59,16 @@ export class FileListComponent {
             this._logger.info(data);
         });
     }
+
+    onDeleteLocal(file: ViewFile) {
+        this.viewFileService.deleteLocal(file).subscribe(data => {
+            this._logger.info(data);
+        });
+    }
+
+    onDeleteRemote(file: ViewFile) {
+        this.viewFileService.deleteRemote(file).subscribe(data => {
+            this._logger.info(data);
+        });
+    }
 }

@@ -68,18 +68,28 @@
         <div class="button" appClickStopPropagation [attr.disabled]="file.isQueueable ? null : true"
              (click)="!file.isQueueable || onQueue(file)">
             <img src="assets/icons/queue.svg" />
-            <span class="text">Queue</span>
+            <div class="text"><span>Queue</span></div>
         </div>
         <div class="button" appClickStopPropagation [attr.disabled]="file.isStoppable ? null : true"
              (click)="!file.isStoppable || onStop(file)">
             <img src="assets/icons/stop.svg" />
-            <span class="text">Stop</span>
+            <div class="text"><span>Stop</span></div>
         </div>
         <div class="button" appClickStopPropagation
              [attr.disabled]="file.isExtractable && file.isArchive ? null : true"
              (click)="!(file.isExtractable && file.isArchive) || onExtract(file)">
             <img src="assets/icons/extract.svg" />
-            <span class="text">Extract</span>
+            <div class="text"><span>Extract</span></div>
+        </div>
+        <div class="button" appClickStopPropagation [attr.disabled]="file.isLocallyDeletable ? null : true"
+             (click)="!file.isLocallyDeletable || onDeleteLocal(file)">
+            <img src="assets/icons/delete-local.svg" />
+            <div class="text"><span>Delete Local</span></div>
+        </div>
+        <div class="button" appClickStopPropagation [attr.disabled]="file.isRemotelyDeletable ? null : true"
+             (click)="!file.isRemotelyDeletable || onDeleteRemote(file)">
+            <img src="assets/icons/delete-remote.svg" />
+            <div class="text"><span>Delete Remote</span></div>
         </div>
     </div>
 </div>
