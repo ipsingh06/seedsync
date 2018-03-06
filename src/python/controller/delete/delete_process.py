@@ -44,7 +44,7 @@ class DeleteRemoteProcess(AppOneShotProcess):
         file_path = os.path.join(self.__remote_path, self.__file_name)
         self.logger.debug("Deleting remote file {}".format(self.__file_name))
         try:
-            out = self.__ssh.run_command("rm -rf {}".format(file_path))
+            out = self.__ssh.run_command("rm -rf '{}'".format(file_path))
             self.logger.debug("Remote delete output: {}".format(out.decode()))
         except SshError:
             self.logger.exception("Exception while deleting remote file")
