@@ -1,6 +1,6 @@
 import {
     Component, Input, Output, ChangeDetectionStrategy,
-    EventEmitter, OnChanges, SimpleChanges
+    EventEmitter, OnChanges, SimpleChanges, ViewChild
 } from "@angular/core";
 
 import {Modal} from 'ngx-modialog/plugins/bootstrap';
@@ -26,6 +26,9 @@ export class FileComponent implements OnChanges {
     // Expose min function for template
     min = Math.min;
 
+    // Entire div element
+    @ViewChild('fileElement') fileElement: any;
+
     @Input() file: ViewFile;
 
     @Output() queueEvent = new EventEmitter<ViewFile>();
@@ -40,11 +43,17 @@ export class FileComponent implements OnChanges {
     constructor(private modal: Modal) {}
 
     ngOnChanges(changes: SimpleChanges): void {
-        // Reset active action if the status changes
+        // Check for status changes
         let oldFile: ViewFile = changes.file.previousValue;
         let newFile: ViewFile = changes.file.currentValue;
         if(oldFile != null && newFile != null && oldFile.status != newFile.status) {
+            // Reset any active action
             this.activeAction = null;
+
+            // Scroll into view if this file is selected and not already in viewport
+            if(newFile.isSelected && !FileComponent.isElementInViewport(this.fileElement.nativeElement)) {
+                this.fileElement.nativeElement.scrollIntoView();
+            }
         }
     }
 
@@ -127,6 +136,17 @@ export class FileComponent implements OnChanges {
                 // Pass to parent component
                 this.deleteRemoteEvent.emit(file);
             }
+        );
+    }
+
+    // Source: https://stackoverflow.com/a/7557433
+    private static isElementInViewport (el) {
+        let rect = el.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
         );
     }
 }
