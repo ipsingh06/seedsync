@@ -123,6 +123,10 @@
     min-width: 60px;
     height: 60px;
 
+    &:last-child {
+        margin-right: 0;
+    }
+
     .text {
         height: 25px;
         display: flex;
