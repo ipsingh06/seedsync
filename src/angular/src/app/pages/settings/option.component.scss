@@ -31,6 +31,7 @@ span.description {
 input[type="checkbox"] {
     width: auto;
     margin-right: 10px;
+    box-shadow: none;
 
     &:focus {
         box-shadow: none;
