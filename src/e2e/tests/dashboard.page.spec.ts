@@ -49,9 +49,12 @@ describe('Testing dashboard page', () => {
 
     it('should have all the action buttons', async () => {
         await page.getFileActions(1).then(states => {
-            expect(states.length).toBe(2);
+            expect(states.length).toBe(5);
             expect(states[0].title).toBe("Queue");
             expect(states[1].title).toBe("Stop");
+            expect(states[2].title).toBe("Extract");
+            expect(states[3].title).toBe("Delete Local");
+            expect(states[4].title).toBe("Delete Remote");
         });
     });
 

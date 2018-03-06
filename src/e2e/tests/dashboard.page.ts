@@ -64,7 +64,7 @@ export class DashboardPage extends App {
                     .map(buttonElm => {
                         let title = browser.executeScript(
                             "return arguments[0].innerHTML;",
-                            buttonElm.element(by.css("span.text"))
+                            buttonElm.element(by.css("div.text span"))
                         );
                         let isEnabled = buttonElm.getAttribute("disabled").then(value => {
                             return value == null;
