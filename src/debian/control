@@ -9,7 +9,9 @@ Package: seedsync
 Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}, lftp, openssh-client
 Pre-Depends: debconf (>= 0.2.17)
-Description: fully GUI-configurable, lftp-based file transfer program
+Description: fully GUI-configurable, lftp-based file transfer and management program
  seedsync is a lftp-based file transfer program to keep your local server
  synchronized with your remote seedbox. It features a web-based GUI to
  fully configure lftp settings as well as view the transfer status.
+ It additionally allows you to extract archives and delete files on both
+ the local and remote server, all from the web-based GUI.

@@ -1,3 +1,15 @@
+seedsync (0.3-0) stable; urgency=low
+
+  * Added ability to extract archive files
+  * Added ability to delete files on local and remote server
+  * Added ability to automatically extract auto-queued files
+  * Shiny new icons
+  * Added UI notification when waiting for remote server to respond
+  * Fixed service exiting on 'text file is busy' error
+  * Various UI improvements
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Tue, 06 Mar 2018 02:28:12 -0800
+
 seedsync (0.2-0) stable; urgency=low
 
   * Added option for remote SSH port
