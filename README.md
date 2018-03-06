@@ -1,17 +1,22 @@
 # SeedSync
 
-SeedSync is a GUI-configurable, LFTP-based file transfer program. With a LFTP backend, it can fetch files from a remote server (like your seedbox) at maximum throughput. Fully GUI-configurable means not having to muck around with scripts.
+SeedSync is a GUI-configurable, LFTP-based file transfer and management program.
+With a LFTP backend, it can fetch files from a remote server (like your seedbox) at maximum throughput.
+Fully GUI-configurable means not having to muck around with scripts.
+SeedSync also allows you to extract archives and delete files on both the local machine and the remote server,
+ all from the GUI!
 
-![](https://user-images.githubusercontent.com/12875506/34561320-480404a4-f0fe-11e7-9e01-6ed50668c36a.png)
+![](https://user-images.githubusercontent.com/12875506/37031587-3a5df834-20f4-11e8-98a0-e42ee764f2ea.png)
 
 SeedSync currently supports the following features:
 
 - LFTP-backend for high-throughput, parallel transfers
 - Web-based GUI accessible from any device
 - View and control progress of file transfers from GUI
+- Extract/decompress archive files
+- Delete local or remote files
 - Only fetch the files you want with Auto-Queue pattern matching
 - Fully open source!
-- more features coming soon...
 
 
 Supported OS: Linux (sorry no Windows or Mac support at this time)
@@ -25,15 +30,15 @@ Tested on: Ubuntu 14.04 and above
 <table>
 <tr>
     <td>
-        <a href="https://user-images.githubusercontent.com/12875506/34560363-48c85d44-f0fa-11e7-87c0-4ac0b80f38b4.png">
-        <img src="https://user-images.githubusercontent.com/12875506/34560363-48c85d44-f0fa-11e7-87c0-4ac0b80f38b4.png"
+        <a href="https://user-images.githubusercontent.com/12875506/37031659-74653182-20f4-11e8-856d-c1655d7d8150.png">
+        <img src="https://user-images.githubusercontent.com/12875506/37031659-74653182-20f4-11e8-856d-c1655d7d8150.png"
         alt="Dashboard on Desktop"
         style="max-width: 100px;" />
         </a>
     </td>
     <td>
-        <a href="https://user-images.githubusercontent.com/12875506/34560367-4e27c96e-f0fa-11e7-9647-c58eaba64b86.png">
-        <img src="https://user-images.githubusercontent.com/12875506/34560367-4e27c96e-f0fa-11e7-9647-c58eaba64b86.png"
+        <a href="https://user-images.githubusercontent.com/12875506/37031725-b8a79f9c-20f4-11e8-8caa-de45383f72b6.png">
+        <img src="https://user-images.githubusercontent.com/12875506/37031725-b8a79f9c-20f4-11e8-8caa-de45383f72b6.png"
         alt="Dashboard on Mobile"
         style="max-width: 100px;" />
         </a>
@@ -73,7 +78,8 @@ Tested on: Ubuntu 14.04 and above
 
 3. During the first install, you will be prompted for a user name:
    ![Install prompt for username](https://raw.githubusercontent.com/ipsingh06/seedsync/master/doc/images/install_1.png)
-   This is the user under which the seedsync service will run. The transferred files will be owned by this user. It is recommended that you set this to your user (and NOT root).
+   This is the user under which the seedsync service will run. The transferred files will be owned by this user.
+   It is recommended that you set this to your user (and NOT root).
 
 4. After the installation is complete, verify that the application is running by going to [http://localhost:8800](http://localhost:8800) in your browser.
 
@@ -87,7 +93,10 @@ You may also access it from another device by replacing 'localhost' with the IP 
 
 ### First Time Setup
 
-You need to configure SeedSync to connect to the remove server. SeedSync requires that you have Key-Based SSH login access to the remote server. Password-based access is not supported for security reasons. You can setup Key-Based SSH access by following this [simple tutorial](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id).
+You need to configure SeedSync to connect to the remove server.
+SeedSync requires that you have Key-Based SSH login access to the remote server.
+Password-based access is not supported for security reasons.
+You can setup Key-Based SSH access by following this [simple tutorial](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id).
 
 Note: make sure the access is setup for the user under which SeedSync is running.
 
@@ -109,7 +118,8 @@ Fill out the missing configuration. Then select Restart from the menu. SeedSync 
 
 ### Dashboard
 
-The Dashboard page shows all the files and directories on the remote server and the local machine. Here you can manually queue files to be transferred.
+The Dashboard page shows all the files and directories on the remote server and the local machine.
+Here you can manually queue files to be transferred.
 
 ### AutoQueue
 
@@ -134,10 +144,12 @@ sudo service seedsync restart
 #### SeedSync can't seem to connect to my remote server?
 
 Make sure you have key-based SSH login setup and working properly.
-You may need to look at the logs to determine the exact cause of failure. The logs are available at: `<user home directory>/.seedsync/logs/`
+You may need to look at the logs to determine the exact cause of failure.
+The logs are available at: `<user home directory>/.seedsync/logs/`
 
 
 
 ## License
 
-SeedSync is distributed under Apache License Version 2.0. See [License.txt](https://github.com/ipsingh06/seedsync/blob/master/LICENSE.txt) for more information.
+SeedSync is distributed under Apache License Version 2.0.
+See [License.txt](https://github.com/ipsingh06/seedsync/blob/master/LICENSE.txt) for more information.
