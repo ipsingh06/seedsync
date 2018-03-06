@@ -2,10 +2,12 @@ import {Component, ChangeDetectionStrategy} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 
 import {List} from "immutable";
+import {Modal} from 'ngx-modialog/plugins/bootstrap';
 
 import {ViewFileService} from "../../services/files/view-file.service";
 import {ViewFile} from "../../services/files/view-file";
 import {LoggerService} from "../../services/utils/logger.service";
+import {Localization} from "../../common/localization";
 
 @Component({
     selector: "app-file-list",
@@ -20,8 +22,29 @@ export class FileListComponent {
     public identify = FileListComponent.identify;
 
     constructor(private _logger: LoggerService,
-                private viewFileService: ViewFileService) {
+                private viewFileService: ViewFileService,
+                private modal: Modal) {
         this.files = viewFileService.filteredFiles;
+    }
+
+    showDeleteConfirmation(title: string, message: string, callback: () => void) {
+        const dialogRef = this.modal.confirm()
+            .title(title)
+            .okBtn('Delete')
+            .okBtnClass('btn btn-danger')
+            .cancelBtn('Cancel')
+            .cancelBtnClass('btn btn-secondary')
+            .isBlocking(false)
+            .showClose(false)
+            .body(message)
+            .open();
+
+        dialogRef.then( dialogRef => {
+           dialogRef.result.then(
+               () => {callback()},
+               () => {return}
+           );
+        });
     }
 
     // noinspection JSUnusedLocalSymbols
@@ -61,14 +84,26 @@ export class FileListComponent {
     }
 
     onDeleteLocal(file: ViewFile) {
-        this.viewFileService.deleteLocal(file).subscribe(data => {
-            this._logger.info(data);
-        });
+        this.showDeleteConfirmation(
+            Localization.Modal.DELETE_LOCAL_TITLE,
+            Localization.Modal.DELETE_LOCAL_MESSAGE(file.name),
+            () => {
+                this.viewFileService.deleteLocal(file).subscribe(data => {
+                    this._logger.info(data);
+                });
+            }
+        );
     }
 
     onDeleteRemote(file: ViewFile) {
-        this.viewFileService.deleteRemote(file).subscribe(data => {
-            this._logger.info(data);
-        });
+        this.showDeleteConfirmation(
+            Localization.Modal.DELETE_REMOTE_TITLE,
+            Localization.Modal.DELETE_REMOTE_MESSAGE(file.name),
+            () => {
+                this.viewFileService.deleteRemote(file).subscribe(data => {
+                    this._logger.info(data);
+                });
+            }
+        );
     }
 }

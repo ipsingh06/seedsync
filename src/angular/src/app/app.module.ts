@@ -4,6 +4,9 @@ import {HttpClientModule} from "@angular/common/http";
 import {FormsModule} from "@angular/forms";
 import {RouteReuseStrategy, RouterModule} from "@angular/router";
 
+import { ModalModule } from 'ngx-modialog';
+import { BootstrapModalModule } from 'ngx-modialog/plugins/bootstrap';
+
 import {AppComponent} from "./pages/main/app.component";
 import {environment} from "../environments/environment";
 import {LoggerService} from "./services/utils/logger.service";
@@ -60,7 +63,10 @@ import {ROUTES} from "./routes";
         BrowserModule,
         HttpClientModule,
         FormsModule,
-        RouterModule.forRoot(ROUTES)
+        RouterModule.forRoot(ROUTES),
+
+        ModalModule.forRoot(),
+        BootstrapModalModule
     ],
     providers: [
         {provide: RouteReuseStrategy, useClass: CachedReuseStrategy},
