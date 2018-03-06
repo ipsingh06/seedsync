@@ -93,9 +93,9 @@ You may also access it from another device by replacing 'localhost' with the IP 
 
 ### First Time Setup
 
-You need to configure SeedSync to connect to the remove server.
+You need to configure SeedSync to connect to the remote server.
 SeedSync requires that you have Key-Based SSH login access to the remote server.
-Password-based access is not supported for security reasons.
+**For security reasons, password-based access is not supported.**
 You can setup Key-Based SSH access by following this [simple tutorial](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id).
 
 Note: make sure the access is setup for the user under which SeedSync is running.
@@ -119,7 +119,7 @@ Fill out the missing configuration. Then select Restart from the menu. SeedSync 
 ### Dashboard
 
 The Dashboard page shows all the files and directories on the remote server and the local machine.
-Here you can manually queue files to be transferred.
+Here you can manually queue files to be transferred, extract archives and delete files.
 
 ### AutoQueue
 
