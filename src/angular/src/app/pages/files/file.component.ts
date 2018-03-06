@@ -3,7 +3,10 @@ import {
     EventEmitter, OnChanges, SimpleChanges
 } from "@angular/core";
 
+import {Modal} from 'ngx-modialog/plugins/bootstrap';
+
 import {ViewFile} from "../../services/files/view-file";
+import {Localization} from "../../common/localization";
 
 @Component({
     selector: "app-file",
@@ -34,6 +37,8 @@ export class FileComponent implements OnChanges {
     // Indicates an active action on-going
     activeAction: FileAction = null;
 
+    constructor(private modal: Modal) {}
+
     ngOnChanges(changes: SimpleChanges): void {
         // Reset active action if the status changes
         let oldFile: ViewFile = changes.file.previousValue;
@@ -41,6 +46,26 @@ export class FileComponent implements OnChanges {
         if(oldFile != null && newFile != null && oldFile.status != newFile.status) {
             this.activeAction = null;
         }
+    }
+
+    showDeleteConfirmation(title: string, message: string, callback: () => void) {
+        const dialogRef = this.modal.confirm()
+            .title(title)
+            .okBtn('Delete')
+            .okBtnClass('btn btn-danger')
+            .cancelBtn('Cancel')
+            .cancelBtnClass('btn btn-secondary')
+            .isBlocking(false)
+            .showClose(false)
+            .body(message)
+            .open();
+
+        dialogRef.then( dialogRef => {
+           dialogRef.result.then(
+               () => {callback()},
+               () => {return}
+           );
+        });
     }
 
     isQueueable() {
@@ -82,15 +107,27 @@ export class FileComponent implements OnChanges {
     }
 
     onDeleteLocal(file: ViewFile) {
-        this.activeAction = FileAction.DELETE_LOCAL;
-        // Pass to parent component
-        this.deleteLocalEvent.emit(file);
+        this.showDeleteConfirmation(
+            Localization.Modal.DELETE_LOCAL_TITLE,
+            Localization.Modal.DELETE_LOCAL_MESSAGE(file.name),
+            () => {
+                this.activeAction = FileAction.DELETE_LOCAL;
+                // Pass to parent component
+                this.deleteLocalEvent.emit(file);
+            }
+        );
     }
 
     onDeleteRemote(file: ViewFile) {
-        this.activeAction = FileAction.DELETE_REMOTE;
-        // Pass to parent component
-        this.deleteRemoteEvent.emit(file);
+        this.showDeleteConfirmation(
+            Localization.Modal.DELETE_REMOTE_TITLE,
+            Localization.Modal.DELETE_REMOTE_MESSAGE(file.name),
+            () => {
+                this.activeAction = FileAction.DELETE_REMOTE;
+                // Pass to parent component
+                this.deleteRemoteEvent.emit(file);
+            }
+        );
     }
 }
 
