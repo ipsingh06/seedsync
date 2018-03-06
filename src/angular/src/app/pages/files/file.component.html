@@ -65,29 +65,43 @@
 
     <!-- actions div, visible on selection -->
     <div class="actions">
-        <div class="button" appClickStopPropagation [attr.disabled]="file.isQueueable ? null : true"
-             (click)="!file.isQueueable || onQueue(file)">
+        <div class="button" appClickStopPropagation
+             [attr.disabled]="isQueueable() ? null : true"
+             (click)="!isQueueable() || onQueue(file)"
+             [class.loading]="activeAction == FileAction.QUEUE">
+            <div class="loader"></div>
             <img src="assets/icons/queue.svg" />
             <div class="text"><span>Queue</span></div>
         </div>
-        <div class="button" appClickStopPropagation [attr.disabled]="file.isStoppable ? null : true"
-             (click)="!file.isStoppable || onStop(file)">
+        <div class="button" appClickStopPropagation
+             [attr.disabled]="isStoppable() ? null : true"
+             (click)="!isStoppable() || onStop(file)"
+             [class.loading]="activeAction == FileAction.STOP">
+            <div class="loader"></div>
             <img src="assets/icons/stop.svg" />
             <div class="text"><span>Stop</span></div>
         </div>
         <div class="button" appClickStopPropagation
-             [attr.disabled]="file.isExtractable && file.isArchive ? null : true"
-             (click)="!(file.isExtractable && file.isArchive) || onExtract(file)">
+             [attr.disabled]="isExtractable() ? null : true"
+             (click)="!isExtractable() || onExtract(file)"
+             [class.loading]="activeAction == FileAction.EXTRACT">
+            <div class="loader"></div>
             <img src="assets/icons/extract.svg" />
             <div class="text"><span>Extract</span></div>
         </div>
-        <div class="button" appClickStopPropagation [attr.disabled]="file.isLocallyDeletable ? null : true"
-             (click)="!file.isLocallyDeletable || onDeleteLocal(file)">
+        <div class="button" appClickStopPropagation
+             [attr.disabled]="isLocallyDeletable() ? null : true"
+             (click)="!isLocallyDeletable() || onDeleteLocal(file)"
+             [class.loading]="activeAction == FileAction.DELETE_LOCAL">
+            <div class="loader"></div>
             <img src="assets/icons/delete-local.svg" />
             <div class="text"><span>Delete Local</span></div>
         </div>
-        <div class="button" appClickStopPropagation [attr.disabled]="file.isRemotelyDeletable ? null : true"
-             (click)="!file.isRemotelyDeletable || onDeleteRemote(file)">
+        <div class="button" appClickStopPropagation
+             [attr.disabled]="isRemotelyDeletable() ? null : true"
+             (click)="!isRemotelyDeletable() || onDeleteRemote(file)"
+             [class.loading]="activeAction == FileAction.DELETE_REMOTE">
+            <div class="loader"></div>
             <img src="assets/icons/delete-remote.svg" />
             <div class="text"><span>Delete Remote</span></div>
         </div>
