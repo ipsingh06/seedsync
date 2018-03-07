@@ -19,12 +19,14 @@ class Args:
         self.local_path_to_scanfs = None
         self.html_path = None
         self.debug = None
+        self.exit = None
 
     def as_dict(self) -> dict:
         dct = collections.OrderedDict()
         dct["local_path_to_scanfs"] = str(self.local_path_to_scanfs)
         dct["html_path"] = str(self.html_path)
         dct["debug"] = str(self.debug)
+        dct["exit"] = str(self.exit)
         return dct
 
 

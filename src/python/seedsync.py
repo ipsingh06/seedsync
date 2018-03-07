@@ -66,6 +66,7 @@ class Seedsync:
         ctx_args.local_path_to_scanfs = args.scanfs
         ctx_args.html_path = args.html
         ctx_args.debug = is_debug
+        ctx_args.exit = args.exit
 
         # Logger setup
         # We separate the main log from the web-access log
@@ -130,10 +131,13 @@ class Seedsync:
 
         # Initial checks to see if we should bother starting the controller
         if Seedsync._detect_incomplete_config(self.context.config):
-            do_start_controller = False
-            self.context.logger.error("Config is incomplete")
-            self.context.status.server.up = False
-            self.context.status.server.error_msg = Localization.Error.SETTINGS_INCOMPLETE
+            if not self.context.args.exit:
+                do_start_controller = False
+                self.context.logger.error("Config is incomplete")
+                self.context.status.server.up = False
+                self.context.status.server.error_msg = Localization.Error.SETTINGS_INCOMPLETE
+            else:
+                raise AppError("Config is incomplete")
 
         # Start child threads here
         if do_start_controller:
@@ -157,9 +161,12 @@ class Seedsync:
                 try:
                     controller_job.propagate_exception()
                 except AppError as exc:
-                    self.context.status.server.up = False
-                    self.context.status.server.error_msg = str(exc)
-                    Seedsync.logger.exception("Caught exception")
+                    if not self.context.args.exit:
+                        self.context.status.server.up = False
+                        self.context.status.server.error_msg = str(exc)
+                        Seedsync.logger.exception("Caught exception")
+                    else:
+                        raise
 
                 # Check if a restart is requested
                 if web_app_builder.server_handler.is_restart_requested():
@@ -214,6 +221,7 @@ class Seedsync:
         parser.add_argument("-c", "--config_dir", required=True, help="Path to config directory")
         parser.add_argument("--logdir", help="Directory for log files")
         parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logs")
+        parser.add_argument("--exit", action="store_true", help="Exit on error")
 
         # Whether package is frozen
         is_frozen = getattr(sys, 'frozen', False)
