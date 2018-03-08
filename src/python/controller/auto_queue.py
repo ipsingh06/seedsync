@@ -231,13 +231,19 @@ class AutoQueue:
 
         # Send the queue commands
         for filename, pattern in files_to_queue:
-            self.logger.info("Auto queueing '{}' for pattern '{}'".format(filename, pattern.pattern))
+            self.logger.info(
+                "Auto queueing '{}'".format(filename) +
+                "for pattern '{}'".format(pattern.pattern) if pattern else ""
+            )
             command = Controller.Command(Controller.Command.Action.QUEUE, filename)
             self.__controller.queue_command(command)
 
         # Send the extract commands
         for filename, pattern in files_to_extract:
-            self.logger.info("Auto extracting '{}' for pattern '{}'".format(filename, pattern.pattern))
+            self.logger.info(
+                "Auto extracting '{}'".format(filename) +
+                "for pattern '{}'".format(pattern.pattern) if pattern else ""
+            )
             command = Controller.Command(Controller.Command.Action.EXTRACT, filename)
             self.__controller.queue_command(command)
 
@@ -263,12 +269,16 @@ class AutoQueue:
         # Filename key prevents a file from being accepted twice
         files_matched = dict()
 
-        # Step 1: run candidates through all the patterns
+        # Step 1: run candidates through all the patterns if they are enabled
+        #         otherwise accept all files
         for file in candidates:
-            for pattern in self.__persist.patterns:
-                if accept(file) and self.__match(pattern, file):
-                    files_matched[file.name] = pattern
-                    break
+            if self.__patterns_only:
+                for pattern in self.__persist.patterns:
+                    if accept(file) and self.__match(pattern, file):
+                        files_matched[file.name] = pattern
+                        break
+            elif accept(file):
+                files_matched[file.name] = None
 
         # Step 2: run new pattern through all the files
         if self.__persist_listener.new_patterns:
@@ -280,12 +290,12 @@ class AutoQueue:
 
         return list(zip(files_matched.keys(), files_matched.values()))
 
-    def __match(self, pattern: AutoQueuePattern, file: ModelFile) -> bool:
+    @staticmethod
+    def __match(pattern: AutoQueuePattern, file: ModelFile) -> bool:
         """
         Returns true is file matches the pattern
         :param pattern:
         :param file:
         :return:
         """
-        return not self.__patterns_only or \
-            pattern.pattern.lower() in file.name.lower()
+        return pattern.pattern.lower() in file.name.lower()
