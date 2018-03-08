@@ -12,6 +12,6 @@ if [ "${ARTIFACTS_VERSION}" != "${VERSION}" ]; then
     exit 1
 fi
 
-docker build -t ${IMAGE}:latest -t ${IMAGE}:${VERSION} ${DIR}/
+docker build -t ${IMAGE}:${VERSION} ${DIR}/
 
 echo "Finished building docker image ${IMAGE}:${VERSION}"
