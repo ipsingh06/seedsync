@@ -40,6 +40,11 @@ artifacts:
 	cp -rf ${BUILDDIR}/py-dist/seedsync/* ${BUILDDIR}/artifacts/
 	cp -rf ${BUILDDIR}/ng-dist ${BUILDDIR}/artifacts/html
 	cp -f ${BUILDDIR}/scanfs-dist/scanfs ${BUILDDIR}/artifacts/
+	cat ${SOURCEDIR}/debian/changelog \
+        | grep -m1 -o "seedsync \(([0-9\.\-]*)\) stable" \
+        | grep -o [0-9\.\-]* \
+        | sed 's/\-/\./' \
+        > ${BUILDDIR}/artifacts/VERSION
 
 deb:
 	rm -rf ${BUILDDIR}/deb
@@ -47,6 +52,13 @@ deb:
 	cp -rf ${BUILDDIR}/artifacts ${BUILDDIR}/deb/seedsync
 	cp -rf ${SOURCEDIR}/debian ${BUILDDIR}/deb/
 	cd ${BUILDDIR}/deb && dpkg-buildpackage -B -uc -us
+
+docker:
+	rm -rf ${BUILDDIR}/docker
+	mkdir -p ${BUILDDIR}/docker
+	cp -rf ${BUILDDIR}/artifacts ${BUILDDIR}/docker/
+	cp -rf ${SOURCEDIR}/docker/release/* ${BUILDDIR}/docker/
+	${BUILDDIR}/docker/build.sh
 
 clean:
 	rm -rf build
