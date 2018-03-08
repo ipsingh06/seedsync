@@ -233,7 +233,7 @@ class AutoQueue:
         for filename, pattern in files_to_queue:
             self.logger.info(
                 "Auto queueing '{}'".format(filename) +
-                "for pattern '{}'".format(pattern.pattern) if pattern else ""
+                (" for pattern '{}'".format(pattern.pattern) if pattern else "")
             )
             command = Controller.Command(Controller.Command.Action.QUEUE, filename)
             self.__controller.queue_command(command)
@@ -242,7 +242,7 @@ class AutoQueue:
         for filename, pattern in files_to_extract:
             self.logger.info(
                 "Auto extracting '{}'".format(filename) +
-                "for pattern '{}'".format(pattern.pattern) if pattern else ""
+                (" for pattern '{}'".format(pattern.pattern) if pattern else "")
             )
             command = Controller.Command(Controller.Command.Action.EXTRACT, filename)
             self.__controller.queue_command(command)
