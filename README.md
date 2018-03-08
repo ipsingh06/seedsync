@@ -95,7 +95,7 @@ Tested on: Ubuntu 14.04 and above
    ```bash
    docker run -p 8800:8800 -v <downloads directory>:/downloads ipsingh06/seedsync
    ```
-   where <downloads directory> refers to the location on host machine where downloaded files will be placed.
+   where &lt;downloads directory&gt; refers to the location on host machine where downloaded files will be placed.
 
 2. Access application GUI by going to [http://localhost:8800](http://localhost:8800) in your browser.
 
