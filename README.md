@@ -97,7 +97,9 @@ Tested on: Ubuntu 14.04 and above
    ```
    where <downloads directory> refers to the location on host machine where downloaded files will be placed.
 
-2. Setup key-based SSH access. See the First Time Setup section below.
+2. Access application GUI by going to [http://localhost:8800](http://localhost:8800) in your browser.
+
+3. Setup key-based SSH access. See the First Time Setup section below.
    Note: the key must be generated inside the docker container
 
 
