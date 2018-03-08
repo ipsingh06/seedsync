@@ -19,7 +19,7 @@ SeedSync currently supports the following features:
 - Fully open source!
 
 
-Supported OS: Linux (sorry no Windows or Mac support at this time)
+Supported OS: Linux (debian package, docker image)
 
 Tested on: Ubuntu 14.04 and above
 
@@ -68,6 +68,8 @@ Tested on: Ubuntu 14.04 and above
 
 ## Installation
 
+### Ubuntu
+
 1. Download the deb package from the [latest](https://github.com/ipsingh06/seedsync/releases/latest) release
 
 2. Install the deb package:
@@ -83,6 +85,20 @@ Tested on: Ubuntu 14.04 and above
 
 4. After the installation is complete, verify that the application is running by going to [http://localhost:8800](http://localhost:8800) in your browser.
 
+5. Setup key-based SSH access. See the First Time Setup section below.
+
+
+### Docker
+
+1. Run the docker image with the following command:
+
+   ```bash
+   docker run -p 8800:8800 -v <downloads directory>:/downloads ipsingh06/seedsync
+   ```
+   where <downloads directory> refers to the location on host machine where downloaded files will be placed.
+
+2. Setup key-based SSH access. See the First Time Setup section below.
+   Note: the key must be generated inside the docker container
 
 
 ## Usage
