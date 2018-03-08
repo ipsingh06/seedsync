@@ -317,6 +317,7 @@ class Lftp:
         Exit the lftp instance. It cannot be used after being killed
         :return:
         """
+        self.kill_all()
         self.__process.sendline("exit")
         self.__process.close(force=True)
 
