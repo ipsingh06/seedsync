@@ -44,6 +44,7 @@ class SystemScanner:
         self.path_to_scan = path_to_scan
         self.exclude_prefixes = []
         self.exclude_suffixes = [SystemScanner.__LFTP_STATUS_FILE_SUFFIX]
+        self.__lftp_temp_file_suffix = None
 
     def add_exclude_prefix(self, prefix: str):
         """
@@ -60,6 +61,15 @@ class SystemScanner:
         :return:
         """
         self.exclude_suffixes.append(suffix)
+
+    def set_lftp_temp_suffix(self, suffix: str):
+        """
+        Set the suffix used by LFTP temp files
+        Scanner will ignore the suffix and show these files with their
+        original name
+        :return:
+        """
+        self.__lftp_temp_file_suffix = suffix
 
     def scan(self) -> List[SystemFile]:
         """
@@ -79,8 +89,15 @@ class SystemScanner:
         :return:
         """
         path = os.path.join(self.path_to_scan, name)
+        temp_path = (path + self.__lftp_temp_file_suffix) if self.__lftp_temp_file_suffix else None
 
-        if not os.path.exists(path):
+        if os.path.exists(path):
+            # We're good to go
+            pass
+        elif temp_path and os.path.isfile(temp_path):
+            # There's a temp file, use that
+            path = temp_path
+        else:
             raise SystemScannerError("Path does not exist: {}".format(path))
 
         return self.__create_system_file(
@@ -107,7 +124,13 @@ class SystemScanner:
             if os.path.isfile(lftp_status_file_path):
                 with open(lftp_status_file_path, "r") as f:
                     file_size = SystemScanner._lftp_status_file_size(f.read())
-            sys_file = SystemFile(entry.name, file_size, False)
+            # Check to see if this is a lftp temp file, and if so, use the real name
+            file_name = entry.name
+            if self.__lftp_temp_file_suffix is not None and \
+                    file_name != self.__lftp_temp_file_suffix and \
+                    file_name.endswith(self.__lftp_temp_file_suffix):
+                file_name = file_name[:-len(self.__lftp_temp_file_suffix)]
+            sys_file = SystemFile(file_name, file_size, False)
         return sys_file
 
     def __create_children(self, path: str) -> List[SystemFile]:

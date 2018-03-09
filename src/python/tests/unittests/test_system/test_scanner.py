@@ -369,6 +369,196 @@ class TestSystemScanner(unittest.TestCase):
         # Cleanup
         shutil.rmtree(tempdir)
 
+    def test_scan_lftp_temp_file(self):
+        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+
+        # Create some temp and non-temp files
+        temp1 = os.path.join(tempdir, "a.mkv.lftp")
+        with open(temp1, 'wb') as f:
+            f.write(bytearray([0xff] * 100))
+        temp2 = os.path.join(tempdir, "b.rar.lftp")
+        with open(temp2, 'wb') as f:
+            f.write(bytearray([0xff] * 200))
+        nontemp1 = os.path.join(tempdir, "c.rar")
+        with open(nontemp1, 'wb') as f:
+            f.write(bytearray([0xff] * 300))
+        nontemp2 = os.path.join(tempdir, "d.lftp.avi")
+        with open(nontemp2, 'wb') as f:
+            f.write(bytearray([0xff] * 400))
+        nontemp3 = os.path.join(tempdir, "e")
+        os.mkdir(nontemp3)
+        temp3 = os.path.join(nontemp3, "ea.txt.lftp")
+        with open(temp3, 'wb') as f:
+            f.write(bytearray([0xff] * 500))
+        nontemp4 = os.path.join(tempdir, "f.lftp")
+        os.mkdir(nontemp4)
+
+        scanner = SystemScanner(tempdir)
+
+        # No temp suffix set
+        files = scanner.scan()
+        self.assertEqual(6, len(files))
+        a, b, c, d, e, f = tuple(files)
+        self.assertEqual("a.mkv.lftp", a.name)
+        self.assertEqual(100, a.size)
+        self.assertEqual(False, a.is_dir)
+        self.assertEqual("b.rar.lftp", b.name)
+        self.assertEqual(200, b.size)
+        self.assertEqual(False, b.is_dir)
+        self.assertEqual("c.rar", c.name)
+        self.assertEqual(300, c.size)
+        self.assertEqual(False, c.is_dir)
+        self.assertEqual("d.lftp.avi", d.name)
+        self.assertEqual(400, d.size)
+        self.assertEqual(False, d.is_dir)
+        self.assertEqual("e", e.name)
+        self.assertEqual(500, e.size)
+        self.assertEqual(True, e.is_dir)
+        self.assertEqual(1, len(e.children))
+        ea = e.children[0]
+        self.assertEqual("ea.txt.lftp", ea.name)
+        self.assertEqual(500, ea.size)
+        self.assertEqual(False, ea.is_dir)
+        self.assertEqual("f.lftp", f.name)
+        self.assertEqual(0, f.size)
+        self.assertEqual(True, f.is_dir)
+
+        # Temp suffix set
+        scanner.set_lftp_temp_suffix(".lftp")
+        files = scanner.scan()
+        self.assertEqual(6, len(files))
+        a, b, c, d, e, f = tuple(files)
+        self.assertEqual("a.mkv", a.name)
+        self.assertEqual(100, a.size)
+        self.assertEqual(False, a.is_dir)
+        self.assertEqual("b.rar", b.name)
+        self.assertEqual(200, b.size)
+        self.assertEqual(False, b.is_dir)
+        self.assertEqual("c.rar", c.name)
+        self.assertEqual(300, c.size)
+        self.assertEqual(False, c.is_dir)
+        self.assertEqual("d.lftp.avi", d.name)
+        self.assertEqual(400, d.size)
+        self.assertEqual(False, d.is_dir)
+        self.assertEqual("e", e.name)
+        self.assertEqual(500, e.size)
+        self.assertEqual(True, e.is_dir)
+        self.assertEqual(1, len(e.children))
+        ea = e.children[0]
+        self.assertEqual("ea.txt", ea.name)
+        self.assertEqual(500, ea.size)
+        self.assertEqual(False, ea.is_dir)
+        self.assertEqual("f.lftp", f.name)
+        self.assertEqual(0, f.size)
+        self.assertEqual(True, f.is_dir)
+
+        # Cleanup
+        shutil.rmtree(tempdir)
+
+    def test_scan_single_lftp_temp_file(self):
+        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+
+        # Create:
+        #   temp file
+        #   non-temp file and
+        #   non-temp directory with temp name
+        #   non-temp directory with non-temp name
+        temp1 = os.path.join(tempdir, "a.mkv.lftp")
+        with open(temp1, 'wb') as f:
+            f.write(bytearray([0xff] * 100))
+
+        nontemp1 = os.path.join(tempdir, "b.rar")
+        with open(nontemp1, 'wb') as f:
+            f.write(bytearray([0xff] * 300))
+
+        nontemp2 = os.path.join(tempdir, "c.lftp")
+        os.mkdir(nontemp2)
+        temp2 = os.path.join(nontemp2, "c.txt.lftp")
+        with open(temp2, 'wb') as f:
+            f.write(bytearray([0xff] * 500))
+
+        nontemp3 = os.path.join(tempdir, "d")
+        os.mkdir(nontemp3)
+        temp3 = os.path.join(nontemp3, "d.avi.lftp")
+        with open(temp3, 'wb') as f:
+            f.write(bytearray([0xff] * 600))
+
+        scanner = SystemScanner(tempdir)
+
+        # No temp suffix set, must include temp suffix in name param
+        file = scanner.scan_single("a.mkv.lftp")
+        self.assertEqual("a.mkv.lftp", file.name)
+        self.assertEqual(100, file.size)
+        self.assertEqual(False, file.is_dir)
+
+        file = scanner.scan_single("b.rar")
+        self.assertEqual("b.rar", file.name)
+        self.assertEqual(300, file.size)
+        self.assertEqual(False, file.is_dir)
+
+        file = scanner.scan_single("c.lftp")
+        self.assertEqual("c.lftp", file.name)
+        self.assertEqual(500, file.size)
+        self.assertEqual(True, file.is_dir)
+        self.assertEqual(1, len(file.children))
+        child = file.children[0]
+        self.assertEqual("c.txt.lftp", child.name)
+        self.assertEqual(500, child.size)
+        self.assertEqual(False, child.is_dir)
+
+        file = scanner.scan_single("d")
+        self.assertEqual("d", file.name)
+        self.assertEqual(600, file.size)
+        self.assertEqual(True, file.is_dir)
+        child = file.children[0]
+        self.assertEqual("d.avi.lftp", child.name)
+        self.assertEqual(600, child.size)
+        self.assertEqual(False, child.is_dir)
+
+        # Temp suffix set, must NOT include temp suffix in name param
+        scanner.set_lftp_temp_suffix(".lftp")
+        file = scanner.scan_single("a.mkv")
+        self.assertEqual("a.mkv", file.name)
+        self.assertEqual(100, file.size)
+        self.assertEqual(False, file.is_dir)
+
+        file = scanner.scan_single("b.rar")
+        self.assertEqual("b.rar", file.name)
+        self.assertEqual(300, file.size)
+        self.assertEqual(False, file.is_dir)
+
+        file = scanner.scan_single("c.lftp")
+        self.assertEqual("c.lftp", file.name)
+        self.assertEqual(500, file.size)
+        self.assertEqual(True, file.is_dir)
+        self.assertEqual(1, len(file.children))
+        child = file.children[0]
+        self.assertEqual("c.txt", child.name)
+        self.assertEqual(500, child.size)
+        self.assertEqual(False, child.is_dir)
+        # also, shouldn't look for directories with temp suffix
+        with self.assertRaises(SystemScannerError) as ctx:
+            scanner.scan_single("c")
+        self.assertTrue("Path does not exist" in str(ctx.exception))
+
+        file = scanner.scan_single("d")
+        self.assertEqual("d", file.name)
+        self.assertEqual(600, file.size)
+        self.assertEqual(True, file.is_dir)
+        child = file.children[0]
+        self.assertEqual("d.avi", child.name)
+        self.assertEqual(600, child.size)
+        self.assertEqual(False, child.is_dir)
+
+        # No file and no temp file
+        with self.assertRaises(SystemScannerError) as ctx:
+            scanner.scan_single("blah")
+        self.assertTrue("Path does not exist" in str(ctx.exception))
+
+
+        # Cleanup
+        shutil.rmtree(tempdir)
+
     def test_files_deleted_while_scanning(self):
         scanner = SystemScanner(TestSystemScanner.temp_dir)
 
