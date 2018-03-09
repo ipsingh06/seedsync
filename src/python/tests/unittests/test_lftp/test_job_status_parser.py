@@ -778,6 +778,33 @@ class TestLftpJobStatusParser(unittest.TestCase):
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
 
+    def test_jobs_mirror_mkdir(self):
+        output = """        
+        [0] queue (sftp://someone:@localhost:22) 
+        sftp://someone:@localhost:22/home/someone
+        Now executing: [1] mirror -c /tmp/test_controllerxnx7xw6x/remote/ra /tmp/test_controllerxnx7xw6x/local/ -- 0/1.1k (0%)
+        [1] mirror -c /tmp/test_controllerxnx7xw6x/remote/ra /tmp/test_controllerxnx7xw6x/local/  -- 0/1.1k (0%)
+        \\transfer `raa' 
+        `raa' at 0 (0%) [Connecting...]
+        \mirror `rab' 
+        mkdir `/tmp/test_controllerxnx7xw6x/local/ra/rab' []
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="ra",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(0, 1126, 0, None, None)
+        golden_job1.add_active_file_transfer_state(
+            "raa", LftpJobStatus.TransferState(None, None, None, None, None)
+        )
+        golden_jobs = [golden_job1]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
     def test_jobs_connecting(self):
         output = """
         [0] queue (sftp://someone:@localhost) 

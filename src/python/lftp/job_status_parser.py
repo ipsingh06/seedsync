@@ -397,10 +397,12 @@ class LftpJobStatusParser:
                 #    "Getting files list"
                 #    "cd"
                 #    "<name>: "
+                #    "mkdir"
                 if lines:
                     if "Getting file list" in lines[0] or \
                             lines[0].startswith("cd ") or \
-                            lines[0] == "{}:".format(name):
+                            lines[0] == "{}:".format(name) or \
+                            lines[0].startswith("mkdir "):
                         lines.pop(0)
                 # Continue the outer loop
                 continue
