@@ -280,6 +280,7 @@ class TestController(unittest.TestCase):
                 "num_max_connections_per_root_file": "4",
                 "num_max_connections_per_dir_file": "4",
                 "num_max_total_connections": "12",
+                "use_temp_file": "False"
             },
             "Controller": {
                 "interval_ms_remote_scan": "100",

@@ -296,6 +296,7 @@ class Seedsync:
         config.lftp.num_max_connections_per_root_file = 4
         config.lftp.num_max_connections_per_dir_file = 4
         config.lftp.num_max_total_connections = 16
+        config.lftp.use_temp_file = False
 
         config.controller.interval_ms_remote_scan = 30000
         config.controller.interval_ms_local_scan = 10000
