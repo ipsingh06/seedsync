@@ -11,7 +11,7 @@ import copy
 from .scan import ScannerProcess, ActiveScanner, LocalScanner, RemoteScanner
 from .extract import ExtractProcess, ExtractStatus
 from .model_builder import ModelBuilder
-from common import Context, AppError, MultiprocessingLogger, AppOneShotProcess
+from common import Context, AppError, MultiprocessingLogger, AppOneShotProcess, Constants
 from model import ModelError, ModelFile, Model, ModelDiff, ModelDiffUtil, IModelListener
 from lftp import Lftp, LftpError, LftpJobStatus
 from .controller_persist import ControllerPersist
@@ -111,10 +111,15 @@ class Controller:
         self.__lftp.num_connections_per_root_file = self.__context.config.lftp.num_max_connections_per_root_file
         self.__lftp.num_connections_per_dir_file = self.__context.config.lftp.num_max_connections_per_dir_file
         self.__lftp.num_max_total_connections = self.__context.config.lftp.num_max_total_connections
+        self.__lftp.use_temp_file = self.__context.config.lftp.use_temp_file
+        self.__lftp.temp_file_name = "*" + Constants.LFTP_TEMP_FILE_SUFFIX
 
         # Setup the scanners and scanner processes
         self.__active_scanner = ActiveScanner(self.__context.config.lftp.local_path)
-        self.__local_scanner = LocalScanner(self.__context.config.lftp.local_path)
+        self.__local_scanner = LocalScanner(
+            local_path=self.__context.config.lftp.local_path,
+            use_temp_file=self.__context.config.lftp.use_temp_file
+        )
         self.__remote_scanner = RemoteScanner(
             remote_address=self.__context.config.lftp.remote_address,
             remote_username=self.__context.config.lftp.remote_username,

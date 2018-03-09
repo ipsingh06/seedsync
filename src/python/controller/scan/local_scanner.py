@@ -4,7 +4,7 @@ import logging
 from typing import List
 
 from .scanner_process import IScanner
-from common import overrides, AppError, Localization
+from common import overrides, AppError, Localization, Constants
 from system import SystemScanner, SystemFile, SystemScannerError
 
 
@@ -12,8 +12,10 @@ class LocalScanner(IScanner):
     """
     Scanner implementation to scan the local filesystem
     """
-    def __init__(self, local_path: str):
+    def __init__(self, local_path: str, use_temp_file: bool):
         self.__scanner = SystemScanner(local_path)
+        if use_temp_file:
+            self.__scanner.set_lftp_temp_suffix(Constants.LFTP_TEMP_FILE_SUFFIX)
         self.logger = logging.getLogger("LocalScanner")
 
     @overrides(IScanner)

@@ -13,3 +13,4 @@ class Constants:
     WEB_ACCESS_LOG_NAME = 'web_access'
     MIN_PERSIST_TO_FILE_INTERVAL_IN_SECS = 30
     JSON_PRETTY_PRINT_INDENT = 4
+    LFTP_TEMP_FILE_SUFFIX = ".lftp"
