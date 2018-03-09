@@ -65,7 +65,8 @@ describe("Testing config service", () => {
                 num_max_parallel_files_per_download: 8,
                 num_max_connections_per_root_file: 32,
                 num_max_connections_per_dir_file: 4,
-                num_max_total_connections: 32
+                num_max_total_connections: 32,
+                use_temp_file: true,
             },
             controller: {
                 interval_ms_remote_scan: 30000,
@@ -95,6 +96,7 @@ describe("Testing config service", () => {
                 expect(config.lftp.num_max_connections_per_root_file).toBe(32);
                 expect(config.lftp.num_max_connections_per_dir_file).toBe(4);
                 expect(config.lftp.num_max_total_connections).toBe(32);
+                expect(config.lftp.use_temp_file).toBe(true);
                 expect(config.controller.interval_ms_remote_scan).toBe(30000);
                 expect(config.controller.interval_ms_local_scan).toBe(10000);
                 expect(config.controller.interval_ms_downloading_scan).toBe(1000);

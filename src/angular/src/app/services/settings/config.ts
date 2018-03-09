@@ -31,6 +31,7 @@ interface ILftp {
     num_max_connections_per_root_file: number;
     num_max_connections_per_dir_file: number;
     num_max_total_connections: number;
+    use_temp_file: boolean;
 }
 const DefaultLftp: ILftp = {
     remote_address: null,
@@ -44,6 +45,7 @@ const DefaultLftp: ILftp = {
     num_max_connections_per_root_file: null,
     num_max_connections_per_dir_file: null,
     num_max_total_connections: null,
+    use_temp_file: null,
 };
 const LftpRecord = Record(DefaultLftp);
 

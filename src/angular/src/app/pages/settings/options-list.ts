@@ -114,7 +114,13 @@ export const OPTIONS_CONTEXT_CONNECTIONS: IOptionsContext = {
             valuePath: ["lftp", "num_max_parallel_files_per_download"],
             description: "Maximum number of files to fetch in parallel for single directory download.\n" +
                          "(mirror:parallel-transfer-count)"
-        }
+        },
+        {
+            type: OptionType.Checkbox,
+            label: "Rename unfinished/downloading files",
+            valuePath: ["lftp", "use_temp_file"],
+            description: "Unfinished and downloading files will be named *.lftp"
+        },
     ]
 };
 
