@@ -1,3 +1,9 @@
+seedsync (0.5-0) stable; urgency=low
+
+  * Added LFTP option to rename downloading/unfinished files
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Fri, 09 Mar 2018 15:21:29 -0800
+
 seedsync (0.4-0) stable; urgency=low
 
   * Docker image released
