@@ -19,9 +19,14 @@ SeedSync currently supports the following features:
 - Fully open source!
 
 
-Supported OS: Linux (debian package, docker image)
+Supported OS:
+* Linux (debian package, docker image)
+* Windows (docker image)
+* MacOS (docker image)
 
-Tested on: Ubuntu 14.04 and above
+Tested on:
+* Ubuntu 14.04 and above
+* Windows 10 Home
 
 
 
@@ -85,7 +90,7 @@ Tested on: Ubuntu 14.04 and above
 
 4. After the installation is complete, verify that the application is running by going to [http://localhost:8800](http://localhost:8800) in your browser.
 
-5. Setup key-based SSH access. See the First Time Setup section below.
+5. Setup key-based SSH access. See the First Time Setup section below for a simple tutorial.
 
 
 ### Docker
@@ -99,8 +104,107 @@ Tested on: Ubuntu 14.04 and above
 
 2. Access application GUI by going to [http://localhost:8800](http://localhost:8800) in your browser.
 
-3. Setup key-based SSH access. See the First Time Setup section below.
-   Note: the key must be generated inside the docker container
+3. Setup key-based SSH access.
+
+   1. Generate a SSH private/public key pair. See the First Time Setup section below for a simple tutorial.
+
+   2. Run this command in a new terminal while the docker container is running:
+      ```bash
+      docker container ls
+
+      CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS              PORTS                    NAMES
+      28c87db489e1        ipsingh06/seedsync   "/bin/sh -c '/app/..."   12 seconds ago      Up 11 seconds       0.0.0.0:8800->8800/tcp   pedantic_raman
+      ```
+      Note down the container id for the image named ipsingh06/seedsync.
+      It this example the container id is 28c87db489e1
+
+   3. Copy the private key 'id_rsa' that you generated earlier into the container:
+      ```bash
+      docker cp id_rsa 28c87db489e1:/root/.ssh/
+      ```
+
+   4. Set the correct permissions on the private key
+      ```bash
+      docker exec 28c87db489e1 chmod 600 /root/.ssh/id_rsa
+      ```
+
+   5. Verify that the container can SSH into remote server without password.
+      ```bash
+      docker exec -it 28c87db489e1 ssh <username>@<address>
+      ```
+      where &lt;username&gt; and &lt;address&gt; are the username and address of the remote server.
+
+4. Follow the rest of the First Time Setup section below to connect to the remote server.
+
+
+### Windows
+
+SeedSync supports Windows via the Docker container.
+
+1. Install Docker on Windows.
+
+   1. [Docker for Windows](https://www.docker.com/docker-windows) if you have Windows 10 Pro or above
+
+   2. [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/) if you have Windows 10 Home or below
+
+2. Make sure you can successfully run the [Hello World](https://docs.docker.com/get-started/#test-docker-installation) app in Docker.
+
+3. Open the Docker terminal and run the SeedSync image with the following command:
+
+   ```bash
+   docker run -p 8800:8800 -v <downloads directory>:/downloads ipsingh06/seedsync
+   ```
+   where &lt;downloads directory&gt; refers to the location on host machine where downloaded files will be placed.
+   Note: the Windows host machine path is specified as /c/Users/...
+
+4. Access application GUI to verify SeedSync is running.
+   Docker on Windows may not forward port to the local host. We need to find the IP address of the container.
+   
+   1. Open a new Docker terminal and run the command:
+      ```bash
+      docker-machine ip
+      192.168.100.17
+      ```
+
+   2. Open &lt;ip address&gt;:8800 in your browser.
+      In this example that would be [http://192.168.100.17:8800](http://192.168.100.17:8800)
+
+   3. Verify that SeedSync dashboard loads.
+   
+
+5. Setup key-based SSH access.
+
+   1. Generate a SSH private/public key pair. See the First Time Setup section below for a simple tutorial.
+      You can do this in a Docker terminal.
+
+   2. Run this command in a new Docker terminal while the SeedSync container is running:
+      ```bash
+      docker container ls
+
+      CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS              PORTS                    NAMES
+      28c87db489e1        ipsingh06/seedsync   "/bin/sh -c '/app/..."   12 seconds ago      Up 11 seconds       0.0.0.0:8800->8800/tcp   pedantic_raman
+      ```
+      Note down the container id for the image named ipsingh06/seedsync.
+      It this example the container id is 28c87db489e1
+
+   3. Copy the private key 'id_rsa' that you generated earlier into the container:
+      ```bash
+      docker cp id_rsa 28c87db489e1:/root/.ssh/
+      ```
+
+   4. Set the correct permissions on the private key
+      ```bash
+      docker exec 28c87db489e1 chmod 600 /root/.ssh/id_rsa
+      ```
+
+   5. Verify that the container can SSH into remote server without password.
+      ```bash
+      docker exec -it 28c87db489e1 ssh <username>@<address>
+      ```
+      where &lt;username&gt; and &lt;address&gt; are the username and address of the remote server.
+
+6. Follow the rest of the First Time Setup section below to connect to the remote server.
+    
 
 
 ## Usage
@@ -114,7 +218,7 @@ You may also access it from another device by replacing 'localhost' with the IP 
 You need to configure SeedSync to connect to the remote server.
 SeedSync requires that you have Key-Based SSH login access to the remote server.
 **For security reasons, password-based access is not supported.**
-You can setup Key-Based SSH access by following this [simple tutorial](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id).
+You can setup Key-Based SSH access by following this [simple tutorial](https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/).
 
 Note: make sure the access is setup for the user under which SeedSync is running.
 
