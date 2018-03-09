@@ -142,6 +142,18 @@ class TestLftp(unittest.TestCase):
         self.lftp.move_background_on_exit = False
         self.assertEqual(False, self.lftp.move_background_on_exit)
 
+    def test_use_temp_file(self):
+        self.lftp.use_temp_file = True
+        self.assertEqual(True, self.lftp.use_temp_file)
+        self.lftp.use_temp_file = False
+        self.assertEqual(False, self.lftp.use_temp_file)
+
+    def test_temp_file_name(self):
+        self.lftp.temp_file_name = "*.lftp"
+        self.assertEqual("*.lftp", self.lftp.temp_file_name)
+        self.lftp.temp_file_name = "*.temp"
+        self.assertEqual("*.temp", self.lftp.temp_file_name)
+
     def test_status_empty(self):
         statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))

@@ -33,6 +33,8 @@ class Lftp:
     __SET_NUM_PARALLEL_JOBS = "cmd:queue-parallel"
     __SET_MOVE_BACKGROUND_ON_EXIT = "cmd:move-background"
     __SET_COMMAND_AT_EXIT = "cmd:at-exit"
+    __SET_USE_TEMP_FILE = "xfer:use-temp-file"
+    __SET_TEMP_FILE_NAME = "xfer:temp-file-name"
 
     # Set this to True to enable verbose command logging
     _LOG_COMMAND_OUTPUT = False
@@ -236,6 +238,22 @@ class Lftp:
     @move_background_on_exit.setter
     def move_background_on_exit(self, move_background_on_exit: bool):
         self.__set(Lftp.__SET_MOVE_BACKGROUND_ON_EXIT, str(int(move_background_on_exit)))
+
+    @property
+    def use_temp_file(self) -> bool:
+        return Lftp.__to_bool(self.__get(Lftp.__SET_USE_TEMP_FILE))
+
+    @use_temp_file.setter
+    def use_temp_file(self, use_temp_file: bool):
+        self.__set(Lftp.__SET_USE_TEMP_FILE, str(int(use_temp_file)))
+
+    @property
+    def temp_file_name(self) -> str:
+        return self.__get(Lftp.__SET_TEMP_FILE_NAME)
+
+    @temp_file_name.setter
+    def temp_file_name(self, temp_file_name: str):
+        self.__set(Lftp.__SET_TEMP_FILE_NAME, temp_file_name)
 
     def status(self) -> List[LftpJobStatus]:
         """
