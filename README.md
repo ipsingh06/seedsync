@@ -254,7 +254,7 @@ Any files or directories on the remote server that match a pattern will be autom
 
 ## Report an Issue
 
-Please report any issues on the [issues](issues) page.
+Please report any issues on the [issues](../../issues) page.
 Please post the logs as well. The logs are available at:
 * Deb install: `<user home directory>/.seedsync/log/seedsync.log`
 * Docker: Run `docker logs <container id>`
