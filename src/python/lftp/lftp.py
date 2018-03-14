@@ -99,28 +99,38 @@ class Lftp:
         if Lftp._LOG_COMMAND_OUTPUT:
             self.logger.debug("command: {}".format(command))
         self.__process.sendline(command)
-        self.__process.expect(self.__expect_pattern)
-        out = self.__process.before.decode()
-        out = out.strip()  # remove any CRs
+        try:
+            self.__process.expect(self.__expect_pattern)
+        except pexpect.exceptions.TIMEOUT:
+            self.logger.exception("Lftp timeout exception")
+            raise LftpError("Lftp command timed out")
+        finally:
+            out = self.__process.before.decode()
+            out = out.strip()  # remove any CRs
 
-        if Lftp._LOG_COMMAND_OUTPUT:
-            self.logger.debug("out:")
-            for line in out.split("\n"):
-                self.logger.debug("  {}".format(line))
+            if Lftp._LOG_COMMAND_OUTPUT:
+                self.logger.debug("out:")
+                for line in out.split("\n"):
+                    self.logger.debug("  {}".format(line))
 
         # let's try and detect some errors
         if self.__detect_errors_from_output(out):
             # we need to consume the actual output so that
             # it doesn't get passed onto next command
             error_out = out
-            self.__process.expect(self.__expect_pattern)
-            out = self.__process.before.decode()
-            out = out.strip()  # remove any CRs
-            if Lftp._LOG_COMMAND_OUTPUT:
-                self.logger.debug("retry out:")
-                for line in out.split("\n"):
-                    self.logger.debug("  {}".format(line))
-            self.logger.error("Lftp detected error: {}".format(error_out))
+            try:
+                self.__process.expect(self.__expect_pattern)
+            except pexpect.exceptions.TIMEOUT:
+                self.logger.exception("Lftp timeout exception")
+                raise LftpError("Lftp command timed out")
+            finally:
+                out = self.__process.before.decode()
+                out = out.strip()  # remove any CRs
+                if Lftp._LOG_COMMAND_OUTPUT:
+                    self.logger.debug("retry out:")
+                    for line in out.split("\n"):
+                        self.logger.debug("  {}".format(line))
+                self.logger.error("Lftp detected error: {}".format(error_out))
         return out
 
     @staticmethod
