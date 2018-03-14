@@ -1,3 +1,10 @@
+seedsync (0.5-1) stable; urgency=low
+
+  * Added (hidden) setting to enable verbose logging
+  * Fixed LFTP timeout errors crashing the app
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Wed, 14 Mar 2018 00:37:42 -0700
+
 seedsync (0.5-0) stable; urgency=low
 
   * Added LFTP option to rename downloading/unfinished files

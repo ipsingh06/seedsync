@@ -13,6 +13,6 @@ describe('Testing about page', () => {
     });
 
     it('should have the right version', () => {
-        expect(page.getVersion()).toEqual("v0.5.0");
+        expect(page.getVersion()).toEqual("v0.5.1");
     });
 });
