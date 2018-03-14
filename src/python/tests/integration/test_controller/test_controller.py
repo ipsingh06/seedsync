@@ -266,7 +266,8 @@ class TestController(unittest.TestCase):
 
         config_dict = {
             "General": {
-                "debug": "True"
+                "debug": "True",
+                "verbose": "True"
             },
             "Lftp": {
                 "remote_address": "localhost",

@@ -191,19 +191,24 @@ class TestConfig(unittest.TestCase):
     def test_general(self):
         good_dict = {
             "debug": "True",
+            "verbose": "False",
         }
         general = Config.General.from_dict(good_dict)
         self.assertEqual(True, general.debug)
+        self.assertEqual(False, general.verbose)
 
         self.check_common(Config.General,
                           good_dict,
                           {
-                              "debug"
+                              "debug",
+                              "verbose"
                           })
 
         # bad values
         self.check_bad_value_error(Config.General, good_dict, "debug", "SomeString")
         self.check_bad_value_error(Config.General, good_dict, "debug", "-1")
+        self.check_bad_value_error(Config.General, good_dict, "verbose", "SomeString")
+        self.check_bad_value_error(Config.General, good_dict, "verbose", "-1")
 
     def test_lftp(self):
         good_dict = {
@@ -351,6 +356,7 @@ class TestConfig(unittest.TestCase):
         config_file.write("""
         [General]
         debug=False
+        verbose=True
 
         [Lftp]
         remote_address=remote.server.com
@@ -385,6 +391,7 @@ class TestConfig(unittest.TestCase):
         config = Config.from_file(config_file.name)
 
         self.assertEqual(False, config.general.debug)
+        self.assertEqual(True, config.general.verbose)
 
         self.assertEqual("remote.server.com", config.lftp.remote_address)
         self.assertEqual("remote-user", config.lftp.remote_username)
@@ -430,6 +437,7 @@ class TestConfig(unittest.TestCase):
 
         config = Config()
         config.general.debug = True
+        config.general.verbose = False
         config.lftp.remote_address = "server.remote.com"
         config.lftp.remote_username = "user-on-remote-server"
         config.lftp.remote_port = 3456
@@ -459,6 +467,7 @@ class TestConfig(unittest.TestCase):
         golden_str = """
         [General]
         debug = True
+        verbose = False
 
         [Lftp]
         remote_address = server.remote.com

@@ -113,6 +113,7 @@ class Controller:
         self.__lftp.num_max_total_connections = self.__context.config.lftp.num_max_total_connections
         self.__lftp.use_temp_file = self.__context.config.lftp.use_temp_file
         self.__lftp.temp_file_name = "*" + Constants.LFTP_TEMP_FILE_SUFFIX
+        self.__lftp.set_verbose_logging(self.__context.config.general.verbose)
 
         # Setup the scanners and scanner processes
         self.__active_scanner = ActiveScanner(self.__context.config.lftp.local_path)
