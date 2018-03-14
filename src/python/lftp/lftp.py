@@ -36,9 +36,6 @@ class Lftp:
     __SET_USE_TEMP_FILE = "xfer:use-temp-file"
     __SET_TEMP_FILE_NAME = "xfer:temp-file-name"
 
-    # Set this to True to enable verbose command logging
-    _LOG_COMMAND_OUTPUT = False
-
     def __init__(self,
                  address: str,
                  port: int,
@@ -53,6 +50,8 @@ class Lftp:
         self.__expect_pattern = "lftp {}@{}:.*>".format(self.__user, self.__address)
         self.__job_status_parser = LftpJobStatusParser()
 
+        self.__log_command_output = False
+
         args = [
             "-p", str(port),
             "-u", "{},{}".format(self.__user, self.__password),
@@ -61,6 +60,9 @@ class Lftp:
         self.__process = pexpect.spawn("/usr/bin/lftp", args)
         self.__process.expect(self.__expect_pattern)
         self.__setup()
+
+    def set_verbose_logging(self, verbose: bool):
+        self.__log_command_output = verbose
 
     def __setup(self):
         """
@@ -96,7 +98,7 @@ class Lftp:
 
     @with_check_process
     def __run_command(self, command: str):
-        if Lftp._LOG_COMMAND_OUTPUT:
+        if self.__log_command_output:
             self.logger.debug("command: {}".format(command))
         self.__process.sendline(command)
         try:
@@ -108,7 +110,7 @@ class Lftp:
             out = self.__process.before.decode()
             out = out.strip()  # remove any CRs
 
-            if Lftp._LOG_COMMAND_OUTPUT:
+            if self.__log_command_output:
                 self.logger.debug("out:")
                 for line in out.split("\n"):
                     self.logger.debug("  {}".format(line))
@@ -126,7 +128,7 @@ class Lftp:
             finally:
                 out = self.__process.before.decode()
                 out = out.strip()  # remove any CRs
-                if Lftp._LOG_COMMAND_OUTPUT:
+                if self.__log_command_output:
                     self.logger.debug("retry out:")
                     for line in out.split("\n"):
                         self.logger.debug("  {}".format(line))

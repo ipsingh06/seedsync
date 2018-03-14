@@ -84,6 +84,7 @@ class TestLftp(unittest.TestCase):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         self.lftp.set_base_logger(logger)
+        self.lftp.set_verbose_logging(True)
 
     def tearDown(self):
         self.lftp.exit()

@@ -46,8 +46,8 @@ class TestLftp(unittest.TestCase):
         logger.addHandler(handler)
         self.lftp.set_base_logger(logger)
 
-        # White-box logging
-        Lftp._LOG_COMMAND_OUTPUT = True
+        # Verbose logging
+        self.lftp.set_verbose_logging(True)
 
     def tearDown(self):
         self.lftp.exit()
