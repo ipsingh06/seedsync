@@ -252,6 +252,14 @@ Any files or directories on the remote server that match a pattern will be autom
 
 
 
+## Report an Issue
+
+Please report any issues on the [issues](issues) page.
+Please post the logs as well. The logs are available at:
+* Deb install: `<user home directory>/.seedsync/log/seedsync.log`
+* Docker: Run `docker logs <container id>`
+
+
 
 ## FAQ
 
@@ -266,8 +274,6 @@ sudo service seedsync restart
 #### SeedSync can't seem to connect to my remote server?
 
 Make sure you have key-based SSH login setup and working properly.
-You may need to look at the logs to determine the exact cause of failure.
-The logs are available at: `<user home directory>/.seedsync/logs/`
 
 
 
