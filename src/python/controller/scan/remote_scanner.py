@@ -89,4 +89,6 @@ class RemoteScanner(IScanner):
 
     @staticmethod
     def __suppress_error(error: SshError) -> bool:
-        return "text file busy" in str(error).lower()
+        error_str = str(error).lower()
+        return "text file busy" in error_str or \
+            "ssh_exchange_identification" in error_str
