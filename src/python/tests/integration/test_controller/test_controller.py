@@ -2165,6 +2165,7 @@ class TestController(unittest.TestCase):
         self.assertFalse(os.path.exists(file_path))
 
     @timeout_decorator.timeout(20)
+    @unittest.skip
     def test_download_with_excessive_connections(self):
         # Note: this test sometimes crashes the dbus
         #       reset with: sudo systemctl restart systemd-logind
