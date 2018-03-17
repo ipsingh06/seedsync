@@ -12,6 +12,7 @@ import logging
 import sys
 import zipfile
 import subprocess
+from datetime import datetime
 
 import timeout_decorator
 
@@ -2162,3 +2163,113 @@ class TestController(unittest.TestCase):
         callback.on_failure.assert_not_called()
 
         self.assertFalse(os.path.exists(file_path))
+
+    @timeout_decorator.timeout(20)
+    def test_download_with_excessive_connections(self):
+        # Note: this test sometimes crashes the dbus
+        #       reset with: sudo systemctl restart systemd-logind
+
+        # Test excessive connections and a large LFTP status output
+        #     - large files names to blow up the status
+        #     - large max num connections, connections per file
+        #     - download many files in parallel
+        def create_large_file(path, size):
+            f = open(path, "wb")
+            f.seek(size - 1)
+            f.write(b"\0")
+            f.close()
+            print("File size: ", os.stat(path).st_size)
+
+        # Create a bunch of large files that can be downloaded in chunks
+        path = os.path.join(TestController.temp_dir, "remote", "large")
+        local_path = os.path.join(TestController.temp_dir, "local", "large")
+        os.mkdir(path)
+        a_path = os.path.join(path, "a"*200 + ".txt")
+        create_large_file(a_path, 20*1024*1024)
+        b_path = os.path.join(path, "b"*200 + ".txt")
+        create_large_file(b_path, 20*1024*1024)
+        c_path = os.path.join(path, "c"*200 + ".txt")
+        create_large_file(c_path, 20*1024*1024)
+        d_path = os.path.join(path, "d"*200 + ".txt")
+        create_large_file(d_path, 20*1024*1024)
+        e_path = os.path.join(path, "e"*200 + ".txt")
+        create_large_file(e_path, 20*1024*1024)
+        f_path = os.path.join(path, "f"*200 + ".txt")
+        create_large_file(f_path, 20*1024*1024)
+        g_path = os.path.join(path, "g"*200 + ".txt")
+        create_large_file(g_path, 20*1024*1024)
+        h_path = os.path.join(path, "h"*200 + ".txt")
+        create_large_file(h_path, 20*1024*1024)
+
+        # White box hack: limit the rate of lftp so download doesn't finish
+        #                 also set min-chunk size to a small value for lots of connections
+        self.context.config.lftp.num_max_total_connections = 20
+        self.context.config.lftp.num_max_connections_per_dir_file = 20
+        self.context.config.lftp.num_max_parallel_files_per_download = 8
+
+        # noinspection PyUnresolvedReferences
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # noinspection PyUnresolvedReferences
+        self.controller._Controller__lftp.rate_limit = 5*1024
+        # noinspection PyUnresolvedReferences
+        self.controller._Controller__lftp.min_chunk_size = "10"
+
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue
+        command = Controller.Command(Controller.Command.Action.QUEUE, "large")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until download starts
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                if new_file.name == "large" and new_file.state == ModelFile.State.DOWNLOADING:
+                    break
+            time.sleep(0.5)
+
+        # Wait for a bit so we start getting large statuses
+        start_time = datetime.now()
+        elapsed_secs = 0
+        while elapsed_secs < 5:
+            print("Elapsed secs: ", elapsed_secs)
+            self.controller.process()
+            time.sleep(0.5)
+            elapsed_secs = (datetime.now()-start_time).total_seconds()
+
+        # Verify that download is still ongoing
+        files = self.controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DOWNLOADING, files_dict["large"].state)
+
+        # Stop the download
+        self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "large"))
+        self.controller.process()
+        time.sleep(0.5)
+
+        # Verify that download is stopped
+        files = self.controller.get_model_files()
+        files_dict = {f.name: f for f in files}
+        self.assertEqual(ModelFile.State.DEFAULT, files_dict["large"].state)
+
+        # Remove the files
+        shutil.rmtree(path)
+        shutil.rmtree(local_path)
