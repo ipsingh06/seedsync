@@ -111,9 +111,7 @@ class Lftp:
             out = out.strip()  # remove any CRs
 
             if self.__log_command_output:
-                self.logger.debug("out:")
-                for line in out.split("\n"):
-                    self.logger.debug("  {}".format(line))
+                self.logger.debug("out ({} bytes):\n {}".format(len(out), out))
 
         # let's try and detect some errors
         if self.__detect_errors_from_output(out):
@@ -129,9 +127,7 @@ class Lftp:
                 out = self.__process.before.decode()
                 out = out.strip()  # remove any CRs
                 if self.__log_command_output:
-                    self.logger.debug("retry out:")
-                    for line in out.split("\n"):
-                        self.logger.debug("  {}".format(line))
+                    self.logger.debug("retry out ({} bytes):\n {}".format(len(out), out))
                 self.logger.error("Lftp detected error: {}".format(error_out))
         return out
 
