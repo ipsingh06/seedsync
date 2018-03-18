@@ -136,9 +136,16 @@ class TestRemoteScanner(unittest.TestCase):
             remote_path_to_scan_script="/remote/path/to/scan/script"
         )
 
+        self.ssh_run_command_count = 0
+
+        # Ssh run command raises error the first time, succeeds the second time
         # noinspection PyUnusedLocal
         def ssh_run_command(*args):
-            raise SshError("an ssh error")
+            self.ssh_run_command_count += 1
+            if self.ssh_run_command_count < 2:
+                raise SshError("an ssh error")
+            else:
+                return pickle.dumps([])
         self.mock_ssh.run_command.side_effect = ssh_run_command
 
         with self.assertRaises(AppError) as ctx:
@@ -157,7 +164,7 @@ class TestRemoteScanner(unittest.TestCase):
 
         # noinspection PyUnusedLocal
         def scp_run_command(*args, **kwargs):
-            raise ScpError("an ssh error")
+            raise ScpError("an scp error")
         self.mock_scp.copy.side_effect = scp_run_command
 
         with self.assertRaises(AppError) as ctx:
@@ -209,3 +216,78 @@ class TestRemoteScanner(unittest.TestCase):
         self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(ctx.exception))
         # initial try + 5 retries
         self.assertEqual(6, self.mock_ssh.run_command.call_count)
+
+    def test_suppresses_and_retries_on_ssh_error_exchange_identification(self):
+        scanner = RemoteScanner(
+            remote_address="my remote address",
+            remote_username="my remote user",
+            remote_port=1234,
+            remote_path_to_scan="/remote/path/to/scan",
+            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
+            remote_path_to_scan_script="/remote/path/to/scan/script"
+        )
+
+        self.ssh_run_command_count = 0
+
+        # Ssh run command raises error the first time, succeeds the second time
+        # noinspection PyUnusedLocal
+        def ssh_run_command(*args):
+            self.ssh_run_command_count += 1
+            if self.ssh_run_command_count < 2:
+                raise SshError("ssh_exchange_identification: read: Connection reset by peer")
+            else:
+                return pickle.dumps([])
+        self.mock_ssh.run_command.side_effect = ssh_run_command
+
+        scanner.scan()
+        self.assertEqual(2, self.mock_ssh.run_command.call_count)
+
+    def test_suppresses_and_retries_on_ssh_error_cannot_create_temp_dir(self):
+        scanner = RemoteScanner(
+            remote_address="my remote address",
+            remote_username="my remote user",
+            remote_port=1234,
+            remote_path_to_scan="/remote/path/to/scan",
+            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
+            remote_path_to_scan_script="/remote/path/to/scan/script"
+        )
+
+        self.ssh_run_command_count = 0
+
+        # Ssh run command raises error the first time, succeeds the second time
+        # noinspection PyUnusedLocal
+        def ssh_run_command(*args):
+            self.ssh_run_command_count += 1
+            if self.ssh_run_command_count < 2:
+                raise SshError("[23033] INTERNAL ERROR: cannot create temporary directory!")
+            else:
+                return pickle.dumps([])
+        self.mock_ssh.run_command.side_effect = ssh_run_command
+
+        scanner.scan()
+        self.assertEqual(2, self.mock_ssh.run_command.call_count)
+
+    def test_suppresses_and_retries_on_ssh_error_connection_timed_out(self):
+        scanner = RemoteScanner(
+            remote_address="my remote address",
+            remote_username="my remote user",
+            remote_port=1234,
+            remote_path_to_scan="/remote/path/to/scan",
+            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
+            remote_path_to_scan_script="/remote/path/to/scan/script"
+        )
+
+        self.ssh_run_command_count = 0
+
+        # Ssh run command raises error the first time, succeeds the second time
+        # noinspection PyUnusedLocal
+        def ssh_run_command(*args):
+            self.ssh_run_command_count += 1
+            if self.ssh_run_command_count < 2:
+                raise SshError("connect to host host.remote.com port 2202: Connection timed out")
+            else:
+                return pickle.dumps([])
+        self.mock_ssh.run_command.side_effect = ssh_run_command
+
+        scanner.scan()
+        self.assertEqual(2, self.mock_ssh.run_command.call_count)

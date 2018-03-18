@@ -56,7 +56,10 @@ class RemoteScanner(IScanner):
         out = None
         while out is None:
             try:
-                out = self.__ssh.run_command("{} {}".format(self.__remote_path_to_scan_script, self.__remote_path_to_scan))
+                out = self.__ssh.run_command("{} {}".format(
+                    self.__remote_path_to_scan_script,
+                    self.__remote_path_to_scan)
+                )
             except SshError as e:
                 # Suppress specific errors and retry a fixed number of times
                 # Otherwise raise a fatal AppError
@@ -90,5 +93,10 @@ class RemoteScanner(IScanner):
     @staticmethod
     def __suppress_error(error: SshError) -> bool:
         error_str = str(error).lower()
-        return "text file busy" in error_str or \
-            "ssh_exchange_identification" in error_str
+        errors_to_suppress = [
+            "text file busy",
+            "ssh_exchange_identification",
+            "cannot create temporary directory",
+            "connection timed out"
+        ]
+        return any(e in error_str for e in errors_to_suppress)
