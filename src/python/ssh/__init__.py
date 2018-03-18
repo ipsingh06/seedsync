@@ -2,3 +2,4 @@
 
 from .ssh import SshError, Ssh
 from .scp import ScpError, Scp
+from .sshcp import Sshcp, SshcpError
