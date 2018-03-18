@@ -96,6 +96,8 @@ class TestController(unittest.TestCase):
     def setUp(self):
         # Create a temp directory
         TestController.temp_dir = tempfile.mkdtemp(prefix="test_controller")
+        # Allow group access for the seedsynctest account
+        os.chmod(TestController.temp_dir, 0o770)
 
         # Create a work directory for temp files
         TestController.work_dir = os.path.join(TestController.temp_dir, "work")
@@ -246,9 +248,7 @@ class TestController(unittest.TestCase):
         ]}
 
         # config file
-        # Note: password-less ssh needs to be setup
-        #       i.e. user's public key needs to be in authorized_keys
-        #       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+        # Note: seedsynctest account must be set up. See DeveloperReadme.md for details
 
         # We also need to create an executable that the controller can install on remote
         # Since we don't have a packaged scanfs executable here, we simply
@@ -272,7 +272,7 @@ class TestController(unittest.TestCase):
             },
             "Lftp": {
                 "remote_address": "localhost",
-                "remote_username": getpass.getuser(),
+                "remote_username": "seedsynctest",
                 "remote_port": 22,
                 "remote_path": os.path.join(self.temp_dir, "remote"),
                 "local_path": os.path.join(self.temp_dir, "local"),

@@ -51,6 +51,21 @@ make
 
 
 # Run tests
+## Prerequisites
+Create a new user account for python tests, and add the current user to its authorized keys.
+Also add the test account to the current user group so it may access any files created by the current user.
+Note: the current user must have SSH keys already generated.
+```bash
+sudo adduser -q --disabled-password --disabled-login --gecos 'seedsynctest' seedsynctest
+sudo bash -c "echo seedsynctest:seedsyncpass | chpasswd"
+sudo -u seedsynctest mkdir /home/seedsynctest/.ssh
+sudo -u seedsynctest chmod 700 /home/seedsynctest/.ssh
+cat ~/.ssh/id_rsa.pub | sudo -u seedsynctest tee /home/seedsynctest/.ssh/authorized_keys
+sudo -u seedsynctest chmod 664 /home/seedsynctest/.ssh/authorized_keys
+sudo usermod -a -G $USER seedsynctest
+```
+
+## Run the tests
 ```bash
 ./scripts/tests/run_angular_tests.sh
 ./scripts/tests/run_python_tests.sh
