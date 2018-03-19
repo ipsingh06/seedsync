@@ -78,6 +78,9 @@ class Controller:
         self.__persist = persist
         self.logger = context.logger.getChild("Controller")
 
+        # Decide the password here
+        self.__password = context.config.lftp.remote_password if not context.config.lftp.use_ssh_key else None
+
         # The command queue
         self.__command_queue = Queue()
 
@@ -101,7 +104,7 @@ class Controller:
         self.__lftp = Lftp(address=self.__context.config.lftp.remote_address,
                            port=self.__context.config.lftp.remote_port,
                            user=self.__context.config.lftp.remote_username,
-                           password=None)
+                           password=self.__password)
         self.__lftp.set_base_logger(self.logger)
         self.__lftp.set_base_remote_dir_path(self.__context.config.lftp.remote_path)
         self.__lftp.set_base_local_dir_path(self.__context.config.lftp.local_path)
@@ -124,6 +127,7 @@ class Controller:
         self.__remote_scanner = RemoteScanner(
             remote_address=self.__context.config.lftp.remote_address,
             remote_username=self.__context.config.lftp.remote_username,
+            remote_password=self.__password,
             remote_port=self.__context.config.lftp.remote_port,
             remote_path_to_scan=self.__context.config.lftp.remote_path,
             local_path_to_scan_script=self.__context.args.local_path_to_scanfs,
@@ -490,6 +494,7 @@ class Controller:
                     process = DeleteRemoteProcess(
                         remote_address=self.__context.config.lftp.remote_address,
                         remote_username=self.__context.config.lftp.remote_username,
+                        remote_password=self.__password,
                         remote_port=self.__context.config.lftp.remote_port,
                         remote_path=self.__context.config.lftp.remote_path,
                         file_name=file.name

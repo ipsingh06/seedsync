@@ -4,6 +4,7 @@ import logging
 import pickle
 from typing import List
 import os
+from typing import Optional
 
 from .scanner_process import IScanner
 from common import overrides, AppError, Localization
@@ -24,6 +25,7 @@ class RemoteScanner(IScanner):
     def __init__(self,
                  remote_address: str,
                  remote_username: str,
+                 remote_password: Optional[str],
                  remote_port: int,
                  remote_path_to_scan: str,
                  local_path_to_scan_script: str,
@@ -35,7 +37,7 @@ class RemoteScanner(IScanner):
         self.__ssh = Sshcp(host=remote_address,
                            port=remote_port,
                            user=remote_username,
-                           password=None)
+                           password=remote_password)
         self.__first_run = True
 
     @overrides(IScanner)

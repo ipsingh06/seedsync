@@ -272,10 +272,12 @@ class TestController(unittest.TestCase):
             "Lftp": {
                 "remote_address": "localhost",
                 "remote_username": "seedsynctest",
+                "remote_password": "seedsyncpass",
                 "remote_port": 22,
                 "remote_path": os.path.join(self.temp_dir, "remote"),
                 "local_path": os.path.join(self.temp_dir, "local"),
                 "remote_path_to_scan_script": remote_exe_path,
+                "use_ssh_key": "True",
                 "num_max_parallel_downloads": "1",
                 "num_max_parallel_files_per_download": "3",
                 "num_max_connections_per_root_file": "4",
@@ -393,6 +395,19 @@ class TestController(unittest.TestCase):
     @timeout_decorator.timeout(20)
     def test_bad_config_remote_path_to_scan_script_raises_exception(self):
         self.context.config.lftp.remote_path_to_scan_script = "<bad>"
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # noinspection PyUnusedLocal
+        with self.assertRaises(AppError) as error:
+            while True:
+                self.controller.process()
+        # noinspection PyUnreachableCode
+        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
+
+    @timeout_decorator.timeout(20)
+    def test_bad_remote_password_raises_exception(self):
+        self.context.config.lftp.remote_password = "bad password"
+        self.context.config.lftp.use_ssh_key = False
         self.controller = Controller(self.context, self.controller_persist)
         self.controller.start()
         # noinspection PyUnusedLocal
@@ -528,8 +543,9 @@ class TestController(unittest.TestCase):
         TestController.my_touch(1515, "remote", "rnew")
 
         # Verify
-        time.sleep(0.5)
-        self.controller.process()
+        while listener.file_added.call_count < 1:
+            self.controller.process()
+
         rnew = ModelFile("rnew", False)
         rnew.remote_size = 1515
         listener.file_added.assert_called_once_with(rnew)
@@ -557,8 +573,9 @@ class TestController(unittest.TestCase):
         TestController.my_touch(1717, "remote", "rc")
 
         # Verify
-        time.sleep(0.5)
-        self.controller.process()
+        while listener.file_updated.call_count < 1:
+            self.controller.process()
+
         rc_old = ModelFile("rc", False)
         rc_old.remote_size = 10*1024
         rc_new = ModelFile("rc", False)
@@ -588,8 +605,9 @@ class TestController(unittest.TestCase):
         os.remove(os.path.join(TestController.temp_dir, "remote", "rc"))
 
         # Verify
-        time.sleep(0.5)
-        self.controller.process()
+        while listener.file_removed.call_count < 1:
+            self.controller.process()
+
         rc = ModelFile("rc", False)
         rc.remote_size = 10*1024
         listener.file_removed.assert_called_once_with(rc)
@@ -710,10 +728,10 @@ class TestController(unittest.TestCase):
         command = Controller.Command(Controller.Command.Action.QUEUE, "invaliddir")
         command.add_callback(callback)
         self.controller.queue_command(command)
+
         # Process until done
-        self.controller.process()
-        time.sleep(0.5)
-        self.controller.process()
+        while callback.on_failure.call_count < 1:
+            self.controller.process()
 
         # Verify
         listener.file_added.assert_not_called()
@@ -748,10 +766,11 @@ class TestController(unittest.TestCase):
         command = Controller.Command(Controller.Command.Action.QUEUE, "la")
         command.add_callback(callback)
         self.controller.queue_command(command)
+
         # Process until done
-        self.controller.process()
-        time.sleep(0.5)
-        self.controller.process()
+        while callback.on_failure.call_count < 1:
+            self.controller.process()
+
         listener.file_added.assert_not_called()
         listener.file_updated.assert_not_called()
         listener.file_removed.assert_not_called()
@@ -784,10 +803,11 @@ class TestController(unittest.TestCase):
         command = Controller.Command(Controller.Command.Action.QUEUE, "lb")
         command.add_callback(callback)
         self.controller.queue_command(command)
+
         # Process until done
-        self.controller.process()
-        time.sleep(0.5)
-        self.controller.process()
+        while callback.on_failure.call_count < 1:
+            self.controller.process()
+
         listener.file_added.assert_not_called()
         listener.file_updated.assert_not_called()
         listener.file_removed.assert_not_called()
@@ -838,8 +858,17 @@ class TestController(unittest.TestCase):
 
         # Now stop the download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "ra"))
-        self.controller.process()
-        time.sleep(0.5)
+
+        # Process until download stops
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("ra", new_file.name)
+                if new_file.state == ModelFile.State.DEFAULT:
+                    break
+            time.sleep(0.5)
 
         # Verify
         call = listener.file_updated.call_args
@@ -895,8 +924,17 @@ class TestController(unittest.TestCase):
 
         # Now stop the download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rc"))
-        self.controller.process()
-        time.sleep(0.5)
+
+        # Process until download stops
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rc", new_file.name)
+                if new_file.state == ModelFile.State.DEFAULT:
+                    break
+            time.sleep(0.5)
 
         # Verify
         call = listener.file_updated.call_args
@@ -1000,8 +1038,17 @@ class TestController(unittest.TestCase):
 
         # Now stop the download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rb"))
-        self.controller.process()
-        time.sleep(0.5)
+
+        # Process until download stops
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rb", new_file.name)
+                if new_file.state == ModelFile.State.DEFAULT:
+                    break
+            time.sleep(0.5)
 
         # Verify that rc is Downloading, rb is Default
         files = self.controller.get_model_files()
@@ -1057,8 +1104,10 @@ class TestController(unittest.TestCase):
         command = Controller.Command(Controller.Command.Action.STOP, "rb")
         command.add_callback(callback)
         self.controller.queue_command(command)
-        self.controller.process()
-        time.sleep(1.0)
+
+        # Process until done
+        while callback.on_failure.call_count < 1:
+            self.controller.process()
 
         # Verify that downloading is still going
         call = listener.file_updated.call_args
@@ -1115,8 +1164,10 @@ class TestController(unittest.TestCase):
         command = Controller.Command(Controller.Command.Action.STOP, "invalidfile")
         command.add_callback(callback)
         self.controller.queue_command(command)
-        self.controller.process()
-        time.sleep(1.0)
+
+        # Process until done
+        while callback.on_failure.call_count < 1:
+            self.controller.process()
 
         # Verify that downloading is still going
         call = listener.file_updated.call_args
@@ -1655,8 +1706,6 @@ class TestController(unittest.TestCase):
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
 
-        time.sleep(0.5)
-        self.controller.process()
         # Verify file is in DOWNLOADED state
         files = self.controller.get_model_files()
         files_dict = {f.name: f for f in files}
@@ -2273,3 +2322,50 @@ class TestController(unittest.TestCase):
         # Remove the files
         shutil.rmtree(path)
         shutil.rmtree(local_path)
+
+    @timeout_decorator.timeout(20)
+    def test_password_auth(self):
+        # Test password-based auth by downloading a file to completion
+        self.context.config.lftp.use_ssh_key = False
+
+        self.controller = Controller(self.context, self.controller_persist)
+        self.controller.start()
+        # wait for initial scan
+        self.__wait_for_initial_model()
+
+        # Ignore the initial state
+        listener = DummyListener()
+        self.controller.add_model_listener(listener)
+        self.controller.process()
+
+        # Setup mock
+        listener.file_added = MagicMock()
+        listener.file_updated = MagicMock()
+        listener.file_removed = MagicMock()
+        callback = DummyCommandCallback()
+        callback.on_success = MagicMock()
+        callback.on_failure = MagicMock()
+
+        # Queue a download
+        command = Controller.Command(Controller.Command.Action.QUEUE, "rc")
+        command.add_callback(callback)
+        self.controller.queue_command(command)
+        # Process until done
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("rc", new_file.name)
+                if new_file.local_size == 10*1024:
+                    break
+            time.sleep(0.5)
+
+        # Verify
+        listener.file_added.assert_not_called()
+        listener.file_removed.assert_not_called()
+        callback.on_success.assert_called_once_with()
+        callback.on_failure.assert_not_called()
+        fcmp = cmp(os.path.join(TestController.temp_dir, "remote", "rc"),
+                   os.path.join(TestController.temp_dir, "local", "rc"))
+        self.assertTrue(fcmp)

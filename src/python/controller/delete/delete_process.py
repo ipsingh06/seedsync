@@ -2,6 +2,7 @@
 
 import os
 import shutil
+from typing import Optional
 
 from common import AppOneShotProcess
 from ssh import Sshcp, SshcpError
@@ -29,6 +30,7 @@ class DeleteRemoteProcess(AppOneShotProcess):
     def __init__(self,
                  remote_address: str,
                  remote_username: str,
+                 remote_password: Optional[str],
                  remote_port: int,
                  remote_path: str,
                  file_name: str):
@@ -38,7 +40,7 @@ class DeleteRemoteProcess(AppOneShotProcess):
         self.__ssh = Sshcp(host=remote_address,
                            port=remote_port,
                            user=remote_username,
-                           password=None)
+                           password=remote_password)
 
     def run_once(self):
         self.__ssh.set_base_logger(self.logger)

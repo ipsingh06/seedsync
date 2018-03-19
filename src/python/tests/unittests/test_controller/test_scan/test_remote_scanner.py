@@ -54,6 +54,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -64,11 +65,13 @@ class TestRemoteScanner(unittest.TestCase):
         self.assertEqual("my remote address", self.ssh_args["host"])
         self.assertEqual(1234, self.ssh_args["port"])
         self.assertEqual("my remote user", self.ssh_args["user"])
+        self.assertEqual("my password", self.ssh_args["password"])
 
     def test_installs_scan_script_on_first_scan(self):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -89,6 +92,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -103,6 +107,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -129,6 +134,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -148,6 +154,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -173,6 +180,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -194,6 +202,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -219,6 +228,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
@@ -244,6 +254,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
+            remote_password="my password",
             remote_port=1234,
             remote_path_to_scan="/remote/path/to/scan",
             local_path_to_scan_script=TestRemoteScanner.temp_scan_script,

@@ -146,6 +146,7 @@ class TestSeedsync(unittest.TestCase):
         config = Seedsync._create_default_config()
         incomplete_value = config.lftp.remote_address
         config.lftp.remote_address = "value"
+        config.lftp.remote_password = "value"
         config.lftp.remote_username = "value"
         config.lftp.remote_path = "value"
         config.lftp.local_path = "value"
