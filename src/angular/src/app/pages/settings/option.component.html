@@ -7,7 +7,7 @@
     <!-- Textbox -->
     <label *ngIf="type == OptionType.Text">
         <span class="name">{{label}}</span>
-        <input *ngIf="type == OptionType.Text"
+        <input
                type="text"
                class="form-control"
                [disabled]="value == null"
@@ -26,6 +26,19 @@
                [ngModel]="value"
            (ngModelChange)="onChange($event)" />
         <span class="name">{{label}}</span>
+        <span *ngIf="description"
+              class="description">{{description}}</span>
+    </label>
+
+    <!-- Password -->
+    <label *ngIf="type == OptionType.Password">
+        <span class="name">{{label}}</span>
+        <input
+               type="password"
+               class="form-control"
+               [disabled]="value == null"
+               [ngModel]="value"
+               (ngModelChange)="onChange($event)" />
         <span *ngIf="description"
               class="description">{{description}}</span>
     </label>

@@ -58,9 +58,11 @@ describe("Testing config service", () => {
             lftp: {
                 remote_address: "remote.server.com",
                 remote_username: "some.user",
+                remote_password: "my.password",
                 remote_path: "/some/remote/path",
                 local_path: "/some/local/path",
                 remote_path_to_scan_script: "/another/remote/path",
+                use_ssh_key: true,
                 num_max_parallel_downloads: 2,
                 num_max_parallel_files_per_download: 8,
                 num_max_connections_per_root_file: 32,
@@ -88,9 +90,11 @@ describe("Testing config service", () => {
                 expect(config.general.debug).toBe(true);
                 expect(config.lftp.remote_address).toBe("remote.server.com");
                 expect(config.lftp.remote_username).toBe("some.user");
+                expect(config.lftp.remote_password).toBe("my.password");
                 expect(config.lftp.remote_path).toBe("/some/remote/path");
                 expect(config.lftp.local_path).toBe("/some/local/path");
                 expect(config.lftp.remote_path_to_scan_script).toBe("/another/remote/path");
+                expect(config.lftp.use_ssh_key).toBe(true);
                 expect(config.lftp.num_max_parallel_downloads).toBe(2);
                 expect(config.lftp.num_max_parallel_files_per_download).toBe(8);
                 expect(config.lftp.num_max_connections_per_root_file).toBe(32);

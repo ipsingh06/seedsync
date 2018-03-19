@@ -27,6 +27,18 @@ export const OPTIONS_CONTEXT_SERVER: IOptionsContext = {
             description: null
         },
         {
+            type: OptionType.Password,
+            label: "Server Password",
+            valuePath: ["lftp", "remote_password"],
+            description: null
+        },
+        {
+            type: OptionType.Checkbox,
+            label: "Use password-less key-based authentication",
+            valuePath: ["lftp", "use_ssh_key"],
+            description: null
+        },
+        {
             type: OptionType.Text,
             label: "Server Directory",
             valuePath: ["lftp", "remote_path"],

@@ -22,10 +22,12 @@ const GeneralRecord = Record(DefaultGeneral);
 interface ILftp {
     remote_address: string;
     remote_username: string;
+    remote_password: string;
     remote_port: number;
     remote_path: string;
     local_path: string;
     remote_path_to_scan_script: string;
+    use_ssh_key: boolean;
     num_max_parallel_downloads: number;
     num_max_parallel_files_per_download: number;
     num_max_connections_per_root_file: number;
@@ -36,10 +38,12 @@ interface ILftp {
 const DefaultLftp: ILftp = {
     remote_address: null,
     remote_username: null,
+    remote_password: null,
     remote_port: null,
     remote_path: null,
     local_path: null,
     remote_path_to_scan_script: null,
+    use_ssh_key: null,
     num_max_parallel_downloads: null,
     num_max_parallel_files_per_download: null,
     num_max_connections_per_root_file: null,

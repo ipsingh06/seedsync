@@ -43,5 +43,6 @@ export class OptionComponent implements OnInit {
 
 export enum OptionType {
     Text,
-    Checkbox
+    Checkbox,
+    Password
 }
