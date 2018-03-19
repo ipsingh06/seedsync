@@ -10,6 +10,7 @@ green==2.12.0
 greenlet==0.4.12
 macholib==1.8
 packaging==16.8
+parameterized==0.6.1
 Paste==2.0.3
 patool==1.12
 pefile==2017.9.3

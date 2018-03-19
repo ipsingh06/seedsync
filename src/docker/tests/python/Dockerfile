@@ -20,6 +20,17 @@ RUN ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa && \
 # Disable the known hosts prompt
 RUN echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel=quiet" > /root/.ssh/config
 
+# create the seedsynctest user, add root's public key to seedsynctest
+RUN useradd --create-home -s /bin/bash seedsynctest && \
+    echo "seedsynctest:seedsyncpass" | chpasswd
+RUN usermod -a -G root seedsynctest
+RUN cp /root/.ssh/id_rsa.pub /home/seedsynctest/ && \
+    chown seedsynctest:seedsynctest /home/seedsynctest/id_rsa.pub
+USER seedsynctest
+RUN  mkdir -p /home/seedsynctest/.ssh && \
+    cat /home/seedsynctest/id_rsa.pub >> /home/seedsynctest/.ssh/authorized_keys
+USER root
+
 EXPOSE 22
 
 # src needs to be mounted on /src/
