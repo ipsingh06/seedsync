@@ -3,7 +3,7 @@
 import logging
 import re
 from functools import wraps
-from typing import Callable, Union, List
+from typing import Callable, Union, List, Optional
 
 # 3rd party libs
 import pexpect
@@ -35,12 +35,14 @@ class Lftp:
     __SET_COMMAND_AT_EXIT = "cmd:at-exit"
     __SET_USE_TEMP_FILE = "xfer:use-temp-file"
     __SET_TEMP_FILE_NAME = "xfer:temp-file-name"
+    __SET_SFTP_AUTO_CONFIRM = "sftp:auto-confirm"
+    __SET_SFTP_CONNECT_PROGRAM = "sftp:connect-program"
 
     def __init__(self,
                  address: str,
                  port: int,
                  user: str,
-                 password: str):
+                 password: Optional[str]):
         self.__user = user
         self.__password = password
         self.__address = address
@@ -51,10 +53,11 @@ class Lftp:
         self.__job_status_parser = LftpJobStatusParser()
 
         self.__log_command_output = False
+        self.__pending_error = None
 
         args = [
             "-p", str(port),
-            "-u", "{},{}".format(self.__user, self.__password),
+            "-u", "{},{}".format(self.__user, self.__password if self.__password else ""),
             "sftp://{}".format(self.__address)
         ]
         self.__process = pexpect.spawn("/usr/bin/lftp", args)
@@ -71,6 +74,8 @@ class Lftp:
         """
         # Set to kill on exit to prevent a zombie process
         self.__set(Lftp.__SET_COMMAND_AT_EXIT, "\"kill all\"")
+        # Auto-add server to known host file
+        self.sftp_auto_confirm = True
 
     def with_check_process(method: Callable):
         """
@@ -95,6 +100,18 @@ class Lftp:
 
     def set_base_local_dir_path(self, base_local_dir_path: str):
         self.__base_local_dir_path = base_local_dir_path
+
+    def raise_pending_error(self):
+        """
+        Raise any pending errors
+        Errors show up late after a command is executed
+        This method raises any errors that were detected while executing the next command
+        :return:
+        """
+        if self.__pending_error:
+            error = self.__pending_error
+            self.__pending_error = None
+            raise LftpError(error)
 
     @with_check_process
     def __run_command(self, command: str):
@@ -129,13 +146,16 @@ class Lftp:
                 if self.__log_command_output:
                     self.logger.debug("retry out ({} bytes):\n {}".format(len(out), out))
                 self.logger.error("Lftp detected error: {}".format(error_out))
+                # save pending error
+                self.__pending_error = error_out
         return out
 
     @staticmethod
     def __detect_errors_from_output(out: str) -> bool:
         errors = [
             "pget: Access failed",
-            "mirror: Access failed"
+            "mirror: Access failed",
+            "Login failed: Login incorrect"
         ]
         for error in errors:
             if error in out:
@@ -262,6 +282,22 @@ class Lftp:
     @temp_file_name.setter
     def temp_file_name(self, temp_file_name: str):
         self.__set(Lftp.__SET_TEMP_FILE_NAME, temp_file_name)
+
+    @property
+    def sftp_auto_confirm(self) -> bool:
+        return Lftp.__to_bool(self.__get(Lftp.__SET_SFTP_AUTO_CONFIRM))
+
+    @sftp_auto_confirm.setter
+    def sftp_auto_confirm(self, auto_confirm: bool):
+        self.__set(Lftp.__SET_SFTP_AUTO_CONFIRM, str(int(auto_confirm)))
+
+    @property
+    def sftp_connect_program(self) -> str:
+        return self.__get(Lftp.__SET_SFTP_CONNECT_PROGRAM)
+
+    @sftp_connect_program.setter
+    def sftp_connect_program(self, program: str):
+        self.__set(Lftp.__SET_SFTP_CONNECT_PROGRAM, program)
 
     def status(self) -> List[LftpJobStatus]:
         """

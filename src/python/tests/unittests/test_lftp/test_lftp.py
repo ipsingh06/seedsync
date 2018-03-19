@@ -1,6 +1,5 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-import getpass
 import logging
 import os
 import shutil
@@ -9,10 +8,12 @@ import tempfile
 import unittest
 import time
 
-from lftp import Lftp, LftpJobStatus
+import timeout_decorator
+
+from lftp import Lftp, LftpJobStatus, LftpError
 
 
-# noinspection PyPep8Naming
+# noinspection PyPep8Naming,SpellCheckingInspection
 class TestLftp(unittest.TestCase):
     temp_dir = None
 
@@ -20,6 +21,8 @@ class TestLftp(unittest.TestCase):
     def setUpClass(cls):
         # Create a temp directory
         TestLftp.temp_dir = tempfile.mkdtemp(prefix="test_lftp_")
+        # Allow group access for the seedsynctest account
+        os.chmod(TestLftp.temp_dir, 0o770)
 
         # Create some test directories
         # remote [dir] for remote path
@@ -69,22 +72,27 @@ class TestLftp(unittest.TestCase):
         # Delete and recreate the local dir
         shutil.rmtree(os.path.join(TestLftp.temp_dir, "local"))
         os.mkdir(os.path.join(TestLftp.temp_dir, "local"))
+        self.local_dir = os.path.join(TestLftp.temp_dir, "local")
+        self.remote_dir = os.path.join(TestLftp.temp_dir, "remote")
 
-        # Create default lftp instance
-        # Note: password-less ssh needs to be setup
-        #       i.e. user's public key needs to be in authorized_keys
-        #       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-        self.lftp = Lftp(address="localhost", port=22, user=getpass.getuser(), password="")
-        self.lftp.set_base_remote_dir_path(os.path.join(TestLftp.temp_dir, "remote"))
-        self.lftp.set_base_local_dir_path(os.path.join(TestLftp.temp_dir, "local"))
-        logger = logging.getLogger("TestLftp")
+        # Note: seedsynctest account must be set up. See DeveloperReadme.md for details
+        self.host = "localhost"
+        self.port = 22
+        self.user = "seedsynctest"
+        self.password = "seedsyncpass"
+
+        # Default lftp instance - use key-based login
+        self.lftp = Lftp(address=self.host, port=self.port, user=self.user, password=None)
+        self.lftp.set_base_remote_dir_path(self.remote_dir)
+        self.lftp.set_base_local_dir_path(self.local_dir)
+        self.lftp.set_verbose_logging(True)
+
+        logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
         handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-        self.lftp.set_base_logger(logger)
-        self.lftp.set_verbose_logging(True)
 
     def tearDown(self):
         self.lftp.exit()
@@ -154,6 +162,18 @@ class TestLftp(unittest.TestCase):
         self.assertEqual("*.lftp", self.lftp.temp_file_name)
         self.lftp.temp_file_name = "*.temp"
         self.assertEqual("*.temp", self.lftp.temp_file_name)
+
+    def test_sftp_auto_confirm(self):
+        self.lftp.sftp_auto_confirm = True
+        self.assertEqual(True, self.lftp.sftp_auto_confirm)
+        self.lftp.sftp_auto_confirm = False
+        self.assertEqual(False, self.lftp.sftp_auto_confirm)
+
+    def test_sftp_connect_program(self):
+        self.lftp.sftp_connect_program = "program -a -f"
+        self.assertEqual("\"program -a -f\"", self.lftp.sftp_connect_program)
+        self.lftp.sftp_connect_program = "\"abc -d\""
+        self.assertEqual("\"abc -d\"", self.lftp.sftp_connect_program)
 
     def test_status_empty(self):
         statuses = self.lftp.status()
@@ -393,6 +413,9 @@ class TestLftp(unittest.TestCase):
         time.sleep(0.5)  # wait for jobs to connect
         print("Error'ed command")
         self.assertEqual(5, self.lftp.num_parallel_jobs)
+        with self.assertRaises(LftpError) as ctx:
+            self.lftp.raise_pending_error()
+        self.assertTrue("Access failed" in str(ctx.exception))
         # next status should be empty
         print("Getting empty status")
         statuses = self.lftp.status()
@@ -404,6 +427,9 @@ class TestLftp(unittest.TestCase):
         time.sleep(0.5)  # wait for jobs to connect
         print("Error'ed command")
         self.assertEqual(5, self.lftp.num_parallel_jobs)
+        with self.assertRaises(LftpError) as ctx:
+            self.lftp.raise_pending_error()
+        self.assertTrue("Access failed" in str(ctx.exception))
         # next status should be empty
         print("Getting empty status")
         statuses = self.lftp.status()
@@ -417,6 +443,9 @@ class TestLftp(unittest.TestCase):
         time.sleep(0.5)  # wait for jobs to connect
         print("Error'ed command")
         self.assertEqual(5, self.lftp.num_parallel_jobs)
+        with self.assertRaises(LftpError) as ctx:
+            self.lftp.raise_pending_error()
+        self.assertTrue("No such file" in str(ctx.exception))
         # next status should be empty
         print("Getting empty status")
         statuses = self.lftp.status()
@@ -426,7 +455,70 @@ class TestLftp(unittest.TestCase):
         time.sleep(0.5)  # wait for jobs to connect
         print("Error'ed command")
         self.assertEqual(5, self.lftp.num_parallel_jobs)
+        with self.assertRaises(LftpError) as ctx:
+            self.lftp.raise_pending_error()
+        self.assertTrue("No such file" in str(ctx.exception))
         # next status should be empty
         print("Getting empty status")
         statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
+
+    @timeout_decorator.timeout(5)
+    def test_password_auth(self):
+        # exit the default instance
+        self.lftp.exit()
+
+        self.lftp = Lftp(address=self.host, port=self.port, user=self.user, password=self.password)
+        self.lftp.set_base_remote_dir_path(self.remote_dir)
+        self.lftp.set_base_local_dir_path(self.local_dir)
+        self.lftp.set_verbose_logging(True)
+
+        # Disable key-based auth
+        program = self.lftp.sftp_connect_program
+        program += " -oPubkeyAuthentication=no"
+        self.lftp.sftp_connect_program = program
+
+        self.lftp.queue("a", True)
+        statuses = self.lftp.status()
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("a", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+        # Wait for empty status
+        while True:
+            statuses = self.lftp.status()
+            if len(statuses) == 0:
+                break
+        self.lftp.raise_pending_error()
+
+    @timeout_decorator.timeout(5)
+    def test_error_bad_password(self):
+        # exit the default instance
+        self.lftp.exit()
+
+        self.lftp = Lftp(address=self.host, port=self.port, user=self.user, password="wrong password")
+        self.lftp.set_base_remote_dir_path(self.remote_dir)
+        self.lftp.set_base_local_dir_path(self.local_dir)
+        self.lftp.set_verbose_logging(True)
+
+        # Disable key-based auth
+        program = self.lftp.sftp_connect_program
+        program += " -oPubkeyAuthentication=no"
+        self.lftp.sftp_connect_program = program
+
+        self.lftp.queue("a", True)
+        statuses = self.lftp.status()
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("a", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+        # Wait for empty status
+        while True:
+            statuses = self.lftp.status()
+            if len(statuses) == 0:
+                break
+        with self.assertRaises(LftpError) as ctx:
+            self.lftp.raise_pending_error()
+        self.assertTrue("Login failed: Login incorrect" in str(ctx.exception))

@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 import os
 import tempfile
 import shutil
-import getpass
 import time
 from filecmp import dircmp, cmp
 import logging
@@ -2174,12 +2173,12 @@ class TestController(unittest.TestCase):
         #     - large files names to blow up the status
         #     - large max num connections, connections per file
         #     - download many files in parallel
-        def create_large_file(path, size):
-            f = open(path, "wb")
+        def create_large_file(_path, size):
+            f = open(_path, "wb")
             f.seek(size - 1)
             f.write(b"\0")
             f.close()
-            print("File size: ", os.stat(path).st_size)
+            print("File size: ", os.stat(_path).st_size)
 
         # Create a bunch of large files that can be downloaded in chunks
         path = os.path.join(TestController.temp_dir, "remote", "large")

@@ -39,6 +39,7 @@ class TestSshcp(unittest.TestCase):
         # Allow group access for the seedsynctest account
         os.chmod(self.temp_dir, 0o770)
 
+        # Note: seedsynctest account must be set up. See DeveloperReadme.md for details
         self.host = "localhost"
         self.port = 22
         self.user = "seedsynctest"
@@ -126,21 +127,21 @@ class TestSshcp(unittest.TestCase):
         sshcp = Sshcp(host=self.host, port=self.port, user=self.user, password=password)
 
         # single quotes
-        dir = os.path.join(self.remote_dir, "a a")
-        out = sshcp.shell("mkdir '{}' && cd '{}' && pwd".format(dir, dir))
+        _dir = os.path.join(self.remote_dir, "a a")
+        out = sshcp.shell("mkdir '{}' && cd '{}' && pwd".format(_dir, _dir))
         out_str = out.decode().strip()
-        self.assertEqual(dir, out_str)
+        self.assertEqual(_dir, out_str)
 
         # double quotes
-        dir = os.path.join(self.remote_dir, "a b")
-        out = sshcp.shell('mkdir "{}" && cd "{}" && pwd'.format(dir, dir))
+        _dir = os.path.join(self.remote_dir, "a b")
+        out = sshcp.shell('mkdir "{}" && cd "{}" && pwd'.format(_dir, _dir))
         out_str = out.decode().strip()
-        self.assertEqual(dir, out_str)
+        self.assertEqual(_dir, out_str)
 
         # single and double quotes - error out
-        dir = os.path.join(self.remote_dir, "a b")
+        _dir = os.path.join(self.remote_dir, "a b")
         with self.assertRaises(ValueError):
-            out = sshcp.shell('mkdir "{}" && cd \'{}\' && pwd'.format(dir, dir))
+            sshcp.shell('mkdir "{}" && cd \'{}\' && pwd'.format(_dir, _dir))
 
     @timeout_decorator.timeout(5)
     def test_shell_error_bad_password(self):

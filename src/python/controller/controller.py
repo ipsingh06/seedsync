@@ -512,6 +512,7 @@ class Controller:
         Propagate any exceptions from child processes/threads to this thread
         :return:
         """
+        self.__lftp.raise_pending_error()
         self.__active_scan_process.propagate_exception()
         self.__local_scan_process.propagate_exception()
         self.__remote_scan_process.propagate_exception()
