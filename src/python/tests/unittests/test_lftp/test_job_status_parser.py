@@ -905,6 +905,36 @@ class TestLftpJobStatusParser(unittest.TestCase):
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
 
+    def test_jobs_missing_pget_data_line(self):
+        output = """
+        [0] queue (sftp://seedsynctest:@localhost:22) 
+        sftp://seedsynctest:@localhost:22/home/seedsynctest
+        Now executing: [3] mirror -c /tmp/test_lftp_ns99k0im/remote/c -o c /tmp/test_lftp_ns99k0im/local/
+        -[4] pget -c /tmp/test_lftp_ns99k0im/remote/d -o d.txt -o /tmp/test_lftp_ns99k0im/local/
+        [3] mirror -c /tmp/test_lftp_ns99k0im/remote/c -o c /tmp/test_lftp_ns99k0im/local/ 
+        Getting file list (162) [Receiving data]
+        [4] pget -c /tmp/test_lftp_ns99k0im/remote/d -o d.txt -o /tmp/test_lftp_ns99k0im/local/ 
+        sftp://seedsynctest:@localhost:22/home/seedsynctest
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job1 = LftpJobStatus(job_id=3,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="c -o c",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(None, None, None, None, None)
+        golden_job2 = LftpJobStatus(job_id=4,
+                                    job_type=LftpJobStatus.Type.PGET,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="d -o d.txt",
+                                    flags="-c")
+        golden_job2.total_transfer_state = LftpJobStatus.TransferState(None, None, None, None, None)
+        golden_jobs = [golden_job1, golden_job2]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
     def test_raises_error_on_bad_status(self):
         output = """
         [0] queue (sftp://someone:@localhost) 
