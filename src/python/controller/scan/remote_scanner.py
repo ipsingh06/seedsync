@@ -7,7 +7,7 @@ import os
 
 from .scanner_process import IScanner
 from common import overrides, AppError, Localization
-from ssh import Ssh, Scp, ScpError, SshError
+from ssh import Sshcp, SshcpError
 from system import SystemFile
 
 
@@ -32,19 +32,16 @@ class RemoteScanner(IScanner):
         self.__remote_path_to_scan = remote_path_to_scan
         self.__local_path_to_scan_script = local_path_to_scan_script
         self.__remote_path_to_scan_script = remote_path_to_scan_script
-        self.__ssh = Ssh(host=remote_address,
-                         port=remote_port,
-                         user=remote_username)
-        self.__scp = Scp(host=remote_address,
-                         port=remote_port,
-                         user=remote_username)
+        self.__ssh = Sshcp(host=remote_address,
+                           port=remote_port,
+                           user=remote_username,
+                           password=None)
         self.__first_run = True
 
     @overrides(IScanner)
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("RemoteScanner")
         self.__ssh.set_base_logger(self.logger)
-        self.__scp.set_base_logger(self.logger)
 
     @overrides(IScanner)
     def scan(self) -> List[SystemFile]:
@@ -56,11 +53,11 @@ class RemoteScanner(IScanner):
         out = None
         while out is None:
             try:
-                out = self.__ssh.run_command("{} {}".format(
+                out = self.__ssh.shell("'{}' '{}'".format(
                     self.__remote_path_to_scan_script,
                     self.__remote_path_to_scan)
                 )
-            except SshError as e:
+            except SshcpError as e:
                 # Suppress specific errors and retry a fixed number of times
                 # Otherwise raise a fatal AppError
                 if RemoteScanner.__suppress_error(e) and retries < RemoteScanner.RETRY_COUNT:
@@ -84,14 +81,14 @@ class RemoteScanner(IScanner):
                 self.__local_path_to_scan_script
             ))
         try:
-            self.__scp.copy(local_path=self.__local_path_to_scan_script,
+            self.__ssh.copy(local_path=self.__local_path_to_scan_script,
                             remote_path=self.__remote_path_to_scan_script)
-        except ScpError:
+        except SshcpError:
             self.logger.exception("Caught scp exception")
             raise AppError(Localization.Error.REMOTE_SERVER_INSTALL)
 
     @staticmethod
-    def __suppress_error(error: SshError) -> bool:
+    def __suppress_error(error: SshcpError) -> bool:
         error_str = str(error).lower()
         errors_to_suppress = [
             "text file busy",

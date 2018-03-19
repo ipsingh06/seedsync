@@ -101,7 +101,7 @@ class Controller:
         self.__lftp = Lftp(address=self.__context.config.lftp.remote_address,
                            port=self.__context.config.lftp.remote_port,
                            user=self.__context.config.lftp.remote_username,
-                           password="")
+                           password=None)
         self.__lftp.set_base_logger(self.logger)
         self.__lftp.set_base_remote_dir_path(self.__context.config.lftp.remote_path)
         self.__lftp.set_base_local_dir_path(self.__context.config.lftp.local_path)

@@ -4,7 +4,7 @@ import os
 import shutil
 
 from common import AppOneShotProcess
-from ssh import Ssh, SshError
+from ssh import Sshcp, SshcpError
 
 
 class DeleteLocalProcess(AppOneShotProcess):
@@ -35,16 +35,17 @@ class DeleteRemoteProcess(AppOneShotProcess):
         super().__init__(name=self.__class__.__name__)
         self.__remote_path = remote_path
         self.__file_name = file_name
-        self.__ssh = Ssh(host=remote_address,
-                         port=remote_port,
-                         user=remote_username)
+        self.__ssh = Sshcp(host=remote_address,
+                           port=remote_port,
+                           user=remote_username,
+                           password=None)
 
     def run_once(self):
         self.__ssh.set_base_logger(self.logger)
         file_path = os.path.join(self.__remote_path, self.__file_name)
         self.logger.debug("Deleting remote file {}".format(self.__file_name))
         try:
-            out = self.__ssh.run_command("rm -rf '{}'".format(file_path))
+            out = self.__ssh.shell("rm -rf '{}'".format(file_path))
             self.logger.debug("Remote delete output: {}".format(out.decode()))
-        except SshError:
+        except SshcpError:
             self.logger.exception("Exception while deleting remote file")

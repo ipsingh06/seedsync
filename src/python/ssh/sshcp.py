@@ -102,7 +102,7 @@ class Sshcp:
         if sp.exitstatus != 0:
             raise SshcpError(sp.before.decode())
 
-        return sp.before
+        return sp.before.replace(b'\r\n', b'\n')
 
     def shell(self, command: str) -> bytes:
         """

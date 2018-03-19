@@ -1,6 +1,5 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
-import getpass
 import logging
 import os
 import shutil
@@ -21,6 +20,8 @@ class TestLftp(unittest.TestCase):
     def setUpClass(cls):
         # Create a temp directory
         TestLftp.temp_dir = tempfile.mkdtemp(prefix="test_lftp_")
+        # Allow group access for the seedsynctest account
+        os.chmod(TestLftp.temp_dir, 0o770)
 
     @classmethod
     def tearDownClass(cls):
@@ -31,14 +32,11 @@ class TestLftp(unittest.TestCase):
         os.mkdir(os.path.join(TestLftp.temp_dir, "remote"))
         os.mkdir(os.path.join(TestLftp.temp_dir, "local"))
 
-        # Create default lftp instance
-        # Note: password-less ssh needs to be setup
-        #       i.e. user's public key needs to be in authorized_keys
-        #       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-        self.lftp = Lftp(address="localhost", port=22, user=getpass.getuser(), password="")
+        # Note: seedsynctest account must be set up. See DeveloperReadme.md for details
+        self.lftp = Lftp(address="localhost", port=22, user="seedsynctest", password=None)
         self.lftp.set_base_remote_dir_path(os.path.join(TestLftp.temp_dir, "remote"))
         self.lftp.set_base_local_dir_path(os.path.join(TestLftp.temp_dir, "local"))
-        logger = logging.getLogger("TestLftp")
+        logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
         handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
