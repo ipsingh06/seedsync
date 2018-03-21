@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 import os
 import tempfile
 import shutil
-import time
 from filecmp import dircmp, cmp
 import logging
 import sys
@@ -353,7 +352,6 @@ class TestController(unittest.TestCase):
     # noinspection PyMethodMayBeStatic
     def __wait_for_initial_model(self):
         while len(self.controller.get_model_files()) < 5:
-            time.sleep(0.1)
             self.controller.process()
 
     @timeout_decorator.timeout(20)
@@ -478,8 +476,16 @@ class TestController(unittest.TestCase):
         # Add a local file
         TestController.my_touch(1515, "local", "lnew")
 
+        # Process until discovered
+        while True:
+            self.controller.process()
+            call = listener.file_added.call_args
+            if call:
+                new_file = call[0][0]
+                self.assertEqual("lnew", new_file.name)
+                break
+
         # Verify
-        time.sleep(0.5)
         self.controller.process()
         lnew = ModelFile("lnew", False)
         lnew.local_size = 1515
@@ -507,8 +513,16 @@ class TestController(unittest.TestCase):
         # Update a local file
         TestController.my_touch(1717, "local", "lb")
 
+        # Process until discovered
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("lb", new_file.name)
+                break
+
         # Verify
-        time.sleep(0.5)
         self.controller.process()
         lb_old = ModelFile("lb", False)
         lb_old.local_size = 2*1024
@@ -538,8 +552,16 @@ class TestController(unittest.TestCase):
         # Remove the local file
         os.remove(os.path.join(TestController.temp_dir, "local", "lb"))
 
+        # Process until discovered
+        while True:
+            self.controller.process()
+            call = listener.file_removed.call_args
+            if call:
+                new_file = call[0][0]
+                self.assertEqual("lb", new_file.name)
+                break
+
         # Verify
-        time.sleep(0.5)
         self.controller.process()
         lb = ModelFile("lb", False)
         lb.local_size = 2*1024
@@ -672,7 +694,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("ra", new_file.name)
                 if new_file.local_size == 8*1024:
                     break
-            time.sleep(0.5)
 
         # Verify
         listener.file_added.assert_not_called()
@@ -718,7 +739,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rc", new_file.name)
                 if new_file.local_size == 10*1024:
                     break
-            time.sleep(0.5)
 
         # Verify
         listener.file_added.assert_not_called()
@@ -879,7 +899,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("ra", new_file.name)
                 if new_file.local_size and new_file.local_size > 0:
                     break
-            time.sleep(0.5)
 
         # Now stop the download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "ra"))
@@ -893,7 +912,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("ra", new_file.name)
                 if new_file.state == ModelFile.State.DEFAULT:
                     break
-            time.sleep(0.5)
 
         # Verify
         call = listener.file_updated.call_args
@@ -945,7 +963,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rc", new_file.name)
                 if new_file.local_size and new_file.local_size > 0:
                     break
-            time.sleep(0.5)
 
         # Now stop the download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rc"))
@@ -959,7 +976,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rc", new_file.name)
                 if new_file.state == ModelFile.State.DEFAULT:
                     break
-            time.sleep(0.5)
 
         # Verify
         call = listener.file_updated.call_args
@@ -1054,7 +1070,6 @@ class TestController(unittest.TestCase):
                 new_file = call[0][1]
                 if new_file.name == "rc" and new_file.local_size and new_file.local_size > 0:
                     break
-            time.sleep(0.5)
 
         # Verify that rb is Queued
         files = self.controller.get_model_files()
@@ -1074,7 +1089,6 @@ class TestController(unittest.TestCase):
                     break_out = True
             if break_out:
                 break
-            time.sleep(0.5)
 
         # Verify that rc is Downloading, rb is Default
         files = self.controller.get_model_files()
@@ -1124,7 +1138,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("ra", new_file.name)
                 if new_file.local_size and new_file.local_size > 0:
                     break
-            time.sleep(0.5)
 
         # Now stop the download with wrong name
         command = Controller.Command(Controller.Command.Action.STOP, "rb")
@@ -1184,7 +1197,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("ra", new_file.name)
                 if new_file.local_size and new_file.local_size > 0:
                     break
-            time.sleep(0.5)
 
         # Now stop the download with wrong name
         command = Controller.Command(Controller.Command.Action.STOP, "invalidfile")
@@ -1241,7 +1253,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("re.rar", new_file.name)
                 if new_file.state == ModelFile.State.DOWNLOADED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
@@ -1259,7 +1270,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("re.rar", new_file.name)
                 if new_file.state == ModelFile.State.EXTRACTED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -1302,7 +1312,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rd", new_file.name)
                 if new_file.state == ModelFile.State.DOWNLOADED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
@@ -1320,7 +1329,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rd", new_file.name)
                 if new_file.state == ModelFile.State.EXTRACTED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -1363,7 +1371,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rf", new_file.name)
                 if new_file.state == ModelFile.State.DOWNLOADED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
@@ -1381,7 +1388,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rf", new_file.name)
                 if new_file.state == ModelFile.State.EXTRACTED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -1428,7 +1434,6 @@ class TestController(unittest.TestCase):
             self.controller.process()
             if os.path.isfile(lca_txt_path) and os.path.isfile(lcb_txt_path):
                 break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -1471,7 +1476,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("re.rar", new_file.name)
                 if new_file.state == ModelFile.State.DOWNLOADED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
@@ -1489,7 +1493,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("re.rar", new_file.name)
                 if new_file.state == ModelFile.State.EXTRACTED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_success.reset_mock()
         callback.on_failure.assert_not_called()
@@ -1515,7 +1518,6 @@ class TestController(unittest.TestCase):
             self.controller.process()
             if os.path.isfile(re_txt_path):
                 break
-            time.sleep(0.5)
 
         # Verify again
         self.assertTrue(os.path.isfile(re_txt_path))
@@ -1604,7 +1606,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rd", new_file.name)
                 if new_file.state == ModelFile.State.DOWNLOADED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
@@ -1622,7 +1623,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rd", new_file.name)
                 if new_file.state == ModelFile.State.EXTRACTED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -1669,7 +1669,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rd", new_file.name)
                 if new_file.state == ModelFile.State.DOWNLOADED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
@@ -1687,7 +1686,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rd", new_file.name)
                 if new_file.state == ModelFile.State.EXTRACTED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_success.reset_mock()
         callback.on_failure.assert_not_called()
@@ -1710,7 +1708,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rd", new_file.name)
                 if new_file.state == ModelFile.State.DELETED:
                     break
-            time.sleep(0.5)
 
         # Queue the download AGAIN
         command = Controller.Command(Controller.Command.Action.QUEUE, "rd")
@@ -1727,7 +1724,6 @@ class TestController(unittest.TestCase):
                 if new_file.state == ModelFile.State.DOWNLOADED or \
                         new_file.state == ModelFile.State.EXTRACTED:
                     break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
         callback.on_success.reset_mock()
@@ -1974,7 +1970,6 @@ class TestController(unittest.TestCase):
                 file = call[0][0]
                 self.assertEqual("lb", file.name)
                 break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -2015,7 +2010,6 @@ class TestController(unittest.TestCase):
                 file = call[0][0]
                 self.assertEqual("la", file.name)
                 break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -2056,7 +2050,6 @@ class TestController(unittest.TestCase):
                 file = call[0][0]
                 self.assertEqual("ra", file.name)
                 break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -2186,7 +2179,6 @@ class TestController(unittest.TestCase):
                 file = call[0][0]
                 self.assertEqual("ra", file.name)
                 break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -2232,7 +2224,6 @@ class TestController(unittest.TestCase):
                 file = call[0][0]
                 self.assertEqual("la", file.name)
                 break
-            time.sleep(0.5)
         callback.on_success.assert_called_once_with()
         callback.on_failure.assert_not_called()
 
@@ -2319,7 +2310,6 @@ class TestController(unittest.TestCase):
                 new_file = call[0][1]
                 if new_file.name == "large" and new_file.state == ModelFile.State.DOWNLOADING:
                     break
-            time.sleep(0.5)
 
         # Wait for a bit so we start getting large statuses
         start_time = datetime.now()
@@ -2327,7 +2317,6 @@ class TestController(unittest.TestCase):
         while elapsed_secs < 5:
             print("Elapsed secs: ", elapsed_secs)
             self.controller.process()
-            time.sleep(0.5)
             elapsed_secs = (datetime.now()-start_time).total_seconds()
 
         # Verify that download is still ongoing
@@ -2338,7 +2327,16 @@ class TestController(unittest.TestCase):
         # Stop the download
         self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "large"))
         self.controller.process()
-        time.sleep(0.5)
+
+        # Process until download stops
+        while True:
+            self.controller.process()
+            call = listener.file_updated.call_args
+            if call:
+                new_file = call[0][1]
+                self.assertEqual("large", new_file.name)
+                if new_file.state == ModelFile.State.DEFAULT:
+                    break
 
         # Verify that download is stopped
         files = self.controller.get_model_files()
@@ -2385,7 +2383,6 @@ class TestController(unittest.TestCase):
                 self.assertEqual("rc", new_file.name)
                 if new_file.local_size == 10*1024:
                     break
-            time.sleep(0.5)
 
         # Verify
         listener.file_added.assert_not_called()

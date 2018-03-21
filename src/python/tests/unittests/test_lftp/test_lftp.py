@@ -6,7 +6,6 @@ import shutil
 import sys
 import tempfile
 import unittest
-import time
 
 import timeout_decorator
 
@@ -405,16 +404,16 @@ class TestLftp(unittest.TestCase):
         statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
+    @timeout_decorator.timeout(5)
     def test_queue_wrong_file_type(self):
         # check that queueing a file with MIRROR and a dir with PGET fails gracefully
-        self.lftp.num_parallel_jobs = 5
 
         # passing dir as a file
         print("Queuing dir as a file")
         self.lftp.queue("a", False)
-        time.sleep(0.5)  # wait for jobs to connect
-        print("Error'ed command")
-        self.assertEqual(5, self.lftp.num_parallel_jobs)
+        # wait for command to fail
+        while len(self.lftp.status()) > 0:
+            pass
         with self.assertRaises(LftpError) as ctx:
             self.lftp.raise_pending_error()
         self.assertTrue("Access failed" in str(ctx.exception))
@@ -426,9 +425,9 @@ class TestLftp(unittest.TestCase):
         # passing file as a dir
         print("Queuing file as a dir")
         self.lftp.queue("c", True)
-        time.sleep(0.5)  # wait for jobs to connect
-        print("Error'ed command")
-        self.assertEqual(5, self.lftp.num_parallel_jobs)
+        # wait for command to fail
+        while len(self.lftp.status()) > 0:
+            pass
         with self.assertRaises(LftpError) as ctx:
             self.lftp.raise_pending_error()
         self.assertTrue("Access failed" in str(ctx.exception))
@@ -437,14 +436,14 @@ class TestLftp(unittest.TestCase):
         statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
+    @timeout_decorator.timeout(20)
     def test_queue_missing_file(self):
         # check that queueing non-existing file fails gracefully
-        self.lftp.num_parallel_jobs = 5
 
         self.lftp.queue("non-existing-file", False)
-        time.sleep(0.5)  # wait for jobs to connect
-        print("Error'ed command")
-        self.assertEqual(5, self.lftp.num_parallel_jobs)
+        # wait for command to fail
+        while len(self.lftp.status()) > 0:
+            pass
         with self.assertRaises(LftpError) as ctx:
             self.lftp.raise_pending_error()
         self.assertTrue("No such file" in str(ctx.exception))
@@ -454,9 +453,9 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(0, len(statuses))
 
         self.lftp.queue("non-existing-folder", True)
-        time.sleep(0.5)  # wait for jobs to connect
-        print("Error'ed command")
-        self.assertEqual(5, self.lftp.num_parallel_jobs)
+        # wait for command to fail
+        while len(self.lftp.status()) > 0:
+            pass
         with self.assertRaises(LftpError) as ctx:
             self.lftp.raise_pending_error()
         self.assertTrue("No such file" in str(ctx.exception))
