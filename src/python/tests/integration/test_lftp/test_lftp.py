@@ -10,6 +10,7 @@ from filecmp import dircmp
 
 import timeout_decorator
 
+from tests.utils import TestUtils
 from lftp import Lftp
 
 
@@ -20,8 +21,9 @@ class TestLftp(unittest.TestCase):
     def setUpClass(cls):
         # Create a temp directory
         TestLftp.temp_dir = tempfile.mkdtemp(prefix="test_lftp_")
+
         # Allow group access for the seedsynctest account
-        os.chmod(TestLftp.temp_dir, 0o770)
+        TestUtils.chmod_from_to(TestLftp.temp_dir, tempfile.gettempdir(), 0o775)
 
     @classmethod
     def tearDownClass(cls):

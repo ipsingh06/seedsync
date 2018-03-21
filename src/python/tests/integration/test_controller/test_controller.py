@@ -12,9 +12,11 @@ import sys
 import zipfile
 import subprocess
 from datetime import datetime
+import stat
 
 import timeout_decorator
 
+from tests.utils import TestUtils
 from common import overrides, Context, Config, Args, AppError, Localization, Status
 from controller import Controller, ControllerPersist
 from model import ModelFile, IModelListener
@@ -82,11 +84,17 @@ class TestController(unittest.TestCase):
             zf.write(temp_file_path, os.path.basename(temp_file_path))
             zf.close()
         elif ext == "rar":
-            subprocess.Popen(["rar",
-                              "a",
-                              "-ep",
-                              path,
-                              temp_file_path]).communicate()
+            fnull = open(os.devnull, 'w')
+            subprocess.Popen(
+                [
+                    "rar",
+                    "a",
+                    "-ep",
+                    path,
+                    temp_file_path
+                ],
+                stdout=fnull
+            ).communicate()
         else:
             raise ValueError("Unsupported archive format: {}".format(os.path.basename(path)))
         return os.path.getsize(path)
@@ -95,8 +103,9 @@ class TestController(unittest.TestCase):
     def setUp(self):
         # Create a temp directory
         TestController.temp_dir = tempfile.mkdtemp(prefix="test_controller")
+
         # Allow group access for the seedsynctest account
-        os.chmod(TestController.temp_dir, 0o770)
+        TestUtils.chmod_from_to(self.temp_dir, tempfile.gettempdir(), 0o775)
 
         # Create a work directory for temp files
         TestController.work_dir = os.path.join(TestController.temp_dir, "work")
@@ -161,6 +170,22 @@ class TestController(unittest.TestCase):
         TestController.my_mkdir("local", "lc")
         self.archive_sizes["lca.rar"] = TestController.create_archive("local", "lc", "lca.rar")
         self.archive_sizes["lcb.zip"] = TestController.create_archive("local", "lc", "lcb.zip")
+
+        # Allow group access to remote files for seedsynctest account
+        # This is necessary for seedsynctest can do remote-delete commands
+        # We are basically doing a chmod g+w on all of remote/ directory
+        remote_dir = os.path.join(self.temp_dir, "remote")
+        st = os.stat(remote_dir)
+        os.chmod(remote_dir, st.st_mode | stat.S_IWGRP)
+        for root, dirs, files in os.walk(remote_dir):
+            for momo in dirs:
+                path = os.path.join(root, momo)
+                st = os.stat(path)
+                os.chmod(path, st.st_mode | stat.S_IWGRP)
+            for momo in files:
+                path = os.path.join(root, momo)
+                st = os.stat(path)
+                os.chmod(path, st.st_mode | stat.S_IWGRP)
 
         # Helper object to store the intial state
         f_ra = ModelFile("ra", True)
@@ -1036,18 +1061,19 @@ class TestController(unittest.TestCase):
         files_dict = {f.name: f for f in files}
         self.assertEqual(ModelFile.State.QUEUED, files_dict["rb"].state)
 
-        # Now stop the download
+        # Now stop the queued
         self.controller.queue_command(Controller.Command(Controller.Command.Action.STOP, "rb"))
 
-        # Process until download stops
+        # Process until queued stops
         while True:
             self.controller.process()
-            call = listener.file_updated.call_args
-            if call:
+            break_out = False
+            for call in listener.file_updated.call_args_list:
                 new_file = call[0][1]
-                self.assertEqual("rb", new_file.name)
-                if new_file.state == ModelFile.State.DEFAULT:
-                    break
+                if new_file.name == "rb" and new_file.state == ModelFile.State.DEFAULT:
+                    break_out = True
+            if break_out:
+                break
             time.sleep(0.5)
 
         # Verify that rc is Downloading, rb is Default
