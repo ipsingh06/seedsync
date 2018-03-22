@@ -1,3 +1,10 @@
+seedsync (0.6-0) stable; urgency=low
+
+  * Added support for password-based SSH login
+  * Fixed some SSH errors
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Wed, 21 Mar 2018 19:38:14 -0700
+
 seedsync (0.5-1) stable; urgency=low
 
   * Added (hidden) setting to enable verbose logging
