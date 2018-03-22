@@ -25,9 +25,6 @@ RUN chmod 600 /home/user/.ssh/id_rsa
 # Create directory for downloaded files
 RUN mkdir /home/user/files
 
-# Copy over app config
-ADD --chown=user:user settings.cfg /home/user/.seedsync/
-
 USER root
 
 
@@ -39,6 +36,7 @@ WORKDIR /scripts
 ADD install_seedsync.sh /scripts/
 ADD expect_seedsync.exp /scripts/
 ADD entrypoint.sh /scripts/
+ADD setup_seedsync.sh /scripts/
 
 ENTRYPOINT ["/scripts/entrypoint.sh"]
 CMD ["/sbin/init --log-target=journal 3>&1"]

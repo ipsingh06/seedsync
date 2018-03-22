@@ -17,13 +17,8 @@ COPY artifacts /app
 RUN mkdir /config /config/log
 RUN mkdir /downloads
 
-# Generate default config
-RUN /app/seedsync -c /config --exit 2>/dev/null; exit 0
-
-# Replace default values
-RUN \
-    sed -i 's/local_path = <replace me>/local_path = \/downloads\//' /config/settings.cfg && \
-    grep -q 'local_path = \/downloads\/' /config/settings.cfg
+ADD setup_default_config.sh /scripts/
+RUN /scripts/setup_default_config.sh
 
 # Must run app inside shell
 # Otherwise the container crashes as soon as a child process exits
