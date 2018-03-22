@@ -5,7 +5,7 @@ BUILDDIR:=$(shell realpath ./build)
 
 .PHONY: py scanfs ng artifacts deb builddir clean
 
-all: py scanfs ng artifacts deb
+all: py scanfs ng artifacts deb docker
 
 builddir:
 	mkdir -p build

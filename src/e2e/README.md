@@ -7,32 +7,43 @@ cd src/e2e
 npm install
 ```
 
-2. Build the docker dev image
+2. Choose which dev image to run: deb install or docker image
+    1. Deb install
+       ```
+       export PATH_TO_INSTALL_DEB=<path to deb file>
+       export TEST_FLAGS="\
+         -f src/docker/compose/e2e-base.yml \
+         -f src/docker/compose/e2e-dev.yml \
+         -f src/docker/compose/install-base.yml \
+         -p seedsync_test_dev"
+       ```
+
+    OR
+
+    2. Docker image install
+       ```
+       export TEST_VERSION=<image version>
+       export TEST_FLAGS="\
+         -f src/docker/compose/e2e-base.yml \
+         -f src/docker/compose/e2e-dev.yml \
+         -f src/docker/compose/image.yml \
+         -p seedsync_test_dev"
+       ```
+
+3. Build the docker dev image
 ```
-docker-compose \
-    -f src/docker/compose/e2e-base.yml \
-    -f src/docker/compose/install-base.yml \
-    -f src/docker/compose/e2e-install.dev.yml \
-    -p seedsync_test_dev build
+docker-compose $TEST_FLAGS build
 ```
 
-3. Start the docker dev image
+
+4. Start the docker dev image
 ```
-export PATH_TO_INSTALL_DEB=<path to deb file>
-docker-compose \
-    -f src/docker/compose/e2e-base.yml \
-    -f src/docker/compose/install-base.yml \
-    -f src/docker/compose/e2e-install.dev.yml \
-    -p seedsync_test_dev up
+docker-compose $TEST_FLAGS up
 ```
 
 Note: to restart the docker images:
 ```
-docker-compose \
-    -f src/docker/compose/e2e-base.yml \
-    -f src/docker/compose/install-base.yml \
-    -f src/docker/compose/e2e-install.dev.yml \
-    -p seedsync_test_dev down
+docker-compose $TEST_FLAGS down
 ```
 
 4. Compile and run the tests

@@ -18,6 +18,8 @@ TEST_FILES["seedsync_test_e2e_install_ubu1604"] = ["compose/e2e-base.yml",
 TEST_FILES["seedsync_test_e2e_install_ubu1704"] = ["compose/e2e-base.yml",
                                                    "compose/install-base.yml",
                                                    "compose/install-ubu1704.yml"]
+TEST_FILES["seedsync_test_e2e_image"] = ["compose/e2e-base.yml",
+                                         "compose/image.yml"]
 
 
 class EndToEndTestsRunner:
@@ -27,12 +29,14 @@ class EndToEndTestsRunner:
         self.docker_dir = os.path.join(self.root_dir, "src", "docker")
 
         parser = argparse.ArgumentParser(description="End-to-end tests")
-        parser.add_argument("-f", "--deb_file", required=True, help="Path to install deb")
+        parser.add_argument("-d", "--deb_file", required=True, help="Path to install deb")
+        parser.add_argument("-i", "--image_version", required=True, help="Version of docker image to test")
         args = parser.parse_args()
 
         if not os.path.isfile(args.deb_file):
             sys.exit("Failed to find deb file: {}".format(args.deb_file))
         self.deb_path = os.path.realpath(args.deb_file)
+        self.image_version = args.image_version
 
     def run(self):
         self.__setup_environment()
@@ -43,6 +47,8 @@ class EndToEndTestsRunner:
         EndToEndTestsRunner.__print_header("Setting up environment")
         os.environ["PATH_TO_INSTALL_DEB"] = self.deb_path
         print("PATH_TO_INSTALL_DEB={}".format(self.deb_path))
+        os.environ["TEST_VERSION"] = self.image_version
+        print("TEST_VERSION={}".format(self.image_version))
         print()
 
     def __build(self):
@@ -69,7 +75,9 @@ class EndToEndTestsRunner:
                 *self.__docker_compose_signature(name, files),
                 "build"
             ]
-            call(build_args)
+            ret = call(build_args)
+            if ret != 0:
+                raise Exception("Failed to build test {}".format(name))
 
         print()
 

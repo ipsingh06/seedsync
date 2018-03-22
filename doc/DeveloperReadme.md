@@ -69,5 +69,5 @@ sudo usermod -a -G $USER seedsynctest
 ```bash
 ./scripts/tests/run_angular_tests.sh
 ./scripts/tests/run_python_tests.sh
-./scripts/tests/run_e2e_tests.sh -f <path to deb file>
+./scripts/tests/run_e2e_tests.sh -d <path to deb file> -i <image version>
 ```
