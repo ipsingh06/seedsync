@@ -275,3 +275,24 @@ class TestRemoteScanner(unittest.TestCase):
 
         scanner.scan()
         self.assertEqual(2, self.mock_ssh.shell.call_count)
+
+    def test_raises_app_error_on_mangled_output(self):
+        scanner = RemoteScanner(
+            remote_address="my remote address",
+            remote_username="my remote user",
+            remote_password="my password",
+            remote_port=1234,
+            remote_path_to_scan="/remote/path/to/scan",
+            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
+            remote_path_to_scan_script="/remote/path/to/scan/script"
+        )
+
+        # Ssh run command raises error the first time, succeeds the second time
+        # noinspection PyUnusedLocal
+        def ssh_shell(*args):
+            return "mangled data".encode()
+        self.mock_ssh.shell.side_effect = ssh_shell
+
+        with self.assertRaises(AppError) as ctx:
+            scanner.scan()
+        self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(ctx.exception))

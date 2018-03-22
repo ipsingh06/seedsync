@@ -48,14 +48,19 @@ class Sshcp:
             flags
         ]
 
+        # Common flags
+        command_args += [
+            "-o", "StrictHostKeyChecking=no",  # ignore host key changes
+            "-o", "UserKnownHostsFile=/dev/null",  # ignore known hosts file
+            "-o", "LogLevel=error",  # suppress warnings
+        ]
+
         if self.__password is None:
             command_args += [
                 "-o", "PasswordAuthentication=no",  # don't ask for password
             ]
         else:
             command_args += [
-                "-o", "StrictHostKeyChecking=no",  # ignore host key changes
-                "-o", "UserKnownHostsFile=/dev/null",  # ignore known hosts file
                 "-o", "PubkeyAuthentication=no"  # don't use key authentication
             ]
 
@@ -93,6 +98,7 @@ class Sshcp:
 
         except pexpect.exceptions.TIMEOUT:
             self.logger.exception("Timed out")
+            self.logger.error("Command output before:\n{}".format(sp.before))
             raise SshcpError("Timed out")
         sp.close()
         end_time = time.time()

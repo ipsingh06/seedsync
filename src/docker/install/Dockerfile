@@ -21,8 +21,6 @@ USER user
 ADD --chown=user:user id_rsa.pub /home/user/.ssh/
 ADD --chown=user:user id_rsa /home/user/.ssh/
 RUN chmod 600 /home/user/.ssh/id_rsa
-# Disable the known hosts prompt
-RUN echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /home/user/.ssh/config
 
 # Create directory for downloaded files
 RUN mkdir /home/user/files

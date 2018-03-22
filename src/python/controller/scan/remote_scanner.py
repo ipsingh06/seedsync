@@ -70,7 +70,11 @@ class RemoteScanner(IScanner):
                     self.logger.exception("Caught an SshError")
                     raise AppError(Localization.Error.REMOTE_SERVER_SCAN)
 
-        remote_files = pickle.loads(out)
+        try:
+            remote_files = pickle.loads(out)
+        except pickle.UnpicklingError as err:
+            self.logger.error("Unpickling error: {}\n{}".format(str(err), out))
+            raise AppError(Localization.Error.REMOTE_SERVER_SCAN)
         return remote_files
 
     def _install_scanfs(self):

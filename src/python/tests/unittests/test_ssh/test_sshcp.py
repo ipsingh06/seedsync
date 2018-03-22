@@ -152,11 +152,8 @@ class TestSshcp(unittest.TestCase):
             sshcp.shell("cd {}; pwd".format(self.local_dir))
         self.assertEqual("Incorrect password", str(ctx.exception))
 
-    # TODO: For some reason docker's ssh outputs nothing when there's bad hostname
-    #       Need to figure out how to fix that
     @parameterized.expand(_PARAMS)
     @timeout_decorator.timeout(5)
-    @unittest.skip
     def test_shell_error_bad_host(self, _, password):
         sshcp = Sshcp(host="badhost", port=self.port, user=self.user, password=password)
         with self.assertRaises(SshcpError) as ctx:
