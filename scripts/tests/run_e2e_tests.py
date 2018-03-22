@@ -12,8 +12,12 @@ from typing import List
 
 # Maps test name to its compose files
 TEST_FILES = OrderedDict()
-TEST_FILES["seedsync_test_e2e_ubu1604"] = ["compose/e2e-base.yml", "compose/e2e-ubu1604.yml"]
-TEST_FILES["seedsync_test_e2e_ubu1704"] = ["compose/e2e-base.yml", "compose/e2e-ubu1704.yml"]
+TEST_FILES["seedsync_test_e2e_install_ubu1604"] = ["compose/e2e-base.yml",
+                                                   "compose/install-base.yml",
+                                                   "compose/install-ubu1604.yml"]
+TEST_FILES["seedsync_test_e2e_install_ubu1704"] = ["compose/e2e-base.yml",
+                                                   "compose/install-base.yml",
+                                                   "compose/install-ubu1704.yml"]
 
 
 class EndToEndTestsRunner:

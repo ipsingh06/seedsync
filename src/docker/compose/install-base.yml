@@ -1,0 +1,22 @@
+version: "3.4"
+services:
+
+  myapp:
+    build:
+      context: ../install
+    tty: true
+    tmpfs:
+      - /run
+      - /run/lock
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - type: bind
+        source: ${PATH_TO_INSTALL_DEB}
+        target: /install/seedsync.deb
+        read_only: true
+
+      - type: bind
+        source: /sys/fs/cgroup
+        target: /sys/fs/cgroup
+        read_only: true

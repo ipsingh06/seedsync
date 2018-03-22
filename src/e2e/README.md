@@ -9,18 +9,30 @@ npm install
 
 2. Build the docker dev image
 ```
-docker-compose -f src/docker/compose/e2e-base.yml -f src/docker/compose/e2e-ubu1604.dev.yml -p seedsync_test_dev build
+docker-compose \
+    -f src/docker/compose/e2e-base.yml \
+    -f src/docker/compose/install-base.yml \
+    -f src/docker/compose/e2e-install.dev.yml \
+    -p seedsync_test_dev build
 ```
 
 3. Start the docker dev image
 ```
 export PATH_TO_INSTALL_DEB=<path to deb file>
-docker-compose -f src/docker/compose/e2e-base.yml -f src/docker/compose/e2e-ubu1604.dev.yml -p seedsync_test_dev up
+docker-compose \
+    -f src/docker/compose/e2e-base.yml \
+    -f src/docker/compose/install-base.yml \
+    -f src/docker/compose/e2e-install.dev.yml \
+    -p seedsync_test_dev up
 ```
 
 Note: to restart the docker images:
 ```
-docker-compose -f src/docker/compose/e2e-base.yml -f src/docker/compose/e2e-ubu1604.dev.yml -p seedsync_test_dev down
+docker-compose \
+    -f src/docker/compose/e2e-base.yml \
+    -f src/docker/compose/install-base.yml \
+    -f src/docker/compose/e2e-install.dev.yml \
+    -p seedsync_test_dev down
 ```
 
 4. Compile and run the tests
