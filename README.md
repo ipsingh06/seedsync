@@ -15,6 +15,7 @@ SeedSync currently supports the following features:
 - View and control progress of file transfers from GUI
 - Extract/decompress archive files
 - Delete local or remote files
+- Auto-Queue + Auto-Extract - automatically download and extract files as soon as they appear on your seedbox
 - Only fetch the files you want with Auto-Queue pattern matching
 - Fully open source!
 
