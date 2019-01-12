@@ -5,14 +5,14 @@ export class MockEventSource {
     onopen: (event: Event) => any;
     onerror: (event: Event) => any;
 
-    eventListeners: Map<string, (event: sse.IOnMessageEvent) => void> = new Map();
+    eventListeners: Map<string, EventListener> = new Map();
 
     constructor(url: string) {
         this.url = url;
     }
 
-    addEventListener(type: string, h: (event: sse.IOnMessageEvent) => void) {
-        this.eventListeners.set(type, h);
+    addEventListener(type: string, listener: EventListener) {
+        this.eventListeners.set(type, listener);
     }
 
     close() {}

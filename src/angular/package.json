@@ -21,6 +21,7 @@
     "@angular/platform-browser": "^4.2.4",
     "@angular/platform-browser-dynamic": "^4.2.4",
     "@angular/router": "^4.2.4",
+    "@types/eventsource": "^1.0.2",
     "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",
     "immutable": "^3.8.2",
@@ -50,6 +51,6 @@
     "protractor": "~5.1.2",
     "ts-node": "~3.2.0",
     "tslint": "~5.3.2",
-    "typescript": "~2.3.3"
+    "typescript": "^3.2.2"
   }
 }

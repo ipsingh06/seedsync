@@ -1,5 +1,6 @@
 import {Injectable, NgZone} from "@angular/core";
 import {Observable} from "rxjs/Observable";
+import EventSource = require("eventsource");
 
 import {ModelFileService} from "../files/model-file.service";
 import {ServerStatusService} from "../server/server-status.service";
@@ -86,7 +87,7 @@ export class StreamDispatchService {
                 eventSource.addEventListener(eventName, event => observer.next(
                     {
                         "event": eventName,
-                        "data": event.data
+                        "data": (<MessageEvent>event).data
                     }
                 ));
             }
