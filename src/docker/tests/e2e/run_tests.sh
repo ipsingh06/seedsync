@@ -15,7 +15,7 @@ ln -s -t . \
 #       a test-specific file
 
 # Compile test code
-tsc --outDir ./tmp
+/e2e/node_modules/typescript/bin/tsc --outDir ./tmp
 
 # Run the tests
-protractor tmp/conf.js
+/e2e/node_modules/protractor/bin/protractor tmp/conf.js

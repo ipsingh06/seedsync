@@ -4,15 +4,16 @@
   "description": "end to end tests",
   "author": "",
   "dependencies": {
-    "@types/jasmine": "^2.5.41",
-    "@types/jasminewd2": "^2.0.3",
-    "jasmine": "^2.4.1",
-    "protractor": "^5.2.1",
-    "typescript": "~2.0.0"
+    "@types/jasmine": "^2.8.14",
+    "@types/jasminewd2": "^2.0.6",
+    "@types/node": "^10.12.18",
+    "jasmine": "^3.3.1",
+    "protractor": "^5.4.2",
+    "typescript": "^3.2.2"
   },
   "devDependencies": {
-    "@types/jasmine": "^2.8.2",
-    "@types/jasminewd2": "^2.0.3",
+    "@types/jasmine": "^2.8.14",
+    "@types/jasminewd2": "^2.0.6",
     "ts-node": "^3.0.2"
   }
 }

@@ -50,7 +50,9 @@ docker-compose $TEST_FLAGS down
 
 ```
 cd src/e2e/
-rm -rf tmp && tsc && protractor tmp/conf.js
+rm -rf tmp && \
+    ./node_modules/typescript/bin/tsc && \
+    ./node_modules/protractor/bin/protractor tmp/conf.js
 ```
 
 ### About
