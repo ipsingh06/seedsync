@@ -39,6 +39,12 @@ cd src/angular
 npm install
 ```
 
+## Setup end-to-end tests node modules
+```bash
+cd src/e2e
+npm install
+```
+
 # Build
 
 1. Run these commands inside the root directory
@@ -48,6 +54,13 @@ make
 ```
 
 2. The .deb package will be generated inside build/ directory.
+
+
+# Setup dev environment
+
+## PyCharm
+1. Switch interpreter to virtualenv
+2. Mark src/python as 'Sources Root'
 
 
 # Run tests
@@ -65,9 +78,18 @@ sudo -u seedsynctest chmod 664 /home/seedsynctest/.ssh/authorized_keys
 sudo usermod -a -G $USER seedsynctest
 ```
 
-## Run the tests
+## Python Unit Tests
+Run from PyCharm
+
+## Angular Unit Tests
 ```bash
-./scripts/tests/run_angular_tests.sh
-./scripts/tests/run_python_tests.sh
-./scripts/tests/run_e2e_tests.sh -d <path to deb file> -i <image version>
+cd src/angular
+ng test
+```
+
+## Docker-based Test Suite
+```bash
+./scripts/tests/run_angular_tests.py
+./scripts/tests/run_python_tests.py
+./scripts/tests/run_e2e_tests.py -d <path to deb file> -i <image version>
 ```

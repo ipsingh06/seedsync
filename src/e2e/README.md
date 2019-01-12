@@ -1,7 +1,7 @@
 ###To run e2e tests in dev mode:
 
 1. Install dependencies
-```
+```bash
 sudo npm install -g protractor
 cd src/e2e
 npm install
@@ -9,7 +9,7 @@ npm install
 
 2. Choose which dev image to run: deb install or docker image
     1. Deb install
-       ```
+       ```bash
        export PATH_TO_INSTALL_DEB=<path to deb file>
        export TEST_FLAGS="\
          -f src/docker/compose/e2e-base.yml \
@@ -21,7 +21,7 @@ npm install
     OR
 
     2. Docker image install
-       ```
+       ```bash
        export TEST_VERSION=<image version>
        export TEST_FLAGS="\
          -f src/docker/compose/e2e-base.yml \
@@ -31,24 +31,24 @@ npm install
        ```
 
 3. Build the docker dev image
-```
+```bash
 docker-compose $TEST_FLAGS build
 ```
 
 
 4. Start the docker dev image
-```
+```bash
 docker-compose $TEST_FLAGS up
 ```
 
 Note: to restart the docker images:
-```
+```bash
 docker-compose $TEST_FLAGS down
 ```
 
 4. Compile and run the tests
 
-```
+```bash
 cd src/e2e/
 rm -rf tmp && \
     ./node_modules/typescript/bin/tsc && \
