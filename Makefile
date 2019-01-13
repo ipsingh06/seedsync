@@ -60,7 +60,7 @@ docker:
 	cp -rf ${BUILDDIR}/artifacts/html ${BUILDDIR}/docker/html
 	cp -rf ${BUILDDIR}/artifacts/scanfs ${BUILDDIR}/docker/scanfs
 	cp -rf ${BUILDDIR}/artifacts/VERSION ${BUILDDIR}/docker/ARTIFACTS_VERSION
-	cp -rf ${SOURCEDIR}/docker/release/* ${BUILDDIR}/docker/
+	cp -rf ${SOURCEDIR}/docker/release/. ${BUILDDIR}/docker/
 	${BUILDDIR}/docker/build.sh
 
 clean:
