@@ -5,6 +5,7 @@ set -e
 
 CONFIG_DIR="/config"
 SETTINGS_FILE="${CONFIG_DIR}/settings.cfg"
+SCRIPT_PATH="/app/python/seedsync.py"
 
 replace_setting() {
     NAME=$1
@@ -17,7 +18,11 @@ replace_setting() {
 }
 
 # Generate default config
-/app/seedsync -c ${CONFIG_DIR} --exit > /dev/null 2>&1 > /dev/null || true
+python3.5 ${SCRIPT_PATH} \
+    -c ${CONFIG_DIR} \
+    --html / \
+    --scanfs / \
+    --exit > /dev/null 2>&1 > /dev/null || true
 
 
 # Replace default values

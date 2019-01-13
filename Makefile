@@ -56,7 +56,10 @@ deb:
 docker:
 	rm -rf ${BUILDDIR}/docker
 	mkdir -p ${BUILDDIR}/docker
-	cp -rf ${BUILDDIR}/artifacts ${BUILDDIR}/docker/
+	cp -rf ${SOURCEDIR}/python ${BUILDDIR}/docker/python
+	cp -rf ${BUILDDIR}/artifacts/html ${BUILDDIR}/docker/html
+	cp -rf ${BUILDDIR}/artifacts/scanfs ${BUILDDIR}/docker/scanfs
+	cp -rf ${BUILDDIR}/artifacts/VERSION ${BUILDDIR}/docker/ARTIFACTS_VERSION
 	cp -rf ${SOURCEDIR}/docker/release/* ${BUILDDIR}/docker/
 	${BUILDDIR}/docker/build.sh
 

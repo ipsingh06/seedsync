@@ -7,24 +7,35 @@ RUN apt-get update && apt-get install -y \
     openssh-client \
     rar \
     unrar \
-    p7zip
+    p7zip \
+    python3-pip
 
 # Disable the known hosts prompt
 RUN mkdir -p /root/.ssh && echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /root/.ssh/config
 
-COPY artifacts /app
+RUN mkdir /app
+COPY python /app/python
+COPY html /app/html
+COPY scanfs /app/scanfs
 
 RUN mkdir /config /config/log
 RUN mkdir /downloads
 
+RUN pip3 install --upgrade pip
+RUN pip3 install -r /app/python/requirements.txt
+
+# First time config setup and replacement
 ADD setup_default_config.sh /scripts/
 RUN /scripts/setup_default_config.sh
 
 # Must run app inside shell
 # Otherwise the container crashes as soon as a child process exits
 CMD [ \
-    "/bin/sh", "-c", \
-    "/app/seedsync -c /config" \
+    "python3.5", \
+    "/app/python/seedsync.py", \
+    "-c", "/config", \
+    "--html", "/app/html", \
+    "--scanfs", "/app/scanfs" \
 ]
 
 EXPOSE 8800
