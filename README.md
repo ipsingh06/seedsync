@@ -104,16 +104,27 @@ Installation options are:
 ### <a name="install-docker"></a> Docker Image on Linux
 
 1. Run the docker image with the following command:
-
    ```bash
-   docker run -p 8800:8800 -v <downloads directory>:/downloads ipsingh06/seedsync
+   docker run \
+       -p 8800:8800 \
+       -v <downloads directory>:/downloads \
+       -v <config directory>:/config \
+       ipsingh06/seedsync
    ```
-   where &lt;downloads directory&gt; refers to the location on host machine where downloaded files will be placed.
+   where
+    - `<downloads directory>` refers to the location on host machine where downloaded files will be placed
+    - `<config directory>` refers to the location on host machine where config files will be placed
+    - both these directories must already exist
+
+   By default the docker image is run under the default user (uid=1000).
+   To run as a different user, include the option `--user <uid>:<gid>`.
 
 2. Access application GUI by going to [http://localhost:8800](http://localhost:8800) in your browser.
 
 3. Go to the Settings page and fill out the required information.
-   **While password-based login is supported, key-based authentication is highly recommended!**
+   Under the Local Directory setting, enter `/downloads`.
+
+4. **While password-based login is supported, key-based authentication is highly recommended!**
    See the [Key-Based Authentication Setup](#key-auth) section for details.
 
 
@@ -130,12 +141,19 @@ SeedSync supports Windows via the Docker container.
 2. Make sure you can successfully run the [Hello World](https://docs.docker.com/get-started/#test-docker-installation) app in Docker.
 
 3. Open the Docker terminal and run the SeedSync image with the following command:
-
    ```bash
-   docker run -p 8800:8800 -v <downloads directory>:/downloads ipsingh06/seedsync
+   docker run \
+       -p 8800:8800 \
+       -v <downloads directory>:/downloads \
+       -v <config directory>:/config \
+       ipsingh06/seedsync
    ```
-   where &lt;downloads directory&gt; refers to the location on host machine where downloaded files will be placed.
-   Note: the Windows host machine path is specified as /c/Users/...
+   where
+    - `<downloads directory>` refers to the location on host machine where downloaded files will be placed
+    - `<config directory>` refers to the location on host machine where config files will be placed
+    - both these directories must already exist
+
+   Note: the Windows host machine path is specified as `/c/Users/...`
 
 4. Access application GUI to verify SeedSync is running.
    Docker on Windows may not forward port to the local host. We need to find the IP address of the container.
@@ -150,9 +168,11 @@ SeedSync supports Windows via the Docker container.
       In this example that would be [http://192.168.100.17:8800](http://192.168.100.17:8800)
 
    3. Verify that SeedSync dashboard loads.
-   
+
 5. Go to the Settings page and fill out the required information.
-   **While password-based login is supported, key-based authentication is highly recommended!**
+   Under the Local Directory setting, enter `/downloads`.
+
+6. **While password-based login is supported, key-based authentication is highly recommended!**
    See the [Key-Based Authentication Setup](#key-auth) section for details.
 
 

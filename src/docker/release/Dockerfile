@@ -17,15 +17,23 @@ RUN mkdir /app
 COPY python /app/python
 COPY html /app/html
 COPY scanfs /app/scanfs
-
-RUN mkdir /config /config/log
-RUN mkdir /downloads
+ADD setup_default_config.sh /scripts/
 
 RUN pip3 install --upgrade pip
 RUN pip3 install -r /app/python/requirements.txt
 
+# Create non-root user and directories under that user
+RUN groupadd -g 1000 seedsync && \
+    useradd -r -u 1000 -g seedsync seedsync
+RUN mkdir /config && \
+    mkdir /downloads && \
+    chown seedsync:seedsync /config && \
+    chown seedsync:seedsync /downloads
+
+# Switch to non-root user
+USER seedsync
+
 # First time config setup and replacement
-ADD setup_default_config.sh /scripts/
 RUN /scripts/setup_default_config.sh
 
 # Must run app inside shell
