@@ -7,6 +7,7 @@ from unittest.mock import patch
 import tempfile
 import os
 import pickle
+import shutil
 
 from controller.scan import RemoteScanner
 from ssh import SshcpError
@@ -15,6 +16,7 @@ from common import Localization
 
 
 class TestRemoteScanner(unittest.TestCase):
+    temp_dir = None
     temp_scan_script = None
 
     def setUp(self):
@@ -35,13 +37,14 @@ class TestRemoteScanner(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        TestRemoteScanner.temp_scan_script = tempfile.mktemp()
+        TestRemoteScanner.temp_dir = tempfile.mkdtemp(prefix="test_remote_scanner")
+        TestRemoteScanner.temp_scan_script = os.path.join(TestRemoteScanner.temp_dir, "script")
         with open(TestRemoteScanner.temp_scan_script, "w") as f:
             f.write("")
 
     @classmethod
     def tearDownClass(cls):
-        os.remove(TestRemoteScanner.temp_scan_script)
+        shutil.rmtree(TestRemoteScanner.temp_dir)
 
     def test_correctly_initializes_ssh(self):
         self.ssh_args = {}
@@ -87,6 +90,23 @@ class TestRemoteScanner(unittest.TestCase):
         # should not be called the second time
         scanner.scan()
         self.mock_ssh.copy.assert_not_called()
+
+    def test_appends_script_name_to_remote_path(self):
+        scanner = RemoteScanner(
+            remote_address="my remote address",
+            remote_username="my remote user",
+            remote_password="my password",
+            remote_port=1234,
+            remote_path_to_scan="/remote/path/to/scan",
+            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
+            remote_path_to_scan_script="/remote/path/to/scan"
+        )
+        scanner.scan()
+        # check for appended path ('script')
+        self.mock_ssh.copy.assert_called_once_with(
+            local_path=TestRemoteScanner.temp_scan_script,
+            remote_path="/remote/path/to/scan/script"
+        )
 
     def test_calls_correct_ssh_command(self):
         scanner = RemoteScanner(

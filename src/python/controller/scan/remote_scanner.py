@@ -40,6 +40,11 @@ class RemoteScanner(IScanner):
                            password=remote_password)
         self.__first_run = True
 
+        # Append scan script name to remote path if not there already
+        script_name = os.path.basename(self.__local_path_to_scan_script)
+        if os.path.basename(self.__remote_path_to_scan_script) != script_name:
+            self.__remote_path_to_scan_script = os.path.join(self.__remote_path_to_scan_script, script_name)
+
     @overrides(IScanner)
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("RemoteScanner")
