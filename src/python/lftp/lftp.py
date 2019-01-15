@@ -154,6 +154,7 @@ class Lftp:
     def __detect_errors_from_output(out: str) -> bool:
         errors = [
             "pget: Access failed",
+            "pget-chunk: Access failed",
             "mirror: Access failed",
             "Login failed: Login incorrect"
         ]
