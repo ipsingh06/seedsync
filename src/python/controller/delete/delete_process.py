@@ -23,7 +23,7 @@ class DeleteLocalProcess(AppOneShotProcess):
             if os.path.isfile(file_path):
                 os.remove(file_path)
             else:
-                shutil.rmtree(file_path)
+                shutil.rmtree(file_path, ignore_errors=True)
 
 
 class DeleteRemoteProcess(AppOneShotProcess):
