@@ -279,8 +279,14 @@ class TestController(unittest.TestCase):
         # Note: the executable must be the venv one so any custom imports work
         current_dir_path = os.path.dirname(os.path.realpath(__file__))
         local_script_path = os.path.abspath(os.path.join(current_dir_path, "..", "..", "..", "scan_fs.py"))
-        local_exe_path = os.path.join(TestController.temp_dir, "scanfs_local")
-        remote_exe_path = os.path.join(TestController.temp_dir, "scanfs")
+        local_exe_dir = os.path.join(TestController.temp_dir, "scanfs_local")
+        remote_exe_dir = os.path.join(TestController.temp_dir, "scanfs_remote")
+        os.makedirs(local_exe_dir, exist_ok=True)
+        os.makedirs(remote_exe_dir, exist_ok=True)
+        # Allow group access for the seedsynctest account
+        os.chmod(remote_exe_dir, 0o775)
+        local_exe_path = os.path.join(local_exe_dir, "scanfs")
+        remote_exe_path = remote_exe_dir
         with open(local_exe_path, "w") as f:
             f.write("#!/bin/sh\n")
             f.write("{} {} $*".format(sys.executable, local_script_path))

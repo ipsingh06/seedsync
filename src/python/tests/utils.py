@@ -15,12 +15,12 @@ class TestUtils:
         """
         path = from_path
         try:
-            os.chmod(path, 0o775)
+            os.chmod(path, mode)
         except PermissionError:
             pass
         while path != "/" and path != to_path:
             path = os.path.dirname(path)
             try:
-                os.chmod(path, 0o775)
+                os.chmod(path, mode)
             except PermissionError:
                 pass
