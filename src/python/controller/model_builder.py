@@ -29,6 +29,7 @@ class ModelBuilder:
         self.__downloaded_files = set()
         self.__extract_statuses = dict()
         self.__extracted_files = set()
+        self.__cached_model = None
 
     def set_base_logger(self, base_logger: logging.Logger):
         self.logger = base_logger.getChild("ModelBuilder")
@@ -37,24 +38,51 @@ class ModelBuilder:
         # Update the local file state with this latest information
         for file in active_files:
             self.__local_files[file.name] = file
+        # Invalidate the cache
+        if len(active_files) > 0:
+            self.__cached_model = None
 
     def set_local_files(self, local_files: List[SystemFile]):
+        prev_local_files = self.__local_files
         self.__local_files = {file.name: file for file in local_files}
+        # Invalidate the cache
+        if self.__local_files != prev_local_files:
+            self.__cached_model = None
 
     def set_remote_files(self, remote_files: List[SystemFile]):
+        prev_remote_files = self.__remote_files
         self.__remote_files = {file.name: file for file in remote_files}
+        # Invalidate the cache
+        if self.__remote_files != prev_remote_files:
+            self.__cached_model = None
 
     def set_lftp_statuses(self, lftp_statuses: List[LftpJobStatus]):
+        prev_lftp_statuses = self.__lftp_statuses
         self.__lftp_statuses = {file.name: file for file in lftp_statuses}
+        # Invalidate the cache
+        if self.__lftp_statuses != prev_lftp_statuses:
+            self.__cached_model = None
 
     def set_downloaded_files(self, downloaded_files: Set[str]):
+        prev_downloaded_files = self.__downloaded_files
         self.__downloaded_files = downloaded_files
+        # Invalidate the cache
+        if self.__downloaded_files != prev_downloaded_files:
+            self.__cached_model = None
 
     def set_extract_statuses(self, extract_statuses: List[ExtractStatus]):
+        prev_extract_statuses = self.__extract_statuses
         self.__extract_statuses = {status.name: status for status in extract_statuses}
+        # Invalidate the cache
+        if self.__extract_statuses != prev_extract_statuses:
+            self.__cached_model = None
 
     def set_extracted_files(self, extracted_files: Set[str]):
+        prev_extracted_files = self.__extracted_files
         self.__extracted_files = extracted_files
+        # Invalidate the cache
+        if self.__extracted_files != prev_extracted_files:
+            self.__cached_model = None
 
     def clear(self):
         self.__local_files.clear()
@@ -63,8 +91,19 @@ class ModelBuilder:
         self.__downloaded_files.clear()
         self.__extract_statuses.clear()
         self.__extracted_files.clear()
+        self.__cached_model = None
+
+    def has_changes(self) -> bool:
+        """
+        Returns true is model has changes and requires rebuild
+        :return:
+        """
+        return self.__cached_model is None
 
     def build_model(self) -> Model:
+        if self.__cached_model is not None:
+            return self.__cached_model
+
         model = Model()
         model.set_base_logger(logging.getLogger("dummy"))  # ignore the logs for this temp model
         all_file_names = set().union(self.__local_files.keys(),
@@ -287,4 +326,5 @@ class ModelBuilder:
 
             model.add_file(model_file)
 
+        self.__cached_model = model
         return model

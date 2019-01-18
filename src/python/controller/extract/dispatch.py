@@ -51,6 +51,9 @@ class ExtractStatus:
     @property
     def state(self) -> State: return self.__state
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
 
 class ExtractDispatch:
 

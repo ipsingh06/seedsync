@@ -20,8 +20,8 @@ class ModelDiff:
 
     def __init__(self, change: Change, old_file: Optional[ModelFile], new_file: Optional[ModelFile]):
         self.__change = change
-        self.__old_file = copy.copy(old_file)
-        self.__new_file = copy.copy(new_file)
+        self.__old_file = old_file
+        self.__new_file = new_file
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

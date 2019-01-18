@@ -1230,3 +1230,185 @@ class TestModelBuilder(unittest.TestCase):
         self.model_builder.set_local_files([SystemFile("a", 22, True)])
         model = self.model_builder.build_model()
         self.assertEqual(None, model.get_file("a").transferred_size)
+
+    def test_rebuild(self):
+        remote_files = [SystemFile("a", 0, False), SystemFile("b", 0, False)]
+        local_files = [SystemFile("b", 0, False), SystemFile("c", 0, False)]
+        statuses = [LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.QUEUED, "b", ""),
+                    LftpJobStatus(0, LftpJobStatus.Type.PGET, LftpJobStatus.State.QUEUED, "d", "")]
+        self.model_builder.set_remote_files(remote_files)
+        self.model_builder.set_local_files(local_files)
+        self.model_builder.set_lftp_statuses(statuses)
+        model = self.model_builder.build_model()
+        self.assertEqual({"a", "b", "c", "d"}, model.get_file_names())
+
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Set without any changes
+        remote_files = [SystemFile("a", 0, False), SystemFile("b", 0, False)]
+        self.model_builder.set_remote_files(remote_files)
+        self.assertFalse(self.model_builder.has_changes())
+        model = self.model_builder.build_model()
+        self.assertEqual({"a", "b", "c", "d"}, model.get_file_names())
+
+        # Set with changes
+        remote_files = [SystemFile("b", 0, False), SystemFile("e", 0, False)]
+        self.model_builder.set_remote_files(remote_files)
+        self.assertTrue(self.model_builder.has_changes())
+        model = self.model_builder.build_model()
+        self.assertEqual({"b", "c", "d", "e"}, model.get_file_names())
+
+    def test_rebuild_on_active_files(self):
+        self.assertTrue(self.model_builder.has_changes())
+
+        # Initial set
+        self.model_builder.set_active_files([
+            SystemFile("a", 10),
+            SystemFile("b", 20)
+        ])
+        self.model_builder.build_model()
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Invalidates even on same active files
+        self.model_builder.set_active_files([
+            SystemFile("a", 10),
+            SystemFile("b", 20)
+        ])
+        self.assertTrue(self.model_builder.has_changes())
+        self.model_builder.build_model()
+
+        # Does not invalidate on empty active files
+        self.model_builder.set_active_files([])
+        self.assertFalse(self.model_builder.has_changes())
+
+    def test_rebuild_on_local_files(self):
+        self.assertTrue(self.model_builder.has_changes())
+
+        # Initial set
+        self.model_builder.set_local_files([
+            SystemFile("a", 10),
+            SystemFile("b", 20)
+        ])
+        self.model_builder.build_model()
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Does not invalidate on same
+        self.model_builder.set_local_files([
+            SystemFile("a", 10),
+            SystemFile("b", 20)
+        ])
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Invalidate on different
+        self.model_builder.set_local_files([
+            SystemFile("a", 10),
+            SystemFile("b", 21)
+        ])
+        self.assertTrue(self.model_builder.has_changes())
+
+    def test_rebuild_on_remote_files(self):
+        self.assertTrue(self.model_builder.has_changes())
+
+        # Initial set
+        self.model_builder.set_remote_files([
+            SystemFile("a", 10),
+            SystemFile("b", 20)
+        ])
+        self.model_builder.build_model()
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Does not invalidate on same
+        self.model_builder.set_remote_files([
+            SystemFile("a", 10),
+            SystemFile("b", 20)
+        ])
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Invalidate on different
+        self.model_builder.set_remote_files([
+            SystemFile("a", 10),
+            SystemFile("b", 21)
+        ])
+        self.assertTrue(self.model_builder.has_changes())
+
+    def test_rebuild_on_lftp_statuses(self):
+        self.assertTrue(self.model_builder.has_changes())
+
+        # Initial set
+        s1 = LftpJobStatus(3, LftpJobStatus.Type.MIRROR, LftpJobStatus.State.RUNNING, "a", "flags")
+        s1.total_transfer_state = LftpJobStatus.TransferState(100, 200, 50, 10, 50)
+        s2 = LftpJobStatus(3, LftpJobStatus.Type.PGET, LftpJobStatus.State.QUEUED, "b", "flags")
+        self.model_builder.set_lftp_statuses([s1, s2])
+        self.model_builder.build_model()
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Does not invalidate on same
+        s1a = LftpJobStatus(3, LftpJobStatus.Type.MIRROR, LftpJobStatus.State.RUNNING, "a", "flags")
+        s1a.total_transfer_state = LftpJobStatus.TransferState(100, 200, 50, 10, 50)
+        s2a = LftpJobStatus(3, LftpJobStatus.Type.PGET, LftpJobStatus.State.QUEUED, "b", "flags")
+        self.model_builder.set_lftp_statuses([s1a, s2a])
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Invalidate on different
+        s1b = LftpJobStatus(3, LftpJobStatus.Type.MIRROR, LftpJobStatus.State.RUNNING, "a", "flags")
+        s1b.total_transfer_state = LftpJobStatus.TransferState(150, 200, 50, 10, 50)
+        s2b = LftpJobStatus(3, LftpJobStatus.Type.PGET, LftpJobStatus.State.QUEUED, "b", "flags")
+        self.model_builder.set_lftp_statuses([s1b, s2b])
+        self.assertTrue(self.model_builder.has_changes())
+
+    def test_rebuild_on_downloaded_files(self):
+        self.assertTrue(self.model_builder.has_changes())
+
+        # Initial set
+        self.model_builder.set_downloaded_files({"a", "b"})
+        self.model_builder.build_model()
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Does not invalidate on same
+        self.model_builder.set_downloaded_files({"a", "b"})
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Invalidate on different
+        self.model_builder.set_downloaded_files({"a", "c"})
+        self.assertTrue(self.model_builder.has_changes())
+
+    def test_rebuild_on_extract_statuses(self):
+        self.assertTrue(self.model_builder.has_changes())
+
+        # Initial set
+        self.model_builder.set_extract_statuses([
+            ExtractStatus("a", True, ExtractStatus.State.EXTRACTING),
+            ExtractStatus("a", True, ExtractStatus.State.EXTRACTING)
+        ])
+        self.model_builder.build_model()
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Does not invalidate on same
+        self.model_builder.set_extract_statuses([
+            ExtractStatus("a", True, ExtractStatus.State.EXTRACTING),
+            ExtractStatus("a", True, ExtractStatus.State.EXTRACTING)
+        ])
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Invalidate on different
+        self.model_builder.set_extract_statuses([
+            ExtractStatus("a", True, ExtractStatus.State.EXTRACTING),
+            ExtractStatus("c", True, ExtractStatus.State.EXTRACTING)
+        ])
+        self.assertTrue(self.model_builder.has_changes())
+
+    def test_rebuild_on_extracted_files(self):
+        self.assertTrue(self.model_builder.has_changes())
+
+        # Initial set
+        self.model_builder.set_extracted_files({"a", "b"})
+        self.model_builder.build_model()
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Does not invalidate on same
+        self.model_builder.set_extracted_files({"a", "b"})
+        self.assertFalse(self.model_builder.has_changes())
+
+        # Invalidate on different
+        self.model_builder.set_extracted_files({"a", "c"})
+        self.assertTrue(self.model_builder.has_changes())

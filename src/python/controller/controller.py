@@ -333,63 +333,64 @@ class Controller:
                 self.__persist.extracted_file_names.add(result.name)
             self.__model_builder.set_extracted_files(self.__persist.extracted_file_names)
 
-        # Build the new model
-        new_model = self.__model_builder.build_model()
+        # Build the new model, if needed
+        if self.__model_builder.has_changes():
+            new_model = self.__model_builder.build_model()
 
-        # Lock the model
-        self.__model_lock.acquire()
+            # Lock the model
+            self.__model_lock.acquire()
 
-        # Diff the new model with old model
-        model_diff = ModelDiffUtil.diff_models(self.__model, new_model)
+            # Diff the new model with old model
+            model_diff = ModelDiffUtil.diff_models(self.__model, new_model)
 
-        # Apply changes to the new model
-        for diff in model_diff:
-            if diff.change == ModelDiff.Change.ADDED:
-                self.__model.add_file(diff.new_file)
-            elif diff.change == ModelDiff.Change.REMOVED:
-                self.__model.remove_file(diff.old_file.name)
-            elif diff.change == ModelDiff.Change.UPDATED:
-                self.__model.update_file(diff.new_file)
+            # Apply changes to the new model
+            for diff in model_diff:
+                if diff.change == ModelDiff.Change.ADDED:
+                    self.__model.add_file(diff.new_file)
+                elif diff.change == ModelDiff.Change.REMOVED:
+                    self.__model.remove_file(diff.old_file.name)
+                elif diff.change == ModelDiff.Change.UPDATED:
+                    self.__model.update_file(diff.new_file)
 
-            # Detect if a file was just Downloaded
-            #   an Added file in Downloaded state
-            #   an Updated file transitioning to Downloaded state
-            # If so, update the persist state
-            # Note: This step is done after the new model is build because
-            #       model_builder is the one that discovers when a file is Downloaded
-            downloaded = False
-            if diff.change == ModelDiff.Change.ADDED and \
-                    diff.new_file.state == ModelFile.State.DOWNLOADED:
-                downloaded = True
-            elif diff.change == ModelDiff.Change.UPDATED and \
-                    diff.new_file.state == ModelFile.State.DOWNLOADED and \
-                    diff.old_file.state != ModelFile.State.DOWNLOADED:
-                downloaded = True
-            if downloaded:
-                self.__persist.downloaded_file_names.add(diff.new_file.name)
-                self.__model_builder.set_downloaded_files(self.__persist.downloaded_file_names)
+                # Detect if a file was just Downloaded
+                #   an Added file in Downloaded state
+                #   an Updated file transitioning to Downloaded state
+                # If so, update the persist state
+                # Note: This step is done after the new model is build because
+                #       model_builder is the one that discovers when a file is Downloaded
+                downloaded = False
+                if diff.change == ModelDiff.Change.ADDED and \
+                        diff.new_file.state == ModelFile.State.DOWNLOADED:
+                    downloaded = True
+                elif diff.change == ModelDiff.Change.UPDATED and \
+                        diff.new_file.state == ModelFile.State.DOWNLOADED and \
+                        diff.old_file.state != ModelFile.State.DOWNLOADED:
+                    downloaded = True
+                if downloaded:
+                    self.__persist.downloaded_file_names.add(diff.new_file.name)
+                    self.__model_builder.set_downloaded_files(self.__persist.downloaded_file_names)
 
-        # Prune the extracted files list of any files that were deleted locally
-        # This prevents these files from going to EXTRACTED state if they are re-downloaded
-        remove_extracted_file_names = set()
-        existing_file_names = self.__model.get_file_names()
-        for extracted_file_name in self.__persist.extracted_file_names:
-            if extracted_file_name in existing_file_names:
-                file = self.__model.get_file(extracted_file_name)
-                if file.state == ModelFile.State.DELETED:
-                    # Deleted locally, remove
-                    remove_extracted_file_names.add(extracted_file_name)
-            else:
-                # Not in the model at all
-                # This could be because local and remote scans are not yet available
-                pass
-        if remove_extracted_file_names:
-            self.logger.info("Removing from extracted list: {}".format(remove_extracted_file_names))
-            self.__persist.extracted_file_names.difference_update(remove_extracted_file_names)
-            self.__model_builder.set_extracted_files(self.__persist.extracted_file_names)
+            # Prune the extracted files list of any files that were deleted locally
+            # This prevents these files from going to EXTRACTED state if they are re-downloaded
+            remove_extracted_file_names = set()
+            existing_file_names = self.__model.get_file_names()
+            for extracted_file_name in self.__persist.extracted_file_names:
+                if extracted_file_name in existing_file_names:
+                    file = self.__model.get_file(extracted_file_name)
+                    if file.state == ModelFile.State.DELETED:
+                        # Deleted locally, remove
+                        remove_extracted_file_names.add(extracted_file_name)
+                else:
+                    # Not in the model at all
+                    # This could be because local and remote scans are not yet available
+                    pass
+            if remove_extracted_file_names:
+                self.logger.info("Removing from extracted list: {}".format(remove_extracted_file_names))
+                self.__persist.extracted_file_names.difference_update(remove_extracted_file_names)
+                self.__model_builder.set_extracted_files(self.__persist.extracted_file_names)
 
-        # Release the model
-        self.__model_lock.release()
+            # Release the model
+            self.__model_lock.release()
 
         # Update the controller status
         if latest_remote_scan is not None:

@@ -41,3 +41,19 @@ class TestSystemFile(unittest.TestCase):
         with self.assertRaises(TypeError) as context:
             sf.add_child(SystemFile("", 0, False))
         self.assertTrue("Cannot add children to a file" in str(context.exception))
+
+    def test_equality_operator(self):
+        a1 = SystemFile("a", 50, is_dir=True)
+        a1.add_child(SystemFile("aa", 40, is_dir=False))
+        a1.add_child(SystemFile("ab", 10, is_dir=False))
+
+        a2 = SystemFile("a", 50, is_dir=True)
+        a2.add_child(SystemFile("aa", 40, is_dir=False))
+        a2.add_child(SystemFile("ab", 10, is_dir=False))
+
+        a3 = SystemFile("a", 50, is_dir=True)
+        a3.add_child(SystemFile("aa", 40, is_dir=False))
+        a3.add_child(SystemFile("ab", 11, is_dir=False))
+
+        self.assertTrue(a1 == a2)
+        self.assertFalse(a1 == a3)
