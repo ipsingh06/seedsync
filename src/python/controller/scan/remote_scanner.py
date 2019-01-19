@@ -5,6 +5,7 @@ import pickle
 from typing import List
 import os
 from typing import Optional
+import hashlib
 
 from .scanner_process import IScanner
 from common import overrides, AppError, Localization
@@ -83,6 +84,24 @@ class RemoteScanner(IScanner):
         return remote_files
 
     def _install_scanfs(self):
+        # Check md5sum on remote to see if we can skip installation
+        with open(self.__local_path_to_scan_script, "rb") as f:
+            local_md5sum = hashlib.md5(f.read()).hexdigest()
+        self.logger.debug("Local scanfs md5sum = {}".format(local_md5sum))
+        try:
+            out = self.__ssh.shell("echo '{} {}' | md5sum -c --quiet".format(
+                local_md5sum,
+                self.__remote_path_to_scan_script)
+            )
+            if out == b'':
+                self.logger.info("Skipping remote scanfs installation: already installed")
+                return
+        except SshcpError as e:
+            # md5sum error, need to continue installation
+            error_str = str(e).lower()
+            self.logger.debug("Remote scanfs checksum error: {}".format(error_str))
+
+        # Go ahead and install
         self.logger.info("Installing local:{} to remote:{}".format(
             self.__local_path_to_scan_script,
             self.__remote_path_to_scan_script
