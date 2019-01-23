@@ -17,6 +17,10 @@ describe("Testing config record initialization", () => {
             eta: 54,
             full_path: "/full/path/to/file.one",
             is_extractable: true,
+            local_created_timestamp: "1541828418.0",
+            local_modified_timestamp: "1541828418.9439101",
+            remote_created_timestamp: "1541828418.0",
+            remote_modified_timestamp: "1541828418.9439101",
             children: []
         };
         baseModelFile = ModelFile.fromJson(baseJson);
@@ -64,7 +68,26 @@ describe("Testing config record initialization", () => {
         expect(baseModelFile.eta).toBe(54);
         expect(baseModelFile.full_path).toBe("/full/path/to/file.one");
         expect(baseModelFile.is_extractable).toBe(true);
+        expect(baseModelFile.local_created_timestamp).toEqual(new Date("November 9, 2018 21:40:18"));
+        expect(baseModelFile.local_modified_timestamp).toEqual(new Date(1541828418943));
+        expect(baseModelFile.remote_created_timestamp).toEqual(new Date("November 9, 2018 21:40:18"));
+        expect(baseModelFile.remote_modified_timestamp).toEqual(new Date(1541828418943));
         expect(baseModelFile.children.size).toBe(0);
+    });
+
+    it("should initialize null timestamps correctly", () => {
+        baseJson.local_created_timestamp = null;
+        baseModelFile = ModelFile.fromJson(baseJson);
+        expect(baseModelFile.local_created_timestamp).toBeNull();
+        baseJson.local_modified_timestamp = null;
+        baseModelFile = ModelFile.fromJson(baseJson);
+        expect(baseModelFile.local_modified_timestamp).toBeNull();
+        baseJson.remote_created_timestamp = null;
+        baseModelFile = ModelFile.fromJson(baseJson);
+        expect(baseModelFile.remote_created_timestamp).toBeNull();
+        baseJson.remote_modified_timestamp = null;
+        baseModelFile = ModelFile.fromJson(baseJson);
+        expect(baseModelFile.remote_modified_timestamp).toBeNull();
     });
 
     it("should correctly initialize children", () => {

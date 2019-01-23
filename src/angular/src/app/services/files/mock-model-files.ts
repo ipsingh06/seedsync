@@ -13,6 +13,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: 3612,
         full_path: null,
         is_extractable: false,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -26,6 +30,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: 1514,
         full_path: null,
         is_extractable: false,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -39,6 +47,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: true,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -52,6 +64,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: true,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -65,6 +81,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: false,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -78,6 +98,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: false,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -91,6 +115,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: false,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -104,6 +132,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: false,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -117,6 +149,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: true,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -130,6 +166,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: true,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 
@@ -143,6 +183,10 @@ export const MOCK_MODEL_FILES: Immutable.Map<string, ModelFile> = Immutable.Map(
         eta: null,
         full_path: null,
         is_extractable: true,
+        local_created_timestamp: "1541717418.0",
+        local_modified_timestamp: "1541828418.9439101",
+        remote_created_timestamp: "1541515418.0",
+        remote_modified_timestamp: "1541616418.9439101",
         children: Immutable.Set<ModelFile>()
     }),
 });

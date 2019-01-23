@@ -14,6 +14,10 @@ interface IModelFile {
     eta: number;
     full_path: string;
     is_extractable: boolean;
+    local_created_timestamp: Date;
+    local_modified_timestamp: Date;
+    remote_created_timestamp: Date;
+    remote_modified_timestamp: Date;
     children: Set<ModelFile>;
 }
 
@@ -28,6 +32,10 @@ const DefaultModelFile: IModelFile = {
     eta: null,
     full_path: null,
     is_extractable: null,
+    local_created_timestamp: null,
+    local_modified_timestamp: null,
+    remote_created_timestamp: null,
+    remote_modified_timestamp: null,
     children: null
 };
 const ModelFileRecord = Record(DefaultModelFile);
@@ -48,6 +56,10 @@ export class ModelFile extends ModelFileRecord implements IModelFile {
     eta: number;
     full_path: string;
     is_extractable: boolean;
+    local_created_timestamp: Date;
+    local_modified_timestamp: Date;
+    remote_created_timestamp: Date;
+    remote_modified_timestamp: Date;
     children: Set<ModelFile>;
 
     constructor(props) {
@@ -67,6 +79,20 @@ export module ModelFile {
 
         // State mapping
         json.state = ModelFile.State[json.state.toUpperCase()];
+
+        // Timestamps
+        if (json.local_created_timestamp != null) {
+            json.local_created_timestamp = new Date(1000 * +json.local_created_timestamp);
+        }
+        if (json.local_modified_timestamp != null) {
+            json.local_modified_timestamp = new Date(1000 * +json.local_modified_timestamp);
+        }
+        if (json.remote_created_timestamp != null) {
+            json.remote_created_timestamp = new Date(1000 * +json.remote_created_timestamp);
+        }
+        if (json.remote_modified_timestamp != null) {
+            json.remote_modified_timestamp = new Date(1000 * +json.remote_modified_timestamp);
+        }
 
         return new ModelFile(json);
     }
