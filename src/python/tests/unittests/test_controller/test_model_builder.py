@@ -4,6 +4,7 @@ import logging
 import sys
 import unittest
 from unittest.mock import patch
+from datetime import datetime
 
 from system import SystemFile
 from lftp import LftpJobStatus
@@ -1230,6 +1231,46 @@ class TestModelBuilder(unittest.TestCase):
         self.model_builder.set_local_files([SystemFile("a", 22, True)])
         model = self.model_builder.build_model()
         self.assertEqual(None, model.get_file("a").transferred_size)
+
+    def test_build_local_created_timestamp(self):
+        self.model_builder.set_local_files([
+            SystemFile("a", 42, False, time_created=datetime(2018, 11, 9, 21, 40, 18)),
+            SystemFile("b", 42, False)
+        ])
+        model = self.model_builder.build_model()
+        self.assertEqual(datetime(2018, 11, 9, 21, 40, 18),
+                         model.get_file("a").local_created_timestamp)
+        self.assertIsNone(model.get_file("b").local_created_timestamp)
+
+    def test_build_local_modified_timestamp(self):
+        self.model_builder.set_local_files([
+            SystemFile("a", 42, False, time_modified=datetime(2018, 11, 9, 21, 40, 18)),
+            SystemFile("b", 42, False)
+        ])
+        model = self.model_builder.build_model()
+        self.assertEqual(datetime(2018, 11, 9, 21, 40, 18),
+                         model.get_file("a").local_modified_timestamp)
+        self.assertIsNone(model.get_file("b").local_modified_timestamp)
+
+    def test_build_remote_created_timestamp(self):
+        self.model_builder.set_remote_files([
+            SystemFile("a", 42, False, time_created=datetime(2018, 11, 9, 21, 40, 18)),
+            SystemFile("b", 42, False)
+        ])
+        model = self.model_builder.build_model()
+        self.assertEqual(datetime(2018, 11, 9, 21, 40, 18),
+                         model.get_file("a").remote_created_timestamp)
+        self.assertIsNone(model.get_file("b").remote_created_timestamp)
+
+    def test_build_remote_modified_timestamp(self):
+        self.model_builder.set_remote_files([
+            SystemFile("a", 42, False, time_modified=datetime(2018, 11, 9, 21, 40, 18)),
+            SystemFile("b", 42, False)
+        ])
+        model = self.model_builder.build_model()
+        self.assertEqual(datetime(2018, 11, 9, 21, 40, 18),
+                         model.get_file("a").remote_modified_timestamp)
+        self.assertIsNone(model.get_file("b").remote_modified_timestamp)
 
     def test_rebuild(self):
         remote_files = [SystemFile("a", 0, False), SystemFile("b", 0, False)]

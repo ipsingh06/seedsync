@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import unittest
 from threading import Thread
+from datetime import datetime
 
 from system import SystemScanner, SystemScannerError
 
@@ -585,3 +586,30 @@ class TestSystemScanner(unittest.TestCase):
             self.assertIn("c", names)
         stop = True
         thread.join()
+
+    def test_scan_modified_time(self):
+        # directory
+        os.utime(
+            os.path.join(TestSystemScanner.temp_dir, "a"),
+            (
+                datetime.now().timestamp(),
+                datetime(2018, 11, 9, 21, 40, 18).timestamp()
+            )
+        )
+
+        # file
+        os.utime(
+            os.path.join(TestSystemScanner.temp_dir, "c"),
+            (
+                datetime.now().timestamp(),
+                datetime(2018, 11, 9, 21, 40, 17).timestamp()
+            )
+        )
+
+        scanner = SystemScanner(TestSystemScanner.temp_dir)
+        files = scanner.scan()
+        self.assertEqual(3, len(files))
+        a, b, c = tuple(files)
+
+        self.assertEqual(datetime(2018, 11, 9, 21, 40, 18), a.timestamp_modified)
+        self.assertEqual(datetime(2018, 11, 9, 21, 40, 17), c.timestamp_modified)

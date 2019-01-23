@@ -166,6 +166,18 @@ class ModelBuilder:
                         _parent_file.is_extractable = True
                         _parent_file = _parent_file.parent
 
+                # set the timestamps
+                if _local:
+                    if _local.timestamp_created:
+                        _model_file.local_created_timestamp = _local.timestamp_created
+                    if _local.timestamp_modified:
+                        _model_file.local_modified_timestamp = _local.timestamp_modified
+                if _remote:
+                    if _remote.timestamp_created:
+                        _model_file.remote_created_timestamp = _remote.timestamp_created
+                    if _remote.timestamp_modified:
+                        _model_file.remote_modified_timestamp = _remote.timestamp_modified
+
             model_file = ModelFile(name, is_dir)
             # set the file state
             # for now we only set to Queued or Downloading

@@ -3,6 +3,7 @@
 import os
 import re
 from typing import List
+from datetime import datetime
 
 # my libs
 from common import AppError
@@ -113,7 +114,17 @@ class SystemScanner:
         if entry.is_dir():
             sub_children = self.__create_children(entry.path)
             size = sum(sub_child.size for sub_child in sub_children)
-            sys_file = SystemFile(entry.name, size, True)
+            time_created = None
+            try:
+                time_created = datetime.fromtimestamp(entry.stat().st_birthtime)
+            except AttributeError:
+                pass
+            time_modified = datetime.fromtimestamp(entry.stat().st_mtime)
+            sys_file = SystemFile(entry.name,
+                                  size,
+                                  True,
+                                  time_created=time_created,
+                                  time_modified=time_modified)
             for sub_child in sub_children:
                 sys_file.add_child(sub_child)
         else:
@@ -130,7 +141,17 @@ class SystemScanner:
                     file_name != self.__lftp_temp_file_suffix and \
                     file_name.endswith(self.__lftp_temp_file_suffix):
                 file_name = file_name[:-len(self.__lftp_temp_file_suffix)]
-            sys_file = SystemFile(file_name, file_size, False)
+            time_created = None
+            try:
+                time_created = datetime.fromtimestamp(entry.stat().st_birthtime)
+            except AttributeError:
+                pass
+            time_modified = datetime.fromtimestamp(entry.stat().st_mtime)
+            sys_file = SystemFile(file_name,
+                                  file_size,
+                                  False,
+                                  time_created=time_created,
+                                  time_modified=time_modified)
         return sys_file
 
     def __create_children(self, path: str) -> List[SystemFile]:

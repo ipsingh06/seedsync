@@ -35,15 +35,11 @@ class SerializeStatus(Serialize):
 
         json_dict[SerializeStatus.__KEY_CONTROLLER] = dict()
         json_dict[SerializeStatus.__KEY_CONTROLLER][SerializeStatus.__KEY_CONTROLLER_LATEST_LOCAL_SCAN_TIME] = \
-            str(SerializeStatus.__datetime_to_time(status.controller.latest_local_scan_time)) \
-                if status.controller.latest_local_scan_time else None
+            str(status.controller.latest_local_scan_time.timestamp()) \
+            if status.controller.latest_local_scan_time else None
         json_dict[SerializeStatus.__KEY_CONTROLLER][SerializeStatus.__KEY_CONTROLLER_LATEST_REMOTE_SCAN_TIME] = \
-            str(SerializeStatus.__datetime_to_time(status.controller.latest_remote_scan_time)) \
-                if status.controller.latest_remote_scan_time else None
+            str(status.controller.latest_remote_scan_time.timestamp()) \
+            if status.controller.latest_remote_scan_time else None
 
         status_json = json.dumps(json_dict)
         return self._sse_pack(event=SerializeStatus.__EVENT_STATUS, data=status_json)
-
-    @staticmethod
-    def __datetime_to_time(timestamp: datetime) -> float:
-        return time.mktime(timestamp.timetuple()) + timestamp.microsecond / 1E6

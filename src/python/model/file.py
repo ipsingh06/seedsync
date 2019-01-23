@@ -35,6 +35,10 @@ class ModelFile:
         self.__downloading_speed = None  # in bytes / sec, None if not downloading
         self.__eta = None  # est. time remaining in seconds, None if not available
         self.__is_extractable = False  # whether file is an archive or dir contains archives
+        self.__local_created_timestamp = None
+        self.__local_modified_timestamp = None
+        self.__remote_created_timestamp = None
+        self.__remote_modified_timestamp = None
         # timestamp of the latest update
         # Note: timestamp is not part of equality operator
         self.__update_timestamp = datetime.now()
@@ -178,6 +182,42 @@ class ModelFile:
     @is_extractable.setter
     def is_extractable(self, is_extractable: bool):
         self.__is_extractable = is_extractable
+
+    @property
+    def local_created_timestamp(self) -> datetime: return self.__local_created_timestamp
+
+    @local_created_timestamp.setter
+    def local_created_timestamp(self, local_created_timestamp: datetime):
+        if type(local_created_timestamp) != datetime:
+            raise TypeError
+        self.__local_created_timestamp = local_created_timestamp
+
+    @property
+    def local_modified_timestamp(self) -> datetime: return self.__local_modified_timestamp
+
+    @local_modified_timestamp.setter
+    def local_modified_timestamp(self, local_modified_timestamp: datetime):
+        if type(local_modified_timestamp) != datetime:
+            raise TypeError
+        self.__local_modified_timestamp = local_modified_timestamp
+
+    @property
+    def remote_created_timestamp(self) -> datetime: return self.__remote_created_timestamp
+
+    @remote_created_timestamp.setter
+    def remote_created_timestamp(self, remote_created_timestamp: datetime):
+        if type(remote_created_timestamp) != datetime:
+            raise TypeError
+        self.__remote_created_timestamp = remote_created_timestamp
+
+    @property
+    def remote_modified_timestamp(self) -> datetime: return self.__remote_modified_timestamp
+
+    @remote_modified_timestamp.setter
+    def remote_modified_timestamp(self, remote_modified_timestamp: datetime):
+        if type(remote_modified_timestamp) != datetime:
+            raise TypeError
+        self.__remote_modified_timestamp = remote_modified_timestamp
 
     @property
     def full_path(self) -> str:

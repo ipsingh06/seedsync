@@ -55,12 +55,11 @@ class TestSerializeStatus(unittest.TestCase):
         data = json.loads(out["data"])
         self.assertIsNone(data["controller"]["latest_local_scan_time"])
 
-        timestamp = datetime.now()
-        time_float = time.mktime(timestamp.timetuple()) + timestamp.microsecond / 1E6
+        timestamp = datetime(2018, 11, 9, 21, 40, 18)
         status.controller.latest_local_scan_time = timestamp
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual(str(time_float), data["controller"]["latest_local_scan_time"])
+        self.assertEqual(str(1541828418.0), data["controller"]["latest_local_scan_time"])
 
     def test_controller_status_latest_remote_scan_time(self):
         serialize = SerializeStatus()
@@ -69,9 +68,8 @@ class TestSerializeStatus(unittest.TestCase):
         data = json.loads(out["data"])
         self.assertIsNone(data["controller"]["latest_remote_scan_time"])
 
-        timestamp = datetime.now()
-        time_float = time.mktime(timestamp.timetuple()) + timestamp.microsecond / 1E6
+        timestamp = datetime(2018, 11, 9, 21, 40, 18)
         status.controller.latest_remote_scan_time = timestamp
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual(str(time_float), data["controller"]["latest_remote_scan_time"])
+        self.assertEqual(str(1541828418.0), data["controller"]["latest_remote_scan_time"])

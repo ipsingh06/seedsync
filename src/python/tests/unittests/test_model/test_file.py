@@ -81,7 +81,6 @@ class TestModelFile(unittest.TestCase):
     def test_update_timestamp(self):
         file = ModelFile("test", False)
 
-        from datetime import datetime
         now = datetime.now()
         file.update_timestamp = now
         self.assertEqual(now, file.update_timestamp)
@@ -108,6 +107,50 @@ class TestModelFile(unittest.TestCase):
         self.assertTrue(file.is_extractable)
         file.is_extractable = False
         self.assertFalse(file.is_extractable)
+
+    def test_local_created_timestamp(self):
+        file = ModelFile("test", False)
+        self.assertIsNone(file.local_created_timestamp)
+
+        now = datetime.now()
+        file.local_created_timestamp = now
+        self.assertEqual(now, file.local_created_timestamp)
+
+        with self.assertRaises(TypeError):
+            file.local_created_timestamp = 100
+
+    def test_local_modified_timestamp(self):
+        file = ModelFile("test", False)
+        self.assertIsNone(file.local_modified_timestamp)
+
+        now = datetime.now()
+        file.local_modified_timestamp = now
+        self.assertEqual(now, file.local_modified_timestamp)
+
+        with self.assertRaises(TypeError):
+            file.local_modified_timestamp = 100
+
+    def test_remote_created_timestamp(self):
+        file = ModelFile("test", False)
+        self.assertIsNone(file.remote_created_timestamp)
+
+        now = datetime.now()
+        file.remote_created_timestamp = now
+        self.assertEqual(now, file.remote_created_timestamp)
+
+        with self.assertRaises(TypeError):
+            file.remote_created_timestamp = 100
+
+    def test_remote_modified_timestamp(self):
+        file = ModelFile("test", False)
+        self.assertIsNone(file.remote_modified_timestamp)
+
+        now = datetime.now()
+        file.remote_modified_timestamp = now
+        self.assertEqual(now, file.remote_modified_timestamp)
+
+        with self.assertRaises(TypeError):
+            file.remote_modified_timestamp = 100
 
     def test_equality_operator(self):
         # check that timestamp does not affect equality

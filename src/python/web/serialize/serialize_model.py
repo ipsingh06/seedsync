@@ -53,6 +53,10 @@ class SerializeModel(Serialize):
     __KEY_FILE_DOWNLOADING_SPEED = "downloading_speed"
     __KEY_FILE_ETA = "eta"
     __KEY_FILE_IS_EXTRACTABLE = "is_extractable"
+    __KEY_FILE_LOCAL_CREATED_TIMESTAMP = "local_created_timestamp"
+    __KEY_FILE_LOCAL_MODIFIED_TIMESTAMP = "local_modified_timestamp"
+    __KEY_FILE_REMOTE_CREATED_TIMESTAMP = "remote_created_timestamp"
+    __KEY_FILE_REMOTE_MODIFIED_TIMESTAMP = "remote_modified_timestamp"
     __KEY_FILE_FULL_PATH = "full_path"
     __KEY_FILE_CHILDREN = "children"
 
@@ -67,6 +71,14 @@ class SerializeModel(Serialize):
         json_dict[SerializeModel.__KEY_FILE_DOWNLOADING_SPEED] = model_file.downloading_speed
         json_dict[SerializeModel.__KEY_FILE_ETA] = model_file.eta
         json_dict[SerializeModel.__KEY_FILE_IS_EXTRACTABLE] = model_file.is_extractable
+        json_dict[SerializeModel.__KEY_FILE_LOCAL_CREATED_TIMESTAMP] = \
+            str(model_file.local_created_timestamp.timestamp()) if model_file.local_created_timestamp else None
+        json_dict[SerializeModel.__KEY_FILE_LOCAL_MODIFIED_TIMESTAMP] = \
+            str(model_file.local_modified_timestamp.timestamp()) if model_file.local_modified_timestamp else None
+        json_dict[SerializeModel.__KEY_FILE_REMOTE_CREATED_TIMESTAMP] = \
+            str(model_file.remote_created_timestamp.timestamp()) if model_file.remote_created_timestamp else None
+        json_dict[SerializeModel.__KEY_FILE_REMOTE_MODIFIED_TIMESTAMP] = \
+            str(model_file.remote_modified_timestamp.timestamp()) if model_file.remote_modified_timestamp else None
         json_dict[SerializeModel.__KEY_FILE_FULL_PATH] = model_file.full_path
         json_dict[SerializeModel.__KEY_FILE_CHILDREN] = list()
         for child in model_file.get_children():

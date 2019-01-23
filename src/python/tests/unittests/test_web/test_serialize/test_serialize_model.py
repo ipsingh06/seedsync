@@ -2,6 +2,7 @@
 
 import unittest
 import json
+from datetime import datetime
 
 from .test_serialize import parse_stream
 from web.serialize import SerializeModel
@@ -217,6 +218,54 @@ class TestSerializeModel(unittest.TestCase):
         self.assertEqual(2, len(data))
         self.assertEqual(False, data[0]["is_extractable"])
         self.assertEqual(True, data[1]["is_extractable"])
+
+    def test_local_created_timestamp(self):
+        serialize = SerializeModel()
+        a = ModelFile("a", True)
+        b = ModelFile("b", False)
+        b.local_created_timestamp = datetime(2018, 11, 9, 21, 40, 18)
+        files = [a, b]
+        out = parse_stream(serialize.model(files))
+        data = json.loads(out["data"])
+        self.assertEqual(2, len(data))
+        self.assertEqual(None, data[0]["local_created_timestamp"])
+        self.assertEqual(str(1541828418.0), data[1]["local_created_timestamp"])
+
+    def test_local_modified_timestamp(self):
+        serialize = SerializeModel()
+        a = ModelFile("a", True)
+        b = ModelFile("b", False)
+        b.local_modified_timestamp = datetime(2018, 11, 9, 21, 40, 18)
+        files = [a, b]
+        out = parse_stream(serialize.model(files))
+        data = json.loads(out["data"])
+        self.assertEqual(2, len(data))
+        self.assertEqual(None, data[0]["local_modified_timestamp"])
+        self.assertEqual(str(1541828418.0), data[1]["local_modified_timestamp"])
+
+    def test_remote_created_timestamp(self):
+        serialize = SerializeModel()
+        a = ModelFile("a", True)
+        b = ModelFile("b", False)
+        b.remote_created_timestamp = datetime(2018, 11, 9, 21, 40, 18)
+        files = [a, b]
+        out = parse_stream(serialize.model(files))
+        data = json.loads(out["data"])
+        self.assertEqual(2, len(data))
+        self.assertEqual(None, data[0]["remote_created_timestamp"])
+        self.assertEqual(str(1541828418.0), data[1]["remote_created_timestamp"])
+
+    def test_remote_modified_timestamp(self):
+        serialize = SerializeModel()
+        a = ModelFile("a", True)
+        b = ModelFile("b", False)
+        b.remote_modified_timestamp = datetime(2018, 11, 9, 21, 40, 18)
+        files = [a, b]
+        out = parse_stream(serialize.model(files))
+        data = json.loads(out["data"])
+        self.assertEqual(2, len(data))
+        self.assertEqual(None, data[0]["remote_modified_timestamp"])
+        self.assertEqual(str(1541828418.0), data[1]["remote_modified_timestamp"])
 
     def test_children(self):
         serialize = SerializeModel()
