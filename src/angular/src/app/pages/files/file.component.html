@@ -26,7 +26,29 @@
             <img src="assets/icons/file-archive-light.svg" *ngIf="!file.isDir && file.isArchive" />
             <img src="assets/icons/directory-light.svg" *ngIf="file.isDir && !file.isArchive" />
             <img src="assets/icons/directory-archive-light.svg" *ngIf="file.isDir && file.isArchive" />
-            <div class="text">{{file.name}}</div>
+            <div class="text">
+                <div class="title">
+                    {{file.name}}
+                </div>
+                <div class="details">
+                    <div class="details-text">
+                        Local File <br />
+                        <span class="tab"></span>Created:
+                            {{(file.localCreatedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
+                               "Not Available"}}<br />
+                        <span class="tab"></span>Modified:
+                            {{(file.localModifiedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
+                               "Not Available"}} <br />
+                        Remote File<br />
+                        <span class="tab"></span>Created:
+                            {{(file.remoteCreatedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
+                               "Not Available"}}<br />
+                        <span class="tab"></span>Modified:
+                            {{(file.remoteModifiedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
+                               "Not Available"}}<br />
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="speed">
             <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize:3}}/s</span>

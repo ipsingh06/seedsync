@@ -49,6 +49,25 @@
         margin-right: 8px;
         margin-top: 1px;
     }
+
+    .text {
+        display: flex;
+        flex-direction: column;
+
+        .details {
+            display: flex;
+            flex-direction: column;
+
+            .details-text {
+                font-size: 80%;
+                line-height: 120%;
+
+                .tab {
+                    margin-left: 20px;
+                }
+            }
+        }
+    }
 }
 
 /* Status */

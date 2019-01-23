@@ -22,6 +22,11 @@ interface IViewFile {
     isExtractable: boolean;
     isLocallyDeletable: boolean;
     isRemotelyDeletable: boolean;
+    // timestamps
+    localCreatedTimestamp: Date;
+    localModifiedTimestamp: Date;
+    remoteCreatedTimestamp: Date;
+    remoteModifiedTimestamp: Date;
 }
 
 // Boiler plate code to set up an immutable class
@@ -41,7 +46,11 @@ const DefaultViewFile: IViewFile = {
     isStoppable: null,
     isExtractable: null,
     isLocallyDeletable: null,
-    isRemotelyDeletable: null
+    isRemotelyDeletable: null,
+    localCreatedTimestamp: null,
+    localModifiedTimestamp: null,
+    remoteCreatedTimestamp: null,
+    remoteModifiedTimestamp: null
 };
 const ViewFileRecord = Record(DefaultViewFile);
 
@@ -66,6 +75,10 @@ export class ViewFile extends ViewFileRecord implements IViewFile {
     isExtractable: boolean;
     isLocallyDeletable: boolean;
     isRemotelyDeletable: boolean;
+    localCreatedTimestamp: Date;
+    localModifiedTimestamp: Date;
+    remoteCreatedTimestamp: Date;
+    remoteModifiedTimestamp: Date;
 
     constructor(props) {
         super(props);

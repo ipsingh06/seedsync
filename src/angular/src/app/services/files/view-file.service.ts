@@ -434,7 +434,11 @@ export class ViewFileService {
             isStoppable: isStoppable,
             isExtractable: isExtractable,
             isLocallyDeletable: isLocallyDeletable,
-            isRemotelyDeletable: isRemotelyDeletable
+            isRemotelyDeletable: isRemotelyDeletable,
+            localCreatedTimestamp: modelFile.local_created_timestamp,
+            localModifiedTimestamp: modelFile.local_modified_timestamp,
+            remoteCreatedTimestamp: modelFile.remote_created_timestamp,
+            remoteModifiedTimestamp: modelFile.remote_modified_timestamp
         });
     }
 

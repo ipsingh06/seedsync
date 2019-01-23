@@ -77,7 +77,11 @@ describe("Testing view file service", () => {
             downloading_speed: 111,
             eta: 1111,
             full_path: "root/a",
-            is_extractable: true
+            is_extractable: true,
+            local_created_timestamp: new Date("November 9, 2018 21:40:18"),
+            local_modified_timestamp: new Date(1541828418943),
+            remote_created_timestamp: null,
+            remote_modified_timestamp: new Date(1541828418943),
         }));
         mockModelService._files.next(model);
         tick();
@@ -96,6 +100,10 @@ describe("Testing view file service", () => {
                 expect(file.eta).toBe(1111);
                 expect(file.fullPath).toBe("root/a");
                 expect(file.isArchive).toBe(true);
+                expect(file.localCreatedTimestamp).toEqual(new Date("November 9, 2018 21:40:18"));
+                expect(file.localModifiedTimestamp).toEqual(new Date(1541828418943));
+                expect(file.remoteCreatedTimestamp).toBeNull();
+                expect(file.remoteModifiedTimestamp).toEqual(new Date(1541828418943));
                 count++;
             }
         });

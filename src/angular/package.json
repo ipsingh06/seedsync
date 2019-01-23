@@ -24,6 +24,7 @@
     "@types/eventsource": "^1.0.2",
     "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",
+    "font-awesome": "^4.7.0",
     "immutable": "^3.8.2",
     "jquery": "^3.2.1",
     "ngx-modialog": "^3.0.0",
