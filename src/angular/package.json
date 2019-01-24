@@ -22,7 +22,7 @@
     "@angular/platform-browser-dynamic": "^4.2.4",
     "@angular/router": "^4.2.4",
     "@types/eventsource": "^1.0.2",
-    "bootstrap": "^3.3.7",
+    "bootstrap": "^4.2.1",
     "core-js": "^2.4.1",
     "font-awesome": "^4.7.0",
     "immutable": "^3.8.2",
