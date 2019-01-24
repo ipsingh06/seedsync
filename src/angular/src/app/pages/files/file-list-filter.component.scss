@@ -4,89 +4,97 @@
 #file-list-filter {
     background-color: $header-color;
     padding: 0 8px 8px 8px;
-}
 
-#filter-search, #filter-status {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-}
 
-#filter-search {
-    position: relative;
-
-    img {
-        width: 20px;
-        height: 20px;
-        position: absolute;
-        left: 7px;
-        top: 7px;
-        z-index: $zindex-file-search;
-        filter: invert(0.8666);
-    }
-}
-
-#filter-search .input-group{
-    flex-grow: 1;
-    display: inline;
-}
-
-#filter-search input {
-    border-radius: 5px;
-    padding: 3px 15px 3px 30px;
-}
-
-#filter-status {
-    margin-top: 8px;
-    // To offset the margin bottom of buttons
-    margin-bottom: -10px;
-}
-
-#filter-status .button {
-    @extend %button;
-
-    // For when buttons get wrapper to multiple rows
-    margin-bottom: 10px;
-
-    flex-direction: row;
-    padding: 5px;
-    margin-right: 8px;
-    height: 30px;
-    flex-grow: 1;
-
-    img {
-        width: 15px;
-        height: 15px;
-        filter: invert(1.0);
-    }
-    img#downloaded,
-    img#downloading {
-        width: 20px;
-    }
-    img#stopped {
-        width: 13px;
+    #filter-search, #filter-status {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
-    .text {
-        margin-left: 5px;
-        display: none;
+    #filter-search {
+        position: relative;
+
+        img {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            left: 7px;
+            top: 7px;
+            z-index: $zindex-file-search;
+            filter: invert(0.8666);
+        }
+
+        input {
+            border-radius: 5px;
+            padding: 3px 15px 3px 30px;
+        }
+
+        .input-group{
+            flex-grow: 1;
+            display: inline;
+        }
     }
-}
-/* Do show the text for 'All' button */
-#filter-status .button:first-of-type .text {
-    display: inline;
+
+    #filter-status {
+        margin-top: 8px;
+        // To offset the margin bottom of buttons
+        margin-bottom: -10px;
+
+        .button {
+            @extend %button;
+
+            // For when buttons get wrapper to multiple rows
+            margin-bottom: 10px;
+
+            flex-direction: row;
+            padding: 5px;
+            margin-right: 8px;
+            height: 30px;
+            flex-grow: 1;
+
+            img {
+                width: 15px;
+                height: 15px;
+                filter: invert(1.0);
+            }
+            img#downloaded,
+            img#downloading {
+                width: 20px;
+            }
+            img#stopped {
+                width: 13px;
+            }
+
+            .text {
+                margin-left: 5px;
+                display: none;
+            }
+        }
+
+        /* Do show the text for 'All' button */
+        .button:first-of-type .text {
+            display: inline;
+        }
+
+    }
 }
 
 
 /* Medium and large screens */
 @media only screen and (min-width: $medium-min-width) {
-    /* Show the filter button text */
-    #filter-status .button {
-        flex-grow: 0;
-    }
-    #filter-status .button .text {
-        display: inline;
+    #file-list-filter {
+        #filter-status {
+            .button {
+                flex-grow: 0;
+
+                .text {
+                    /* Show the filter button text */
+                    display: inline;
+                }
+            }
+        }
     }
 }
 
