@@ -5,15 +5,13 @@
     background-color: $header-color;
     padding: 0 8px 8px 8px;
 
+    #filter-search {
+        margin-bottom: 10px;
 
-    #filter-search, #filter-status {
         display: flex;
         flex-direction: row;
         align-items: center;
         flex-wrap: wrap;
-    }
-
-    #filter-search {
         position: relative;
 
         img {
@@ -39,46 +37,56 @@
     }
 
     #filter-status {
-        margin-top: 8px;
-        // To offset the margin bottom of buttons
-        margin-bottom: -10px;
+        @extend %dropdown;
 
-        .button {
-            @extend %button;
+        .title {
+            .title-icon {
+                // Visually center the filter icon
+            }
+        }
 
-            // For when buttons get wrapper to multiple rows
-            margin-bottom: 10px;
+        .selection {
+            .sel-item {
+                .text {
+                    display: none;
+                }
 
+                // Selection item for 'All' option
+                &#sel-item-all {
+                    .icon {
+                        display: none;
+                    }
+                    .text {
+                        display: inherit;
+                        margin-left: 0;
+                    }
+                }
+            }
+        }
+
+        // Applies to both button and menu images
+        .icon {
+            // Set flex on outer div to center the image
+            display: flex;
             flex-direction: row;
-            padding: 5px;
-            margin-right: 8px;
-            height: 30px;
-            flex-grow: 1;
+            align-items: center;
+            justify-content: center;
 
             img {
                 width: 15px;
                 height: 15px;
                 filter: invert(1.0);
-            }
-            img#downloaded,
-            img#downloading {
-                width: 20px;
-            }
-            img#stopped {
-                width: 13px;
-            }
+                margin-top: -2px;
 
-            .text {
-                margin-left: 5px;
-                display: none;
+                &.downloaded,
+                &.downloading {
+                    width: 20px;
+                }
+                &.stopped {
+                    width: 13px;
+                }
             }
         }
-
-        /* Do show the text for 'All' button */
-        .button:first-of-type .text {
-            display: inline;
-        }
-
     }
 }
 
@@ -87,12 +95,12 @@
 @media only screen and (min-width: $medium-min-width) {
     #file-list-filter {
         #filter-status {
-            .button {
-                flex-grow: 0;
-
-                .text {
-                    /* Show the filter button text */
-                    display: inline;
+            .selection {
+                .sel-item {
+                    .text {
+                        // Show the text labels in selection
+                        display: inherit;
+                    }
                 }
             }
         }

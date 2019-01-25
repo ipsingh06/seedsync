@@ -6,54 +6,96 @@
                    [ngModel]="filterName" (ngModelChange)="onFilterByName($event)">
         </div>
     </div>
-    <div id="filter-status">
-        <div class="button" appClickStopPropagation
-             [class.selected]="(filter | async)?.allFilterSelected"
-             (click)="onFilterAll()">
-            <img src="assets/icons/hamburger.svg" id="all" />
-            <span class="text">All</span>
-        </div>
-        <div class="button" appClickStopPropagation
-             [class.selected]="(filter | async)?.extractedFilterSelected"
-             [attr.disabled]="(filter | async)?.extractedFilterEnabled ? null : true"
-             (click)="onFilterExtracted()">
-            <img src="assets/icons/extracted.svg" id="extracted" />
-            <span class="text">Extracted</span>
-        </div>
-        <div class="button" appClickStopPropagation
-             [class.selected]="(filter | async)?.extractingFilterSelected"
-             [attr.disabled]="(filter | async)?.extractingFilterEnabled ? null : true"
-             (click)="onFilterExtracting()">
-            <img src="assets/icons/extracting.svg" id="extracting" />
-            <span class="text">Extracting</span>
-        </div>
-        <div class="button" appClickStopPropagation
-             [class.selected]="(filter | async)?.downloadedFilterSelected"
-             [attr.disabled]="(filter | async)?.downloadedFilterEnabled ? null : true"
-             (click)="onFilterDownloaded()">
-            <img src="assets/icons/downloaded.svg" id="downloaded" />
-            <span class="text">Downloaded</span>
-        </div>
-        <div class="button" appClickStopPropagation
-             [class.selected]="(filter | async)?.downloadingFilterSelected"
-             [attr.disabled]="(filter | async)?.downloadingFilterEnabled ? null : true"
-             (click)="onFilterDownloading()">
-            <img src="assets/icons/downloading.svg" id="downloading" />
-            <span class="text">Downloading</span>
-        </div>
-        <div class="button" appClickStopPropagation
-             [class.selected]="(filter | async)?.queuedFilterSelected"
-             [attr.disabled]="(filter | async)?.queuedFilterEnabled ? null : true"
-             (click)="onFilterQueued()">
-            <img src="assets/icons/queued.svg" id="queued" />
-            <span class="text">Queued</span>
-        </div>
-        <div class="button" appClickStopPropagation
-             [class.selected]="(filter | async)?.stoppedFilterSelected"
-             [attr.disabled]="(filter | async)?.stoppedFilterEnabled ? null : true"
-             (click)="onFilterStopped()">
-            <img src="assets/icons/stopped.svg" id="stopped" />
-            <span class="text">Stopped</span>
+
+    <div id="filter-status" class="dropdown" >
+        <button class="btn btn-secondary dropdown-toggle"
+                type="button"
+                data-toggle="dropdown">
+            <div class="title">
+                <div class="title-icon"><i class="fa fa-filter"></i></div>
+                <span class="title-text">Status:</span>
+            </div>
+            <div class="selection">
+                <!-- these divs only show the selected option -->
+                <div class="sel-item" id="sel-item-all" *ngIf="(filter | async)?.allFilterSelected">
+                    <div class="icon"></div>
+                    <span class="text">All</span>
+                </div>
+                <div class="sel-item" *ngIf="(filter | async)?.extractedFilterSelected">
+                    <div class="icon"><img src="assets/icons/extracted.svg" class="extracted" /></div>
+                    <span class="text">Extracted</span>
+                </div>
+                <div class="sel-item" *ngIf="(filter | async)?.extractingFilterSelected">
+                    <div class="icon"><img src="assets/icons/extracting.svg" class="extracting" /></div>
+                    <span class="text">Extracting</span>
+                </div>
+                <div class="sel-item" *ngIf="(filter | async)?.downloadedFilterSelected">
+                    <div class="icon"><img src="assets/icons/downloaded.svg" class="downloaded" /></div>
+                    <span class="text">Downloaded</span>
+                </div>
+                <div class="sel-item" *ngIf="(filter | async)?.downloadingFilterSelected">
+                    <div class="icon"><img src="assets/icons/downloading.svg" class="downloading" /></div>
+                    <span class="text">Downloading</span>
+                </div>
+                <div class="sel-item" *ngIf="(filter | async)?.queuedFilterSelected">
+                    <div class="icon"><img src="assets/icons/queued.svg" class="queued" /></div>
+                    <span class="text">Queued</span>
+                </div>
+                <div class="sel-item" *ngIf="(filter | async)?.stoppedFilterSelected">
+                    <div class="icon"><img src="assets/icons/stopped.svg" class="stopped" /></div>
+                    <span class="text">Stopped</span>
+                </div>
+            </div>
+        </button>
+        <div class="dropdown-menu">
+            <div class="dropdown-item"
+                 [class.active]="(filter | async)?.allFilterSelected"
+                 (click)="onFilterAll()">
+                <div class="icon"></div>
+                <span class="text">All</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(filter | async)?.extractedFilterSelected"
+                 [class.disabled]="(filter | async)?.extractedFilterEnabled ? null : true"
+                 (click)="onFilterExtracted()">
+                <div class="icon"><img src="assets/icons/extracted.svg" class="extracted" /></div>
+                <span class="text">Extracted</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(filter | async)?.extractingFilterSelected"
+                 [class.disabled]="(filter | async)?.extractingFilterEnabled ? null : true"
+                 (click)="onFilterExtracting()">
+                <div class="icon"><img src="assets/icons/extracting.svg" class="extracting" /></div>
+                <span class="text">Extracting</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(filter | async)?.downloadedFilterSelected"
+                 [class.disabled]="(filter | async)?.downloadedFilterEnabled ? null : true"
+                 (click)="onFilterDownloaded()">
+                <div class="icon"><img src="assets/icons/downloaded.svg" class="downloaded" /></div>
+                <span class="text">Downloaded</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(filter | async)?.downloadingFilterSelected"
+                 [class.disabled]="(filter | async)?.downloadingFilterEnabled ? null : true"
+                 (click)="onFilterDownloading()">
+                <div class="icon"><img src="assets/icons/downloading.svg" class="downloading" /></div>
+                <span class="text">Downloading</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(filter | async)?.queuedFilterSelected"
+                 [class.disabled]="(filter | async)?.queuedFilterEnabled ? null : true"
+                 (click)="onFilterQueued()">
+                <div class="icon"><img src="assets/icons/queued.svg" class="queued" /></div>
+                <span class="text">Queued</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(filter | async)?.stoppedFilterSelected"
+                 [class.disabled]="(filter | async)?.stoppedFilterEnabled ? null : true"
+                 (click)="onFilterStopped()">
+                <div class="icon"><img src="assets/icons/stopped.svg" class="stopped" /></div>
+                <span class="text">Stopped</span>
+            </div>
         </div>
     </div>
 </div>
