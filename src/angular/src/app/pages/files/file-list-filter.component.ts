@@ -3,6 +3,8 @@ import {Observable} from "rxjs/Observable";
 
 import {ViewFileFilterService} from "../../services/files/view-file-filter.service";
 import {ViewFileFilter} from "../../services/files/view-file-filter";
+import {ViewFileOptionsService} from "../../services/files/view-file-options.service";
+import {ViewFileOptions} from "../../services/files/view-file-options";
 import {ViewFile} from "../../services/files/view-file";
 
 @Component({
@@ -15,11 +17,19 @@ import {ViewFile} from "../../services/files/view-file";
 
 export class FileListFilterComponent {
     public filter: Observable<ViewFileFilter>;
+    public options: Observable<ViewFileOptions>;
 
     public filterName = "";
 
-    constructor(private viewFileFilterService: ViewFileFilterService) {
+    private _latestOptions: ViewFileOptions;
+
+    constructor(private viewFileFilterService: ViewFileFilterService,
+                private viewFileOptionsService: ViewFileOptionsService) {
         this.filter = this.viewFileFilterService.filter;
+        this.options = this.viewFileOptionsService.options;
+
+        // Keep the latest options for toggle behaviour implementation
+        this.viewFileOptionsService.options.subscribe(options => this._latestOptions = options);
     }
 
     onFilterAll() {
@@ -58,5 +68,9 @@ export class FileListFilterComponent {
     onFilterByName(name: string) {
         this.filterName = name;
         this.viewFileFilterService.filterName(this.filterName);
+    }
+
+    onToggleShowDetails(){
+        this.viewFileOptionsService.setShowDetails(!this._latestOptions.showDetails);
     }
 }

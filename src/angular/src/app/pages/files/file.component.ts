@@ -7,6 +7,7 @@ import {Modal} from 'ngx-modialog/plugins/bootstrap';
 
 import {ViewFile} from "../../services/files/view-file";
 import {Localization} from "../../common/localization";
+import {ViewFileOptions} from "../../services/files/view-file-options";
 
 @Component({
     selector: "app-file",
@@ -30,6 +31,7 @@ export class FileComponent implements OnChanges {
     @ViewChild('fileElement') fileElement: any;
 
     @Input() file: ViewFile;
+    @Input() options: ViewFileOptions;
 
     @Output() queueEvent = new EventEmitter<ViewFile>();
     @Output() stopEvent = new EventEmitter<ViewFile>();

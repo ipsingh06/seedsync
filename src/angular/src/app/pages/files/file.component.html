@@ -30,7 +30,7 @@
                 <div class="title">
                     {{file.name}}
                 </div>
-                <div class="details">
+                <div class="details" *ngIf="(options | async)?.showDetails">
                     <div class="details-text">
                         Local File <br />
                         <span class="tab"></span>Created:

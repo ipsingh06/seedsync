@@ -6,6 +6,8 @@ import {List} from "immutable";
 import {ViewFileService} from "../../services/files/view-file.service";
 import {ViewFile} from "../../services/files/view-file";
 import {LoggerService} from "../../services/utils/logger.service";
+import {ViewFileOptions} from "../../services/files/view-file-options";
+import {ViewFileOptionsService} from "../../services/files/view-file-options.service";
 
 @Component({
     selector: "app-file-list",
@@ -18,10 +20,13 @@ import {LoggerService} from "../../services/utils/logger.service";
 export class FileListComponent {
     public files: Observable<List<ViewFile>>;
     public identify = FileListComponent.identify;
+    public options: Observable<ViewFileOptions>;
 
     constructor(private _logger: LoggerService,
-                private viewFileService: ViewFileService) {
+                private viewFileService: ViewFileService,
+                private viewFileOptionsService: ViewFileOptionsService) {
         this.files = viewFileService.filteredFiles;
+        this.options = this.viewFileOptionsService.options;
     }
 
     // noinspection JSUnusedLocalSymbols

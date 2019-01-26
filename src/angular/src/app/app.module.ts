@@ -39,6 +39,7 @@ import {LogsPageComponent} from "./pages/logs/logs-page.component";
 import {LogService} from "./services/logs/log.service";
 import {AboutPageComponent} from "./pages/about/about-page.component";
 import {ROUTES} from "./routes";
+import {ViewFileOptionsService} from "./services/files/view-file-options.service";
 
 @NgModule({
     declarations: [
@@ -75,6 +76,7 @@ import {ROUTES} from "./routes";
         RestService,
         ViewFileService,
         ViewFileFilterService,
+        ViewFileOptionsService,
 
         StreamDispatchService,
         StreamServiceRegistryProvider,
