@@ -110,7 +110,7 @@
 }
 
 
-#file-list-filter {
+#file-options {
     background-color: $header-color;
     padding: 0 8px 8px 8px;
 
@@ -220,7 +220,7 @@
 
 /* Medium and large screens */
 @media only screen and (min-width: $medium-min-width) {
-    #file-list-filter {
+    #file-options {
         #filter-status {
             .selection {
                 .sel-item {
@@ -237,7 +237,7 @@
 // Large screens
 @media only screen and (min-width: $large-min-width) {
     // Bit of extra padding at top when title disappears
-    #file-list-filter {
+    #file-options {
         padding-top: 8px;
     }
 }

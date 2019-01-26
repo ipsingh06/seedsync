@@ -18,7 +18,7 @@ import {FileSizePipe} from "./common/file-size.pipe";
 import {EtaPipe} from "./common/eta.pipe";
 import {CapitalizePipe} from "./common/capitalize.pipe";
 import {ClickStopPropagationDirective} from "./common/click-stop-propagation.directive";
-import {FileListFilterComponent} from "./pages/files/file-list-filter.component";
+import {FileOptionsComponent} from "./pages/files/file-options.component";
 import {ViewFileFilterService} from "./services/files/view-file-filter.service";
 import {FilesPageComponent} from "./pages/files/files-page.component";
 import {HeaderComponent} from "./pages/main/header.component";
@@ -50,7 +50,7 @@ import {ViewFileOptionsService} from "./services/files/view-file-options.service
         AppComponent,
         FileListComponent,
         FileComponent,
-        FileListFilterComponent,
+        FileOptionsComponent,
         FilesPageComponent,
         HeaderComponent,
         SidebarComponent,

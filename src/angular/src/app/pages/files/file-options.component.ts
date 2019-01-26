@@ -8,14 +8,14 @@ import {ViewFileOptions} from "../../services/files/view-file-options";
 import {ViewFile} from "../../services/files/view-file";
 
 @Component({
-    selector: "app-file-list-filter",
+    selector: "app-file-options",
     providers: [],
-    templateUrl: "./file-list-filter.component.html",
-    styleUrls: ["./file-list-filter.component.scss"],
+    templateUrl: "./file-options.component.html",
+    styleUrls: ["./file-options.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class FileListFilterComponent {
+export class FileOptionsComponent {
     public filter: Observable<ViewFileFilter>;
     public options: Observable<ViewFileOptions>;
 
