@@ -4,7 +4,7 @@ import {Observable} from "rxjs/Observable";
 import * as Immutable from "immutable";
 
 import {ViewFile} from "../../services/files/view-file";
-import {ViewFileFilterCriteria} from "../../services/files/view-file.service";
+import {ViewFileComparator, ViewFileFilterCriteria} from "../../services/files/view-file.service";
 
 
 export class MockViewFileService {
@@ -22,4 +22,7 @@ export class MockViewFileService {
 
     // noinspection JSUnusedLocalSymbols
     public setFilterCriteria(criteria: ViewFileFilterCriteria) {}
+
+    // noinspection JSUnusedLocalSymbols
+    public setComparator(comparator: ViewFileComparator) {}
 }

@@ -18,6 +18,7 @@ import {ViewFileService} from "../../services/files/view-file.service";
 
 export class FileOptionsComponent implements OnInit {
     public ViewFile = ViewFile;
+    public ViewFileOptions = ViewFileOptions;
 
     public options: Observable<ViewFileOptions>;
 
@@ -71,6 +72,10 @@ export class FileOptionsComponent implements OnInit {
 
     onFilterByStatus(status: ViewFile.Status) {
         this.viewFileOptionsService.setSelectedStatusFilter(status);
+    }
+
+    onSort(sortMethod: ViewFileOptions.SortMethod) {
+        this.viewFileOptionsService.setSortMethod(sortMethod);
     }
 
     onToggleShowDetails(){

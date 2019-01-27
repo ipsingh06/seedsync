@@ -40,6 +40,7 @@ import {LogService} from "./services/logs/log.service";
 import {AboutPageComponent} from "./pages/about/about-page.component";
 import {ROUTES} from "./routes";
 import {ViewFileOptionsService} from "./services/files/view-file-options.service";
+import {ViewFileSortService} from "./services/files/view-file-sort.service";
 
 @NgModule({
     declarations: [
@@ -76,6 +77,7 @@ import {ViewFileOptionsService} from "./services/files/view-file-options.service
         RestService,
         ViewFileService,
         ViewFileFilterService,
+        ViewFileSortService,
         ViewFileOptionsService,
 
         StreamDispatchService,
@@ -94,6 +96,12 @@ import {ViewFileOptionsService} from "./services/files/view-file-options.service
             provide: APP_INITIALIZER,
             useFactory: (s) => () => null,
             deps: [ViewFileFilterService],
+            multi: true
+        },
+        {
+            provide: APP_INITIALIZER,
+            useFactory: (s) => () => null,
+            deps: [ViewFileSortService],
             multi: true
         },
     ],

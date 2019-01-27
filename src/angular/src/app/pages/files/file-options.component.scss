@@ -6,6 +6,7 @@
         background-color: $primary-color;
         color: white;
         height: 34px;
+        width: 100%;
 
         display: flex;
         flex-direction: row;
@@ -27,6 +28,7 @@
                 }
                 .text {
                     margin-left: 5px;
+                    display: none;
                 }
             }
         }
@@ -62,6 +64,30 @@
             }
             .text {
                 margin-left: 5px;
+            }
+        }
+    }
+
+    // Applies to both button and menu images
+    .icon {
+        // Set flex on outer div to center the image
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 15px;
+            height: 15px;
+            filter: invert(1.0);
+            margin-top: -2px;
+
+            &.downloaded,
+            &.downloading {
+                width: 20px;
+            }
+            &.stopped {
+                width: 13px;
             }
         }
     }
@@ -117,9 +143,9 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: space-evenly;
 
     #filter-search {
-        margin-bottom: 10px;
         flex-grow: 1;
         flex-basis: 100%;
 
@@ -156,10 +182,6 @@
 
         .selection {
             .sel-item {
-                .text {
-                    display: none;
-                }
-
                 // Selection item for 'All' option
                 &#sel-item-all {
                     .icon {
@@ -175,18 +197,7 @@
 
         // Applies to both button and menu images
         .icon {
-            // Set flex on outer div to center the image
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-
             img {
-                width: 15px;
-                height: 15px;
-                filter: invert(1.0);
-                margin-top: -2px;
-
                 &.downloaded,
                 &.downloading {
                     width: 20px;
@@ -198,9 +209,15 @@
         }
     }
 
-    #toggle-details {
-        margin-left: 10px;
+    #sort-status {
+        @extend %dropdown;
 
+        // Applies to both button and menu images
+        .icon {
+        }
+    }
+
+    #toggle-details {
         @extend %toggle;
 
         // Hide the selection icons for this button
@@ -215,13 +232,26 @@
             }
         }
     }
+
+    // Margins for all the buttons
+    #filter-status,
+    #sort-status,
+    #toggle-details {
+        margin-top: 10px;
+    }
+
+    // Margins for the non-first buttons
+    #sort-status,
+    #toggle-details {
+        margin-left: 5px;
+    }
 }
 
 
 /* Medium and large screens */
 @media only screen and (min-width: $medium-min-width) {
-    #file-options {
-        #filter-status {
+    %dropdown {
+        button {
             .selection {
                 .sel-item {
                     .text {
@@ -231,6 +261,17 @@
                 }
             }
         }
+    }
+
+    #file-options {
+        // Move buttons to the left
+        justify-content: flex-start;
+    }
+
+    // Margins for the non-first buttons
+    #sort-status,
+    #toggle-details {
+        margin-left: 10px;
     }
 }
 

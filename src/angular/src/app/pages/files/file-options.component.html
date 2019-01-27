@@ -106,6 +106,54 @@
         </div>
     </div>
 
+    <div id="sort-status" class="dropdown" >
+        <button class="btn btn-secondary dropdown-toggle"
+                type="button"
+                data-toggle="dropdown">
+            <div class="title">
+                Sort:
+            </div>
+            <div class="selection">
+                <!-- these divs only show the selected option -->
+                <div class="sel-item"
+                     *ngIf="(options | async)?.sortMethod === ViewFileOptions.SortMethod.STATUS">
+                    <div class="icon"><img src="assets/icons/states.svg" class="states" /></div>
+                    <span class="text">Status</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_ASC">
+                    <div class="icon"><img src="assets/icons/sort-asc.svg" class="sort-asc" /></div>
+                    <span class="text">Name Asc</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_DESC">
+                    <div class="icon"><img src="assets/icons/sort-desc.svg" class="sort-desc" /></div>
+                    <span class="text">Name Desc</span>
+                </div>
+            </div>
+        </button>
+        <div class="dropdown-menu">
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.STATUS"
+                 (click)="onSort(ViewFileOptions.SortMethod.STATUS)">
+                <div class="icon"><img src="assets/icons/states.svg" class="states" /></div>
+                <span class="text">Status</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_ASC"
+                 (click)="onSort(ViewFileOptions.SortMethod.NAME_ASC)">
+                <div class="icon"><img src="assets/icons/sort-asc.svg" class="sort-asc" /></div>
+                <span class="text">Name Asc</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_DESC"
+                 (click)="onSort(ViewFileOptions.SortMethod.NAME_DESC)">
+                <div class="icon"><img src="assets/icons/sort-desc.svg" class="sort-desc" /></div>
+                <span class="text">Name Desc</span>
+            </div>
+        </div>
+    </div>
+
     <button id="toggle-details"
             type="button"
             class="btn btn-primary"

@@ -1,8 +1,4 @@
 import {Injectable} from "@angular/core";
-import {Observable} from "rxjs/Observable";
-import {BehaviorSubject} from "rxjs/Rx";
-
-import * as Immutable from "immutable";
 
 import {LoggerService} from "../utils/logger.service";
 import {ViewFile} from "./view-file";
@@ -68,8 +64,8 @@ class NameFilterCriteria implements ViewFileFilterCriteria {
  * ViewFileFilterService class provides filtering services for
  * view files
  *
- * This class provides actions to control the filtering parameters.
- * It also provides the filter state for display purposes.
+ * This class responds to changes in the filter settings and
+ * applies the appropriate filters to the ViewFileService
  */
 @Injectable()
 export class ViewFileFilterService {
