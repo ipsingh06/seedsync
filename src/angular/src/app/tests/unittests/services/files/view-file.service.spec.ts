@@ -2,15 +2,15 @@ import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 
 import * as Immutable from "immutable";
 
-import {ViewFileService} from "../../../../services/files/view-file.service";
+import {ViewFileComparator, ViewFileService} from "../../../../services/files/view-file.service";
 import {LoggerService} from "../../../../services/utils/logger.service";
 import {StreamServiceRegistry} from "../../../../services/base/stream-service.registry";
 import {MockStreamServiceRegistry} from "../../../mocks/mock-stream-service.registry";
 import {ConnectedService} from "../../../../services/utils/connected.service";
 import {MockModelFileService} from "../../../mocks/mock-model-file.service";
 import {ModelFile} from "../../../../services/files/model-file";
-import {ModelFileService} from "../../../../services/files/model-file.service";
 import {ViewFile} from "../../../../services/files/view-file";
+import {ViewFileFilterCriteria} from "../../../../services/files/view-file.service";
 
 
 describe("Testing view file service", () => {
@@ -437,61 +437,61 @@ describe("Testing view file service", () => {
         expect(count).toBe(testVectors.length);
     }));
 
-    it("should sort view files by status then name", fakeAsync(() => {
-        // Test vectors to create model file
-        // name, ModelFile.State, local size, remote size
-        let testVector: any[][] = [
-            ["a", ModelFile.State.DEFAULT, null, 100],
-            ["b", ModelFile.State.DEFAULT, 100, null],
-            ["c", ModelFile.State.DEFAULT, 50, 100],
-            ["d", ModelFile.State.DELETED, null, 100],
-            ["e", ModelFile.State.QUEUED, null, 100],
-            ["f", ModelFile.State.DOWNLOADING, 50, 100],
-            ["g", ModelFile.State.DOWNLOADED, 50, 100],
-            ["h", ModelFile.State.EXTRACTING, 50, 100],
-            ["i", ModelFile.State.EXTRACTED, 50, 100]
-        ];
-
-        // Except result vector in order of view file name and state
-        let resultVector: any[][] = [
-            ["h", ViewFile.Status.EXTRACTING],
-            ["f", ViewFile.Status.DOWNLOADING],
-            ["e", ViewFile.Status.QUEUED],
-            ["i", ViewFile.Status.EXTRACTED],
-            ["g", ViewFile.Status.DOWNLOADED],
-            ["c", ViewFile.Status.STOPPED],
-            ["a", ViewFile.Status.DEFAULT],
-            ["b", ViewFile.Status.DEFAULT],
-            ["d", ViewFile.Status.DELETED]
-        ];
-
-        let model = Immutable.Map<string, ModelFile>();
-        for(let vector of testVector) {
-            model = model.set(vector[0], new ModelFile({
-                name: vector[0],
-                state: vector[1],
-                local_size: vector[2],
-                remote_size: vector[3],
-            }));
-        }
-        mockModelService._files.next(model);
-        tick();
-
-        let count = 0;
-        viewService.files.subscribe({
-            next: list => {
-                expect(list.size).toBe(resultVector.length);
-                resultVector.forEach((item, index) => {
-                    let file = list.get(index);
-                    expect(file.name).toBe(item[0]);
-                    expect(file.status).toBe(item[1]);
-                });
-                count++;
-            }
-        });
-        tick();
-        expect(count).toBe(1);
-    }));
+    // it("should sort view files by status then name", fakeAsync(() => {
+    //     // Test vectors to create model file
+    //     // name, ModelFile.State, local size, remote size
+    //     let testVector: any[][] = [
+    //         ["a", ModelFile.State.DEFAULT, null, 100],
+    //         ["b", ModelFile.State.DEFAULT, 100, null],
+    //         ["c", ModelFile.State.DEFAULT, 50, 100],
+    //         ["d", ModelFile.State.DELETED, null, 100],
+    //         ["e", ModelFile.State.QUEUED, null, 100],
+    //         ["f", ModelFile.State.DOWNLOADING, 50, 100],
+    //         ["g", ModelFile.State.DOWNLOADED, 50, 100],
+    //         ["h", ModelFile.State.EXTRACTING, 50, 100],
+    //         ["i", ModelFile.State.EXTRACTED, 50, 100]
+    //     ];
+    //
+    //     // Except result vector in order of view file name and state
+    //     let resultVector: any[][] = [
+    //         ["h", ViewFile.Status.EXTRACTING],
+    //         ["f", ViewFile.Status.DOWNLOADING],
+    //         ["e", ViewFile.Status.QUEUED],
+    //         ["i", ViewFile.Status.EXTRACTED],
+    //         ["g", ViewFile.Status.DOWNLOADED],
+    //         ["c", ViewFile.Status.STOPPED],
+    //         ["a", ViewFile.Status.DEFAULT],
+    //         ["b", ViewFile.Status.DEFAULT],
+    //         ["d", ViewFile.Status.DELETED]
+    //     ];
+    //
+    //     let model = Immutable.Map<string, ModelFile>();
+    //     for(let vector of testVector) {
+    //         model = model.set(vector[0], new ModelFile({
+    //             name: vector[0],
+    //             state: vector[1],
+    //             local_size: vector[2],
+    //             remote_size: vector[3],
+    //         }));
+    //     }
+    //     mockModelService._files.next(model);
+    //     tick();
+    //
+    //     let count = 0;
+    //     viewService.files.subscribe({
+    //         next: list => {
+    //             expect(list.size).toBe(resultVector.length);
+    //             resultVector.forEach((item, index) => {
+    //                 let file = list.get(index);
+    //                 expect(file.name).toBe(item[0]);
+    //                 expect(file.status).toBe(item[1]);
+    //             });
+    //             count++;
+    //         }
+    //     });
+    //     tick();
+    //     expect(count).toBe(1);
+    // }));
 
     it("should correctly set and unset the selected file", fakeAsync(() => {
         let model = Immutable.Map<string, ModelFile>();
@@ -679,5 +679,243 @@ describe("Testing view file service", () => {
             tick();
         }
         expect(count).toBe(testVectors.length);
+    }));
+
+    it("should not filter any files by default", fakeAsync(() => {
+        const model = Immutable.Map({
+            "aaaa": new ModelFile({name: "aaaa", state: ModelFile.State.DEFAULT}),
+            "tofu": new ModelFile({name: "tofu", state: ModelFile.State.QUEUED}),
+            "flower": new ModelFile({name: "flower", state: ModelFile.State.QUEUED}),
+            "power": new ModelFile({name: "power", state: ModelFile.State.DOWNLOADING}),
+            "max": new ModelFile({name: "max", state: ModelFile.State.DOWNLOADED}),
+            "mrx": new ModelFile({name: "mrx", state: ModelFile.State.EXTRACTING}),
+            "blueman": new ModelFile({name: "blueman", state: ModelFile.State.EXTRACTED}),
+            "spicy": new ModelFile({name: "spicy", state: ModelFile.State.DELETED}),
+        });
+        mockModelService._files.next(model);
+
+        let count = 0;
+        let viewFiles: Immutable.List<ViewFile> = null;
+        viewService.filteredFiles.subscribe({
+            next: list => {
+                viewFiles = list;
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(1);
+        expect(viewFiles.size).toBe(8);
+    }));
+
+    it("should apply filter criteria correctly", fakeAsync(() => {
+        class TestCriteria implements ViewFileFilterCriteria {
+            meetsCriteria(viewFile: ViewFile): boolean {
+                return viewFile.status === ViewFile.Status.QUEUED ||
+                    viewFile.status === ViewFile.Status.EXTRACTED;
+            }
+
+        }
+        viewService.setFilterCriteria(new TestCriteria());
+
+        const model = Immutable.Map({
+            "aaaa": new ModelFile({name: "aaaa", state: ModelFile.State.DEFAULT}),
+            "tofu": new ModelFile({name: "tofu", state: ModelFile.State.QUEUED}),
+            "flower": new ModelFile({name: "flower", state: ModelFile.State.QUEUED}),
+            "power": new ModelFile({name: "power", state: ModelFile.State.DOWNLOADING}),
+            "max": new ModelFile({name: "max", state: ModelFile.State.DOWNLOADED}),
+            "mrx": new ModelFile({name: "mrx", state: ModelFile.State.EXTRACTING}),
+            "blueman": new ModelFile({name: "blueman", state: ModelFile.State.EXTRACTED}),
+            "spicy": new ModelFile({name: "spicy", state: ModelFile.State.DELETED}),
+        });
+        mockModelService._files.next(model);
+        tick();
+
+        let count = 0;
+        let viewFiles: Immutable.List<ViewFile> = null;
+        let viewFilesMap: Map<string, ViewFile> = null;
+        viewService.filteredFiles.subscribe({
+            next: list => {
+                viewFiles = list;
+                viewFilesMap = new Map<string, ViewFile>();
+                list.forEach(value => viewFilesMap.set(value.name, value));
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(1);
+        expect(viewFiles.size).toBe(3);
+        expect(viewFilesMap.has("tofu")).toBe(true);
+        expect(viewFilesMap.has("flower")).toBe(true);
+        expect(viewFilesMap.has("blueman")).toBe(true);
+    }));
+
+    it("should resend filtered files on criteria change", fakeAsync(() => {
+        class TestCriteria implements ViewFileFilterCriteria {
+            constructor(public flag: boolean) {}
+            meetsCriteria(viewFile: ViewFile): boolean {
+                if (this.flag) {
+                    return viewFile.status === ViewFile.Status.QUEUED;
+                } else {
+                    return viewFile.status === ViewFile.Status.EXTRACTED;
+                }
+            }
+
+        }
+        viewService.setFilterCriteria(new TestCriteria(true));
+
+        let count = 0;
+        let viewFiles: Immutable.List<ViewFile> = null;
+        let viewFilesMap: Map<string, ViewFile> = null;
+        viewService.filteredFiles.subscribe({
+            next: list => {
+                viewFiles = list;
+                viewFilesMap = new Map<string, ViewFile>();
+                list.forEach(value => viewFilesMap.set(value.name, value));
+                count++;
+            }
+        });
+        expect(count).toBe(1);
+
+        const model = Immutable.Map({
+            "aaaa": new ModelFile({name: "aaaa", state: ModelFile.State.DEFAULT}),
+            "tofu": new ModelFile({name: "tofu", state: ModelFile.State.QUEUED}),
+            "flower": new ModelFile({name: "flower", state: ModelFile.State.QUEUED}),
+            "power": new ModelFile({name: "power", state: ModelFile.State.DOWNLOADING}),
+            "max": new ModelFile({name: "max", state: ModelFile.State.DOWNLOADED}),
+            "mrx": new ModelFile({name: "mrx", state: ModelFile.State.EXTRACTING}),
+            "blueman": new ModelFile({name: "blueman", state: ModelFile.State.EXTRACTED}),
+            "spicy": new ModelFile({name: "spicy", state: ModelFile.State.DELETED}),
+        });
+        mockModelService._files.next(model);
+        tick();
+
+        expect(count).toBe(2);
+        expect(viewFiles.size).toBe(2);
+        expect(viewFilesMap.has("tofu")).toBe(true);
+        expect(viewFilesMap.has("flower")).toBe(true);
+
+        // Update the filter criteria
+        viewService.setFilterCriteria(new TestCriteria(false));
+
+        expect(count).toBe(3);
+        expect(viewFiles.size).toBe(1);
+        expect(viewFilesMap.has("blueman")).toBe(true);
+    }));
+
+    it("should not sort files by default", fakeAsync(() => {
+        const model = Immutable.Map({
+            "aaaa": new ModelFile({name: "aaaa", state: ModelFile.State.DEFAULT}),
+            "tofu": new ModelFile({name: "tofu", state: ModelFile.State.QUEUED}),
+            "flower": new ModelFile({name: "flower", state: ModelFile.State.QUEUED}),
+            "power": new ModelFile({name: "power", state: ModelFile.State.DOWNLOADING}),
+            "max": new ModelFile({name: "max", state: ModelFile.State.DOWNLOADED}),
+            "mrx": new ModelFile({name: "mrx", state: ModelFile.State.EXTRACTING}),
+            "blueman": new ModelFile({name: "blueman", state: ModelFile.State.EXTRACTED}),
+            "spicy": new ModelFile({name: "spicy", state: ModelFile.State.DELETED}),
+        });
+        mockModelService._files.next(model);
+
+        let count = 0;
+        let viewFiles: Immutable.List<ViewFile> = null;
+        viewService.files.subscribe({
+            next: list => {
+                viewFiles = list;
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(1);
+        expect(viewFiles.size).toBe(8);
+        expect(viewFiles.get(0).name).toBe("aaaa");
+        expect(viewFiles.get(1).name).toBe("tofu");
+        expect(viewFiles.get(2).name).toBe("flower");
+        expect(viewFiles.get(3).name).toBe("power");
+        expect(viewFiles.get(4).name).toBe("max");
+        expect(viewFiles.get(5).name).toBe("mrx");
+        expect(viewFiles.get(6).name).toBe("blueman");
+        expect(viewFiles.get(7).name).toBe("spicy");
+    }));
+
+    it("should sort new model correctly", fakeAsync(() => {
+        const comparator: ViewFileComparator = function(a: ViewFile, b: ViewFile) {
+            // alphabetical order
+            return a.name.localeCompare(b.name);
+        };
+        viewService.setComparator(comparator);
+
+        const model = Immutable.Map({
+            "aaaa": new ModelFile({name: "aaaa", state: ModelFile.State.DEFAULT}),
+            "tofu": new ModelFile({name: "tofu", state: ModelFile.State.QUEUED}),
+            "flower": new ModelFile({name: "flower", state: ModelFile.State.QUEUED}),
+            "power": new ModelFile({name: "power", state: ModelFile.State.DOWNLOADING}),
+            "max": new ModelFile({name: "max", state: ModelFile.State.DOWNLOADED}),
+            "mrx": new ModelFile({name: "mrx", state: ModelFile.State.EXTRACTING}),
+            "blueman": new ModelFile({name: "blueman", state: ModelFile.State.EXTRACTED}),
+            "spicy": new ModelFile({name: "spicy", state: ModelFile.State.DELETED}),
+        });
+        mockModelService._files.next(model);
+
+        let count = 0;
+        let viewFiles: Immutable.List<ViewFile> = null;
+        viewService.files.subscribe({
+            next: list => {
+                viewFiles = list;
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(1);
+        expect(viewFiles.size).toBe(8);
+        expect(viewFiles.get(0).name).toBe("aaaa");
+        expect(viewFiles.get(1).name).toBe("blueman");
+        expect(viewFiles.get(2).name).toBe("flower");
+        expect(viewFiles.get(3).name).toBe("max");
+        expect(viewFiles.get(4).name).toBe("mrx");
+        expect(viewFiles.get(5).name).toBe("power");
+        expect(viewFiles.get(6).name).toBe("spicy");
+        expect(viewFiles.get(7).name).toBe("tofu");
+    }));
+
+    it("should sort existing model on setComparator", fakeAsync(() => {
+        const model = Immutable.Map({
+            "aaaa": new ModelFile({name: "aaaa", state: ModelFile.State.DEFAULT}),
+            "tofu": new ModelFile({name: "tofu", state: ModelFile.State.QUEUED}),
+            "flower": new ModelFile({name: "flower", state: ModelFile.State.QUEUED}),
+            "power": new ModelFile({name: "power", state: ModelFile.State.DOWNLOADING}),
+            "max": new ModelFile({name: "max", state: ModelFile.State.DOWNLOADED}),
+            "mrx": new ModelFile({name: "mrx", state: ModelFile.State.EXTRACTING}),
+            "blueman": new ModelFile({name: "blueman", state: ModelFile.State.EXTRACTED}),
+            "spicy": new ModelFile({name: "spicy", state: ModelFile.State.DELETED}),
+        });
+        mockModelService._files.next(model);
+
+        let count = 0;
+        let viewFiles: Immutable.List<ViewFile> = null;
+        viewService.files.subscribe({
+            next: list => {
+                viewFiles = list;
+                count++;
+            }
+        });
+        tick();
+        expect(count).toBe(1);
+
+        const comparator: ViewFileComparator = function(a: ViewFile, b: ViewFile) {
+            // reverse alphabetical order
+            return -1 * a.name.localeCompare(b.name);
+        };
+        viewService.setComparator(comparator);
+        tick();
+
+        expect(count).toBe(2);
+        expect(viewFiles.size).toBe(8);
+        expect(viewFiles.get(0).name).toBe("tofu");
+        expect(viewFiles.get(1).name).toBe("spicy");
+        expect(viewFiles.get(2).name).toBe("power");
+        expect(viewFiles.get(3).name).toBe("mrx");
+        expect(viewFiles.get(4).name).toBe("max");
+        expect(viewFiles.get(5).name).toBe("flower");
+        expect(viewFiles.get(6).name).toBe("blueman");
+        expect(viewFiles.get(7).name).toBe("aaaa");
     }));
 });

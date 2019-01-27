@@ -22,6 +22,4 @@ export class MockViewFileService {
 
     // noinspection JSUnusedLocalSymbols
     public setFilterCriteria(criteria: ViewFileFilterCriteria) {}
-
-    public reapplyFilters() {}
 }

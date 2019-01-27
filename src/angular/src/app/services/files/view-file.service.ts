@@ -21,6 +21,14 @@ export interface ViewFileFilterCriteria {
 }
 
 
+/**
+ * Interface for sorting view files
+ */
+export interface ViewFileComparator {
+    // noinspection TsLint
+    (a: ViewFile, b: ViewFile): number;
+}
+
 
 /**
  * ViewFileService class provides the store of view files.
@@ -75,6 +83,7 @@ export class ViewFileService {
     private _prevModelFiles: Immutable.Map<string, ModelFile> = Immutable.Map<string, ModelFile>();
 
     private _filterCriteria: ViewFileFilterCriteria = null;
+    private _sortComparator: ViewFileComparator = null;
 
     // noinspection UnterminatedStatementJS
     /**
@@ -164,7 +173,7 @@ export class ViewFileService {
                 const oldViewFile = newViewFiles.get(index);
                 const newViewFile = ViewFileService.createViewFile(modelFiles.get(name), oldViewFile.isSelected);
                 newViewFiles = newViewFiles.set(index, newViewFile);
-                if (this._comparator(oldViewFile, newViewFile) !== 0) {
+                if (this._sortComparator != null && this._sortComparator(oldViewFile, newViewFile) !== 0) {
                     reSort = true;
                 }
             }
@@ -188,10 +197,10 @@ export class ViewFileService {
             }
         );
 
-        if (reSort) {
+        if (reSort && this._sortComparator != null) {
             this._logger.debug("Re-sorting view files");
             updateIndices = true;
-            newViewFiles = newViewFiles.sort(this._comparator).toList();
+            newViewFiles = newViewFiles.sort(this._sortComparator).toList();
         }
         if (updateIndices) {
             this._indices.clear();
@@ -334,10 +343,24 @@ export class ViewFileService {
     }
 
     /**
-     * Re-apply the filters and push out the view files
-     * Use this if filter criteria's state changed but the reference did not
+     * Sets a new comparator.
+     * @param {ViewFileComparator} comparator
      */
-    public reapplyFilters() {
+    public setComparator(comparator: ViewFileComparator) {
+        this._sortComparator = comparator;
+
+        // Re-sort and regenerate index cache
+        this._logger.debug("Re-sorting view files");
+        let newViewFiles = this._files;
+        if (this._sortComparator != null) {
+            newViewFiles = newViewFiles.sort(this._sortComparator).toList();
+        }
+        this._files = newViewFiles;
+        this._indices.clear();
+        newViewFiles.forEach(
+            (value, index) => this._indices.set(value.name, index)
+        );
+
         this.pushViewFiles();
     }
 

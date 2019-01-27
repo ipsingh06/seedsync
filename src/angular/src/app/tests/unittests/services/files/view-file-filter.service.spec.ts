@@ -28,7 +28,6 @@ describe("Testing view file filter service", () => {
         spyOn(viewFileService, "setFilterCriteria").and.callFake(
             value => filterCriteria = value
         );
-        spyOn(viewFileService, "reapplyFilters");
 
         viewFilterService = TestBed.get(ViewFileFilterService);
     });
@@ -37,23 +36,23 @@ describe("Testing view file filter service", () => {
         expect(viewFilterService).toBeDefined();
     });
 
-    it("sets a filter criteria by default", () => {
+    it("does not set a filter criteria by default", () => {
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
+        expect(filterCriteria).toBeUndefined();
+    });
+
+    it("calls setFilterCriteria on filterName", () => {
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
+        viewFilterService.filterName("something");
         expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-        expect(filterCriteria).toBeDefined();
     });
 
-    it("calls reapplyFilters on filterName", () => {
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(0);
+    it("does not calls setFilterCriteria on duplicate filterName", () => {
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
         viewFilterService.filterName("something");
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not calls reapplyFilter on duplicate filterName", () => {
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(0);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
         viewFilterService.filterName("something");
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
-        viewFilterService.filterName("something");
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
     });
 
     it("filters by name correctly", () => {
@@ -79,41 +78,41 @@ describe("Testing view file filter service", () => {
         expect(filterCriteria.meetsCriteria(new ViewFile({name: "aaaflowerbbb"}))).toBe(true);
     });
 
-    it("calls reapplyFilters on filterStatus", () => {
+    it("calls setFilterCriteria on filterStatus", () => {
         // Enable the status by sending a file with the status
         viewFileService._files.next(Immutable.List([
             new ViewFile({status: ViewFile.Status.QUEUED})
         ]));
 
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(0);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
         viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call reapplyFilters on duplicate filterStatus", () => {
+    it("does not call setFilterCriteria on duplicate filterStatus", () => {
         // Enable the status by sending a file with the status
         viewFileService._files.next(Immutable.List([
             new ViewFile({status: ViewFile.Status.QUEUED})
         ]));
 
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(0);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
         viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
         viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call reapplyFilters on non-existing filterStatus", () => {
+    it("does not call setFilterCriteria on non-existing filterStatus", () => {
         // Enable the status by sending a file with the status
         viewFileService._files.next(Immutable.List([
             new ViewFile({status: ViewFile.Status.QUEUED})
         ]));
 
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(0);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
         viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
         viewFilterService.filterStatus(ViewFile.Status.EXTRACTING);
-        expect(viewFileService.reapplyFilters).toHaveBeenCalledTimes(1);
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
     });
 
     it("has status filter disabled by default", fakeAsync(() => {
