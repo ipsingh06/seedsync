@@ -1,5 +1,5 @@
 import {BrowserModule} from "@angular/platform-browser";
-import {NgModule} from "@angular/core";
+import {APP_INITIALIZER, NgModule} from "@angular/core";
 import {HttpClientModule} from "@angular/common/http";
 import {FormsModule} from "@angular/forms";
 import {RouteReuseStrategy, RouterModule} from "@angular/router";
@@ -88,6 +88,14 @@ import {ViewFileOptionsService} from "./services/files/view-file-options.service
         AutoQueueServiceProvider,
         ConfigServiceProvider,
         ServerCommandServiceProvider,
+
+        // Initialize services not tied to any components
+        {
+            provide: APP_INITIALIZER,
+            useFactory: (s) => () => null,
+            deps: [ViewFileFilterService],
+            multi: true
+        },
     ],
     bootstrap: [AppComponent]
 })

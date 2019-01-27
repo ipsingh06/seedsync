@@ -3,7 +3,8 @@
         <img src="assets/icons/search.svg" />
         <div class="input-group">
             <input class="form-control" placeholder="Filter by name..." type="search"
-                   [ngModel]="filterName" (ngModelChange)="onFilterByName($event)">
+                   [ngModel]="(options | async)?.nameFilter"
+                   (ngModelChange)="onFilterByName($event)">
         </div>
     </div>
 
@@ -16,31 +17,38 @@
             </div>
             <div class="selection">
                 <!-- these divs only show the selected option -->
-                <div class="sel-item" id="sel-item-all" *ngIf="(filter | async)?.allFilterSelected">
+                <div class="sel-item" id="sel-item-all"
+                     *ngIf="(options | async)?.selectedStatusFilter == null">
                     <div class="icon"></div>
                     <span class="text">All</span>
                 </div>
-                <div class="sel-item" *ngIf="(filter | async)?.extractedFilterSelected">
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTED">
                     <div class="icon"><img src="assets/icons/extracted.svg" class="extracted" /></div>
                     <span class="text">Extracted</span>
                 </div>
-                <div class="sel-item" *ngIf="(filter | async)?.extractingFilterSelected">
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTING">
                     <div class="icon"><img src="assets/icons/extracting.svg" class="extracting" /></div>
                     <span class="text">Extracting</span>
                 </div>
-                <div class="sel-item" *ngIf="(filter | async)?.downloadedFilterSelected">
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADED">
                     <div class="icon"><img src="assets/icons/downloaded.svg" class="downloaded" /></div>
                     <span class="text">Downloaded</span>
                 </div>
-                <div class="sel-item" *ngIf="(filter | async)?.downloadingFilterSelected">
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADING">
                     <div class="icon"><img src="assets/icons/downloading.svg" class="downloading" /></div>
                     <span class="text">Downloading</span>
                 </div>
-                <div class="sel-item" *ngIf="(filter | async)?.queuedFilterSelected">
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.QUEUED">
                     <div class="icon"><img src="assets/icons/queued.svg" class="queued" /></div>
                     <span class="text">Queued</span>
                 </div>
-                <div class="sel-item" *ngIf="(filter | async)?.stoppedFilterSelected">
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.STOPPED">
                     <div class="icon"><img src="assets/icons/stopped.svg" class="stopped" /></div>
                     <span class="text">Stopped</span>
                 </div>
@@ -48,50 +56,50 @@
         </button>
         <div class="dropdown-menu">
             <div class="dropdown-item"
-                 [class.active]="(filter | async)?.allFilterSelected"
-                 (click)="onFilterAll()">
+                 [class.active]="(options | async)?.selectedStatusFilter == null"
+                 (click)="onFilterByStatus(null)">
                 <div class="icon"></div>
                 <span class="text">All</span>
             </div>
             <div class="dropdown-item"
-                 [class.active]="(filter | async)?.extractedFilterSelected"
-                 [class.disabled]="(filter | async)?.extractedFilterEnabled ? null : true"
-                 (click)="onFilterExtracted()">
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTED"
+                 [class.disabled]="isExtractedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.EXTRACTED)">
                 <div class="icon"><img src="assets/icons/extracted.svg" class="extracted" /></div>
                 <span class="text">Extracted</span>
             </div>
             <div class="dropdown-item"
-                 [class.active]="(filter | async)?.extractingFilterSelected"
-                 [class.disabled]="(filter | async)?.extractingFilterEnabled ? null : true"
-                 (click)="onFilterExtracting()">
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTING"
+                 [class.disabled]="isExtractingStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.EXTRACTING)">
                 <div class="icon"><img src="assets/icons/extracting.svg" class="extracting" /></div>
                 <span class="text">Extracting</span>
             </div>
             <div class="dropdown-item"
-                 [class.active]="(filter | async)?.downloadedFilterSelected"
-                 [class.disabled]="(filter | async)?.downloadedFilterEnabled ? null : true"
-                 (click)="onFilterDownloaded()">
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADED"
+                 [class.disabled]="isDownloadedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.DOWNLOADED)">
                 <div class="icon"><img src="assets/icons/downloaded.svg" class="downloaded" /></div>
                 <span class="text">Downloaded</span>
             </div>
             <div class="dropdown-item"
-                 [class.active]="(filter | async)?.downloadingFilterSelected"
-                 [class.disabled]="(filter | async)?.downloadingFilterEnabled ? null : true"
-                 (click)="onFilterDownloading()">
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADING"
+                 [class.disabled]="isDownloadingStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.DOWNLOADING)">
                 <div class="icon"><img src="assets/icons/downloading.svg" class="downloading" /></div>
                 <span class="text">Downloading</span>
             </div>
             <div class="dropdown-item"
-                 [class.active]="(filter | async)?.queuedFilterSelected"
-                 [class.disabled]="(filter | async)?.queuedFilterEnabled ? null : true"
-                 (click)="onFilterQueued()">
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.QUEUED"
+                 [class.disabled]="isQueuedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.QUEUED)">
                 <div class="icon"><img src="assets/icons/queued.svg" class="queued" /></div>
                 <span class="text">Queued</span>
             </div>
             <div class="dropdown-item"
-                 [class.active]="(filter | async)?.stoppedFilterSelected"
-                 [class.disabled]="(filter | async)?.stoppedFilterEnabled ? null : true"
-                 (click)="onFilterStopped()">
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.STOPPED"
+                 [class.disabled]="isStoppedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.STOPPED)">
                 <div class="icon"><img src="assets/icons/stopped.svg" class="stopped" /></div>
                 <span class="text">Stopped</span>
             </div>

@@ -7,7 +7,7 @@ import * as Immutable from "immutable";
 import {LoggerService} from "../utils/logger.service";
 import {ViewFile} from "./view-file";
 import {ViewFileFilterCriteria, ViewFileService} from "./view-file.service";
-import {ViewFileFilter} from "./view-file-filter";
+import {ViewFileOptionsService} from "./view-file-options.service";
 
 
 class AndFilterCriteria implements ViewFileFilterCriteria {
@@ -42,11 +42,15 @@ class NameFilterCriteria implements ViewFileFilterCriteria {
 
     constructor(name: string) {
         this._name = name;
-        const query = this._name.toLowerCase();
-        this._queryCandidates = [
-            query,
-            query.replace(/\s/g, "."),
-        ];
+        if (this._name != null) {
+            const query = this._name.toLowerCase();
+            this._queryCandidates = [
+                query,
+                // treat dots and spaces as the same
+                query.replace(/\s/g, "."),
+                query.replace(/\./g, " "),
+            ];
+        }
     }
 
     meetsCriteria(viewFile: ViewFile): boolean {
@@ -69,57 +73,36 @@ class NameFilterCriteria implements ViewFileFilterCriteria {
  */
 @Injectable()
 export class ViewFileFilterService {
-
-    private _filter: BehaviorSubject<ViewFileFilter> = new BehaviorSubject(new ViewFileFilter({}));
-
-    private _viewFiles: Immutable.List<ViewFile> = Immutable.List<ViewFile>([]);
     private _statusFilter: StatusFilterCriteria = null;
     private _nameFilter: NameFilterCriteria = null;
 
     constructor(private _logger: LoggerService,
-                private _viewFileService: ViewFileService) {
-        _viewFileService.files.subscribe(files => {
-            this._viewFiles = files;
-            this.updateState();
+                private _viewFileService: ViewFileService,
+                private _viewFileOptionsService: ViewFileOptionsService) {
+        this._viewFileOptionsService.options.subscribe(options => {
+            let updateFilterCriteria = false;
+
+            // Check to see if status filter changed
+            if (this._statusFilter == null ||
+                    this._statusFilter.status !== options.selectedStatusFilter){
+                updateFilterCriteria = true;
+                this._statusFilter = new StatusFilterCriteria(options.selectedStatusFilter);
+                this._logger.debug("Status filter set to: " + options.selectedStatusFilter);
+            }
+
+            // Check to see if the name filter changed
+            if (this._nameFilter == null ||
+                    this._nameFilter.name !== options.nameFilter) {
+                updateFilterCriteria = true;
+                this._nameFilter = new NameFilterCriteria(options.nameFilter);
+                this._logger.debug("Name filter set to: " + options.nameFilter);
+            }
+
+            // Update the filter criteria if necessary
+            if (updateFilterCriteria) {
+                this._viewFileService.setFilterCriteria(this.buildFilterCriteria());
+            }
         });
-    }
-
-    get filter(): Observable<ViewFileFilter> {
-        return this._filter.asObservable();
-    }
-
-    /**
-     * Filter by status
-     * @param {ViewFile.Status} status, or null for disabled/all
-     */
-    public filterStatus(status: ViewFile.Status) {
-        if (this._statusFilter != null && this._statusFilter.status === status) { return; }
-
-        if (this.isStatusEnabled(status)) {
-            this._logger.debug("Setting status filter: %O", status == null ? "all" : status);
-            this._statusFilter = new StatusFilterCriteria(status);
-            // Note: updateState() will be called when filters are reapplied
-            //       but we call it anyways to speed up the UI update of filter state
-            this.updateState();
-            this._viewFileService.setFilterCriteria(this.buildFilterCriteria());
-        } else {
-            // Normally we would want to log a warning here, however the component
-            // currently has no way to disable the click action on a button because
-            // async pipes cannot be used inside the click action. Therefore, the
-            // component has no way to disable the button on its end
-            // So instead, we gracefully accept this invalid action and do nothing
-        }
-    }
-
-    /**
-     * Filter by name
-     * @param {string} name
-     */
-    public filterName(name: string) {
-        if (this._nameFilter != null && this._nameFilter.name === name) { return; }
-
-        this._nameFilter = new NameFilterCriteria(name);
-        this._viewFileService.setFilterCriteria(this.buildFilterCriteria());
     }
 
     private buildFilterCriteria(): ViewFileFilterCriteria {
@@ -132,57 +115,5 @@ export class ViewFileFilterService {
         } else {
             return null;
         }
-    }
-
-    private isStatusEnabled(status: ViewFile.Status) {
-        if (status == null) { return true; }
-        return this._viewFiles.findIndex(f => f.status === status) >= 0;
-    }
-
-    private updateState() {
-        const extractedEn = this.isStatusEnabled(ViewFile.Status.EXTRACTED);
-        const extractingEn = this.isStatusEnabled(ViewFile.Status.EXTRACTING);
-        const downloadedEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADED);
-        const downloadingEn = this.isStatusEnabled(ViewFile.Status.DOWNLOADING);
-        const queuedEn = this.isStatusEnabled(ViewFile.Status.QUEUED);
-        const stoppedEn = this.isStatusEnabled(ViewFile.Status.STOPPED);
-        const defaultEn = this.isStatusEnabled(ViewFile.Status.DEFAULT);
-
-        const allSel = this._statusFilter == null || this._statusFilter.status == null;
-        const extractedSel = this._statusFilter != null &&
-            this._statusFilter.status === ViewFile.Status.EXTRACTED;
-        const extractingSel = this._statusFilter != null &&
-            this._statusFilter.status === ViewFile.Status.EXTRACTING;
-        const downloadedSel = this._statusFilter != null &&
-            this._statusFilter.status === ViewFile.Status.DOWNLOADED;
-        const downloadingSel = this._statusFilter != null &&
-            this._statusFilter.status === ViewFile.Status.DOWNLOADING;
-        const queuedSel = this._statusFilter != null &&
-            this._statusFilter.status === ViewFile.Status.QUEUED;
-        const stoppedSel = this._statusFilter != null &&
-            this._statusFilter.status === ViewFile.Status.STOPPED;
-        const defaultSel = this._statusFilter != null &&
-            this._statusFilter.status === ViewFile.Status.DEFAULT;
-
-        const filter: ViewFileFilter = new ViewFileFilter({
-            extractedFilterEnabled: extractedEn,
-            extractingFilterEnabled: extractingEn,
-            downloadedFilterEnabled: downloadedEn,
-            downloadingFilterEnabled: downloadingEn,
-            queuedFilterEnabled: queuedEn,
-            stoppedFilterEnabled: stoppedEn,
-            defaultFilterEnabled: defaultEn,
-
-            allFilterSelected: allSel,
-            extractedFilterSelected: extractedSel,
-            extractingFilterSelected: extractingSel,
-            downloadedFilterSelected: downloadedSel,
-            downloadingFilterSelected: downloadingSel,
-            queuedFilterSelected: queuedSel,
-            stoppedFilterSelected: stoppedSel,
-            defaultFilterSelected: defaultSel,
-        });
-        this._logger.debug("Updated filter: %O", filter.toJS());
-        this._filter.next(filter);
     }
 }

@@ -1,19 +1,20 @@
 import {fakeAsync, TestBed, tick} from "@angular/core/testing";
 
-import * as Immutable from "immutable";
-
 import {ViewFileFilterService} from "../../../../services/files/view-file-filter.service";
 import {LoggerService} from "../../../../services/utils/logger.service";
 import {ViewFileFilterCriteria, ViewFileService} from "../../../../services/files/view-file.service";
 import {MockViewFileService} from "../../../mocks/mock-view-file.service";
 import {ViewFile} from "../../../../services/files/view-file";
-import {ViewFileFilter} from "../../../../services/files/view-file-filter";
+import {ViewFileOptionsService} from "../../../../services/files/view-file-options.service";
+import {MockViewFileOptionsService} from "../../../mocks/mock-view-file-options.service";
+import {ViewFileOptions} from "../../../../services/files/view-file-options";
 
 
 describe("Testing view file filter service", () => {
     let viewFilterService: ViewFileFilterService;
 
     let viewFileService: MockViewFileService;
+    let viewFileOptionsService: MockViewFileOptionsService;
     let filterCriteria: ViewFileFilterCriteria;
 
     beforeEach(() => {
@@ -21,13 +22,16 @@ describe("Testing view file filter service", () => {
             providers: [
                 ViewFileFilterService,
                 LoggerService,
-                {provide: ViewFileService, useClass: MockViewFileService}
+                {provide: ViewFileService, useClass: MockViewFileService},
+                {provide: ViewFileOptionsService, useClass: MockViewFileOptionsService}
             ]
         });
         viewFileService = TestBed.get(ViewFileService);
         spyOn(viewFileService, "setFilterCriteria").and.callFake(
             value => filterCriteria = value
         );
+
+        viewFileOptionsService = TestBed.get(ViewFileOptionsService);
 
         viewFilterService = TestBed.get(ViewFileFilterService);
     });
@@ -41,22 +45,52 @@ describe("Testing view file filter service", () => {
         expect(filterCriteria).toBeUndefined();
     });
 
-    it("calls setFilterCriteria on filterName", () => {
+    it("calls setFilterCriteria on filter name set", fakeAsync(() => {
         expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
-        viewFilterService.filterName("something");
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "something",
+        }));
+        tick();
         expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-    });
+    }));
 
-    it("does not calls setFilterCriteria on duplicate filterName", () => {
+    it("does not call setFilterCriteria on duplicate filter names", fakeAsync(() => {
         expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
-        viewFilterService.filterName("something");
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "something",
+        }));
+        tick();
         expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-        viewFilterService.filterName("something");
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "something",
+        }));
+        tick();
         expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-    });
+    }));
 
-    it("filters by name correctly", () => {
-        viewFilterService.filterName("tofu");
+    it("does not call setFilterCriteria for filter name " +
+            "when a different option is changed", fakeAsync(() => {
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "something",
+            showDetails: true,
+        }));
+        tick();
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "something",
+            showDetails: false,
+        }));
+        tick();
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
+    }));
+
+    it("correctly filters by name", fakeAsync(() => {
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "tofu",
+        }));
+        tick();
+
         // exact match
         expect(filterCriteria.meetsCriteria(new ViewFile({name: "tofu"}))).toBe(true);
         // no match
@@ -67,7 +101,10 @@ describe("Testing view file filter service", () => {
         expect(filterCriteria.meetsCriteria(new ViewFile({name: "aaatofubbb"}))).toBe(true);
 
         // Another filter
-        viewFilterService.filterName("flower");
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "flower",
+        }));
+        tick();
         // exact match
         expect(filterCriteria.meetsCriteria(new ViewFile({name: "flower"}))).toBe(true);
         // no match
@@ -76,212 +113,90 @@ describe("Testing view file filter service", () => {
         expect(filterCriteria.meetsCriteria(new ViewFile({name: "flowertofu"}))).toBe(true);
         expect(filterCriteria.meetsCriteria(new ViewFile({name: "tofuflower"}))).toBe(true);
         expect(filterCriteria.meetsCriteria(new ViewFile({name: "aaaflowerbbb"}))).toBe(true);
-    });
-
-    it("calls setFilterCriteria on filterStatus", () => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.QUEUED})
-        ]));
-
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
-        viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call setFilterCriteria on duplicate filterStatus", () => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.QUEUED})
-        ]));
-
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
-        viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-        viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call setFilterCriteria on non-existing filterStatus", () => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.QUEUED})
-        ]));
-
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
-        viewFilterService.filterStatus(ViewFile.Status.QUEUED);
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-        viewFilterService.filterStatus(ViewFile.Status.EXTRACTING);
-        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
-    });
-
-    it("has status filter disabled by default", fakeAsync(() => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.DEFAULT}),
-            new ViewFile({status: ViewFile.Status.QUEUED}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADING}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADED}),
-            new ViewFile({status: ViewFile.Status.STOPPED}),
-            new ViewFile({status: ViewFile.Status.DELETED}),
-            new ViewFile({status: ViewFile.Status.EXTRACTING}),
-            new ViewFile({status: ViewFile.Status.EXTRACTED})
-        ]));
-
-        let count = 0;
-        let filter: ViewFileFilter = null;
-        viewFilterService.filter.subscribe({
-            next: _filter => {
-                filter = _filter;
-                count++;
-            }
-        });
-        tick();
-        expect(count).toBe(1);
-        expect(filter.allFilterSelected).toBe(true);
-        expect(filter.defaultFilterSelected).toBe(false);
-        expect(filter.queuedFilterSelected).toBe(false);
-        expect(filter.downloadingFilterSelected).toBe(false);
-        expect(filter.downloadedFilterSelected).toBe(false);
-        expect(filter.stoppedFilterSelected).toBe(false);
-        expect(filter.extractingFilterSelected).toBe(false);
-        expect(filter.extractedFilterSelected).toBe(false);
     }));
 
-    it("updates selected filter on filterStatus", fakeAsync(() => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.DEFAULT}),
-            new ViewFile({status: ViewFile.Status.QUEUED}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADING}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADED}),
-            new ViewFile({status: ViewFile.Status.STOPPED}),
-            new ViewFile({status: ViewFile.Status.DELETED}),
-            new ViewFile({status: ViewFile.Status.EXTRACTING}),
-            new ViewFile({status: ViewFile.Status.EXTRACTED})
-        ]));
-
-        let count = 0;
-        let filter: ViewFileFilter = null;
-        viewFilterService.filter.subscribe({
-            next: _filter => {
-                filter = _filter;
-                count++;
-            }
-        });
+    it("ignores cases when filtering by name", fakeAsync(() => {
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "tofu",
+        }));
         tick();
-        expect(count).toBe(1);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "TOFU"}))).toBe(true);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "TofU"}))).toBe(true);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "aaaToFubbb"}))).toBe(true);
 
-        viewFilterService.filterStatus(ViewFile.Status.DEFAULT);
+        // Another filter
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "flOweR",
+        }));
         tick();
-        expect(count).toBe(2);
-        expect(filter.allFilterSelected).toBe(false);
-        expect(filter.defaultFilterSelected).toBe(true);
-        expect(filter.queuedFilterSelected).toBe(false);
-        expect(filter.downloadingFilterSelected).toBe(false);
-        expect(filter.downloadedFilterSelected).toBe(false);
-        expect(filter.stoppedFilterSelected).toBe(false);
-        expect(filter.extractingFilterSelected).toBe(false);
-        expect(filter.extractedFilterSelected).toBe(false);
-
-        viewFilterService.filterStatus(ViewFile.Status.EXTRACTING);
-        tick();
-        expect(count).toBe(3);
-        expect(filter.allFilterSelected).toBe(false);
-        expect(filter.defaultFilterSelected).toBe(false);
-        expect(filter.queuedFilterSelected).toBe(false);
-        expect(filter.downloadingFilterSelected).toBe(false);
-        expect(filter.downloadedFilterSelected).toBe(false);
-        expect(filter.stoppedFilterSelected).toBe(false);
-        expect(filter.extractingFilterSelected).toBe(true);
-        expect(filter.extractedFilterSelected).toBe(false);
-
-        // Disabled filter
-        viewFilterService.filterStatus(null);
-        tick();
-        expect(count).toBe(4);
-        expect(filter.allFilterSelected).toBe(true);
-        expect(filter.defaultFilterSelected).toBe(false);
-        expect(filter.queuedFilterSelected).toBe(false);
-        expect(filter.downloadingFilterSelected).toBe(false);
-        expect(filter.downloadedFilterSelected).toBe(false);
-        expect(filter.stoppedFilterSelected).toBe(false);
-        expect(filter.extractedFilterSelected).toBe(false);
-        expect(filter.extractedFilterSelected).toBe(false);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "FLowEr"}))).toBe(true);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "tofuflowertofu"}))).toBe(true);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "floWer"}))).toBe(true);
     }));
 
-    it("updates enabled filters on view model updates", fakeAsync(() => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.DEFAULT}),
-            new ViewFile({status: ViewFile.Status.QUEUED}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADING}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADED}),
-            new ViewFile({status: ViewFile.Status.STOPPED}),
-            new ViewFile({status: ViewFile.Status.DELETED}),
-            new ViewFile({status: ViewFile.Status.EXTRACTING}),
-            new ViewFile({status: ViewFile.Status.EXTRACTED})
-        ]));
-
-        let count = 0;
-        let filter: ViewFileFilter = null;
-        viewFilterService.filter.subscribe({
-            next: _filter => {
-                filter = _filter;
-                count++;
-            }
-        });
+    it("treats dots as spaces when filtering by name", fakeAsync(() => {
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "to.fu",
+        }));
         tick();
-        expect(count).toBe(1);
-        expect(filter.defaultFilterEnabled).toBe(true);
-        expect(filter.queuedFilterEnabled).toBe(true);
-        expect(filter.downloadingFilterEnabled).toBe(true);
-        expect(filter.downloadedFilterEnabled).toBe(true);
-        expect(filter.stoppedFilterEnabled).toBe(true);
-        expect(filter.extractingFilterEnabled).toBe(true);
-        expect(filter.extractedFilterEnabled).toBe(true);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "to.fu"}))).toBe(true);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "to fu"}))).toBe(true);
 
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.DEFAULT}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADED}),
-            new ViewFile({status: ViewFile.Status.EXTRACTED})
-        ]));
+        // Another filter
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            nameFilter: "flo wer",
+        }));
         tick();
-        expect(count).toBe(2);
-        expect(filter.defaultFilterEnabled).toBe(true);
-        expect(filter.queuedFilterEnabled).toBe(false);
-        expect(filter.downloadingFilterEnabled).toBe(false);
-        expect(filter.downloadedFilterEnabled).toBe(true);
-        expect(filter.stoppedFilterEnabled).toBe(false);
-        expect(filter.extractingFilterEnabled).toBe(false);
-        expect(filter.extractedFilterEnabled).toBe(true);
-
-        viewFileService._files.next(Immutable.List([]));
-        tick();
-        expect(count).toBe(3);
-        expect(filter.defaultFilterEnabled).toBe(false);
-        expect(filter.queuedFilterEnabled).toBe(false);
-        expect(filter.downloadingFilterEnabled).toBe(false);
-        expect(filter.downloadedFilterEnabled).toBe(false);
-        expect(filter.stoppedFilterEnabled).toBe(false);
-        expect(filter.extractingFilterEnabled).toBe(false);
-        expect(filter.extractedFilterEnabled).toBe(false);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "flo wer"}))).toBe(true);
+        expect(filterCriteria.meetsCriteria(new ViewFile({name: "flo.wer"}))).toBe(true);
     }));
 
-    it("filters by status correctly", () => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.DEFAULT}),
-            new ViewFile({status: ViewFile.Status.QUEUED}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADING}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADED}),
-            new ViewFile({status: ViewFile.Status.STOPPED}),
-            new ViewFile({status: ViewFile.Status.DELETED}),
-            new ViewFile({status: ViewFile.Status.EXTRACTING}),
-            new ViewFile({status: ViewFile.Status.EXTRACTED})
-        ]));
+    it("calls setFilterCriteria on filter status set", fakeAsync(() => {
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.QUEUED
+        }));
+        tick();
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
+    }));
 
-        viewFilterService.filterStatus(ViewFile.Status.DEFAULT);
+    it("does not call setFilterCriteria on duplicate filter status", fakeAsync(() => {
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.QUEUED
+        }));
+        tick();
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.QUEUED
+        }));
+        tick();
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
+    }));
+
+    it("does not call setFilterCriteria for filter status " +
+            "when a different option is changed", fakeAsync(() => {
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(0);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.QUEUED,
+            showDetails: true,
+        }));
+        tick();
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.QUEUED,
+            showDetails: false,
+        }));
+        tick();
+        expect(viewFileService.setFilterCriteria).toHaveBeenCalledTimes(1);
+    }));
+
+    it("correctly filters by status", fakeAsync(() => {
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.DEFAULT,
+        }));
+        tick();
+
         // exact match
         expect(filterCriteria.meetsCriteria(
             new ViewFile({status: ViewFile.Status.DEFAULT}))).toBe(true);
@@ -294,7 +209,10 @@ describe("Testing view file filter service", () => {
             new ViewFile({status: ViewFile.Status.DELETED}))).toBe(false);
 
         // Another filter
-        viewFilterService.filterStatus(ViewFile.Status.EXTRACTING);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.EXTRACTING,
+        }));
+        tick();
         // exact match
         expect(filterCriteria.meetsCriteria(
             new ViewFile({status: ViewFile.Status.EXTRACTING}))).toBe(true);
@@ -307,7 +225,10 @@ describe("Testing view file filter service", () => {
             new ViewFile({status: ViewFile.Status.DELETED}))).toBe(false);
 
         // Disable status filter
-        viewFilterService.filterStatus(null);
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: null,
+        }));
+        tick();
         // all matches
         expect(filterCriteria.meetsCriteria(
             new ViewFile({status: ViewFile.Status.DEFAULT}))).toBe(true);
@@ -325,23 +246,15 @@ describe("Testing view file filter service", () => {
             new ViewFile({status: ViewFile.Status.EXTRACTING}))).toBe(true);
         expect(filterCriteria.meetsCriteria(
             new ViewFile({status: ViewFile.Status.EXTRACTED}))).toBe(true);
-    });
+    }));
 
-    it("filters by name AND status correctly", () => {
-        // Enable the status by sending a file with the status
-        viewFileService._files.next(Immutable.List([
-            new ViewFile({status: ViewFile.Status.DEFAULT}),
-            new ViewFile({status: ViewFile.Status.QUEUED}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADING}),
-            new ViewFile({status: ViewFile.Status.DOWNLOADED}),
-            new ViewFile({status: ViewFile.Status.STOPPED}),
-            new ViewFile({status: ViewFile.Status.DELETED}),
-            new ViewFile({status: ViewFile.Status.EXTRACTING}),
-            new ViewFile({status: ViewFile.Status.EXTRACTED})
-        ]));
+    it("correctly filters by name AND status", fakeAsync(() => {
+        viewFileOptionsService._options.next(new ViewFileOptions({
+            selectedStatusFilter: ViewFile.Status.DEFAULT,
+            nameFilter: "tofu",
+        }));
+        tick();
 
-        viewFilterService.filterStatus(ViewFile.Status.DEFAULT);
-        viewFilterService.filterName("tofu");
         // both match
         expect(filterCriteria.meetsCriteria(new ViewFile({
             name: "tofu",
@@ -363,5 +276,5 @@ describe("Testing view file filter service", () => {
             name: "flower",
             status: ViewFile.Status.QUEUED
         }))).toBe(false);
-    });
+    }));
 });
