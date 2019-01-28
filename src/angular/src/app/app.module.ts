@@ -94,13 +94,13 @@ import {ViewFileSortService} from "./services/files/view-file-sort.service";
         // Initialize services not tied to any components
         {
             provide: APP_INITIALIZER,
-            useFactory: (s) => () => null,
+            useFactory: dummyFactory,
             deps: [ViewFileFilterService],
             multi: true
         },
         {
             provide: APP_INITIALIZER,
-            useFactory: (s) => () => null,
+            useFactory: dummyFactory,
             deps: [ViewFileSortService],
             multi: true
         },
@@ -111,4 +111,9 @@ export class AppModule {
     constructor(private logger: LoggerService) {
         this.logger.level = environment.logger.level;
     }
+}
+
+// noinspection JSUnusedLocalSymbols
+export function dummyFactory(s) {
+    return () => null;
 }
