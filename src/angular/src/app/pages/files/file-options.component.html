@@ -145,13 +145,13 @@
                  [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_ASC"
                  (click)="onSort(ViewFileOptions.SortMethod.NAME_ASC)">
                 <div class="icon"><img src="assets/icons/sort-asc.svg" class="sort-asc" /></div>
-                <span class="text">Name Asc</span>
+                <span class="text">Name A&#8594;Z</span>
             </div>
             <div class="dropdown-item"
                  [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_DESC"
                  (click)="onSort(ViewFileOptions.SortMethod.NAME_DESC)">
                 <div class="icon"><img src="assets/icons/sort-desc.svg" class="sort-desc" /></div>
-                <span class="text">Name Desc</span>
+                <span class="text">Name Z&#8594;A</span>
             </div>
         </div>
     </div>
