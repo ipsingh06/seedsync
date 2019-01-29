@@ -1,4 +1,6 @@
-<div id="file-options">
+<div id="file-options"
+     [style.top.px]="headerHeight | async"
+     [class.sticky]="isFilterPinned">
     <div id="filter-search">
         <img src="assets/icons/search.svg" />
         <div class="input-group">
@@ -174,4 +176,14 @@
             </div>
         </div>
     </button>
+
+    <div id="small-buttons">
+        <button id="pin-filter"
+                type="button"
+                class="btn btn-primary"
+                [class.active]="isFilterPinned"
+                (click)="isFilterPinned=!isFilterPinned">
+            <i class="fa fa-thumb-tack"></i>
+        </button>
+    </div>
 </div>

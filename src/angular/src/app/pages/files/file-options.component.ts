@@ -7,6 +7,7 @@ import {ViewFileOptionsService} from "../../services/files/view-file-options.ser
 import {ViewFileOptions} from "../../services/files/view-file-options";
 import {ViewFile} from "../../services/files/view-file";
 import {ViewFileService} from "../../services/files/view-file.service";
+import {DomService} from "../../services/utils/dom.service";
 
 @Component({
     selector: "app-file-options",
@@ -21,6 +22,7 @@ export class FileOptionsComponent implements OnInit {
     public ViewFileOptions = ViewFileOptions;
 
     public options: Observable<ViewFileOptions>;
+    public headerHeight: Observable<number>;
 
     // These track which status filters are enabled
     public isExtractedStatusEnabled = false;
@@ -30,12 +32,17 @@ export class FileOptionsComponent implements OnInit {
     public isQueuedStatusEnabled = false;
     public isStoppedStatusEnabled = false;
 
+    // Track filter pin status
+    public isFilterPinned = false;
+
     private _latestOptions: ViewFileOptions;
 
     constructor(private _changeDetector: ChangeDetectorRef,
                 private viewFileOptionsService: ViewFileOptionsService,
-                private _viewFileService: ViewFileService) {
+                private _viewFileService: ViewFileService,
+                private _domService: DomService) {
         this.options = this.viewFileOptionsService.options;
+        this.headerHeight = this._domService.headerHeight;
     }
 
     ngOnInit() {

@@ -10,6 +10,7 @@ export class Localization {
 
         public static readonly AUTOQUEUE_PATTERN_EMPTY = "Cannot add an empty autoqueue pattern.";
 
+        public static readonly STATUS_CONNECTION_WAITING = "Waiting for SeedSync service to respond...";
         public static readonly STATUS_REMOTE_SCAN_WAITING = "Waiting for remote server to respond...";
     };
 

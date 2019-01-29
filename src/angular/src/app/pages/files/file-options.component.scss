@@ -137,13 +137,21 @@
 
 
 #file-options {
+    position: static;
+    z-index: $zindex-file-options;
     background-color: $header-color;
     padding: 0 8px 8px 8px;
 
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: space-evenly;
+
+    // Controls whether the div is sticky
+    // This class is enabled programmatically
+    &.sticky {
+        position: sticky;
+        // note: top is set programmatically
+    }
 
     #filter-search {
         flex-grow: 1;
@@ -233,6 +241,28 @@
         }
     }
 
+    #small-buttons {
+        flex-grow: 1;
+        padding-top: 5px;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+
+        #pin-filter {
+            @extend %toggle;
+
+            width: 20px;
+            height: 20px;
+            padding: 0;
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
     // Margins for all the buttons
     #filter-status,
     #sort-status,
@@ -261,11 +291,6 @@
                 }
             }
         }
-    }
-
-    #file-options {
-        // Move buttons to the left
-        justify-content: flex-start;
     }
 
     // Margins for the non-first buttons

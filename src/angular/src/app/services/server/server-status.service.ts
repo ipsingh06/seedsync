@@ -13,7 +13,8 @@ export class ServerStatusService extends BaseStreamService {
     private _status: BehaviorSubject<ServerStatus> =
         new BehaviorSubject(new ServerStatus({
             server: {
-                up: false
+                up: false,
+                errorMessage: Localization.Notification.STATUS_CONNECTION_WAITING
             }
         }));
 

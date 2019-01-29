@@ -25,16 +25,24 @@
 </div>
 
 <div id="top-content">
-
     <div id="top-header">
+        <!--
+            We attach the ResizeSensor to the header so that we can advertise its height
+            to other components, who can correctly position any sticky elements
+            Since ResizeSensor forces the div to be position: absolute, we create a wrapper
+            div to which to apply the sensor
+         -->
+        <div #topHeader>
 
-        <app-header></app-header>
+            <app-header></app-header>
 
-        <div id="title-bar">
-            <button id="sidebar-btn-open" class="sidebar-btn" (click)="showSidebar=!showSidebar">
-                &#9776;
-            </button>
-            <span id="title">{{activeRoute?.name}}</span>
+            <div id="title-bar">
+                <button id="sidebar-btn-open" class="sidebar-btn" (click)="showSidebar=!showSidebar">
+                    &#9776;
+                </button>
+                <span id="title">{{activeRoute?.name}}</span>
+            </div>
+
         </div>
 
     </div>
