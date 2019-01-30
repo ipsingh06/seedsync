@@ -1,6 +1,6 @@
 import {
     AfterContentChecked,
-    ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener,
+    ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener,
     OnInit, ViewChild, ViewContainerRef
 } from "@angular/core";
 
@@ -39,7 +39,8 @@ export class LogsPageComponent implements OnInit, AfterContentChecked {
 
     private _logService: LogService;
 
-    constructor(private _changeDetector: ChangeDetectorRef,
+    constructor(private _elementRef: ElementRef,
+                private _changeDetector: ChangeDetectorRef,
                 private _streamRegistry: StreamServiceRegistry,
                 private _domService: DomService) {
         this._logService = _streamRegistry.logService;
@@ -74,7 +75,9 @@ export class LogsPageComponent implements OnInit, AfterContentChecked {
     }
 
     private insertRecord(record: LogRecord) {
-        const scrollToBottom = LogsPageComponent.isElementInViewport(this.logTail.nativeElement);
+        // Scroll down if the log is visible and already scrolled to the bottom
+        const scrollToBottom = this._elementRef.nativeElement.offsetParent != null &&
+            LogsPageComponent.isElementInViewport(this.logTail.nativeElement);
         this.container.createEmbeddedView(this.templateRecord, {record: record});
         this._changeDetector.detectChanges();
 
