@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, ElementRef, ViewChild} from "@angular/core";
-import {Router} from "@angular/router";
+import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from "@angular/core";
+import {NavigationEnd, Router} from "@angular/router";
 import {ROUTE_INFOS, RouteInfo} from "../../routes";
 
 import {ElementQueries, ResizeSensor} from "css-element-queries";
@@ -10,13 +10,13 @@ import {DomService} from "../../services/utils/dom.service";
     templateUrl: "./app.component.html",
     styleUrls: ["./app.component.scss"]
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit, AfterViewInit {
     @ViewChild("topHeader") topHeader: ElementRef;
 
     showSidebar = false;
     activeRoute: RouteInfo;
 
-    constructor(router: Router,
+    constructor(private router: Router,
                 private _domService: DomService) {
         // Navigation listener
         //    Close the sidebar
@@ -24,6 +24,16 @@ export class AppComponent implements AfterViewInit {
         router.events.subscribe(() => {
             this.showSidebar = false;
             this.activeRoute = ROUTE_INFOS.find(value => "/" + value.path === router.url);
+        });
+    }
+
+    ngOnInit() {
+        // Scroll to top on route changes
+        this.router.events.subscribe((evt) => {
+            if (!(evt instanceof NavigationEnd)) {
+                return;
+            }
+            window.scrollTo(0, 0);
         });
     }
 
