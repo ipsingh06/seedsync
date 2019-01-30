@@ -42,6 +42,7 @@ import {ROUTES} from "./routes";
 import {ViewFileOptionsService} from "./services/files/view-file-options.service";
 import {ViewFileSortService} from "./services/files/view-file-sort.service";
 import {DomService} from "./services/utils/dom.service";
+import {StorageServiceModule} from "angular-webstorage-service";
 
 @NgModule({
     declarations: [
@@ -69,7 +70,8 @@ import {DomService} from "./services/utils/dom.service";
         RouterModule.forRoot(ROUTES),
 
         ModalModule.forRoot(),
-        BootstrapModalModule
+        BootstrapModalModule,
+        StorageServiceModule
     ],
     providers: [
         {provide: RouteReuseStrategy, useClass: CachedReuseStrategy},

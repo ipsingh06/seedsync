@@ -32,9 +32,6 @@ export class FileOptionsComponent implements OnInit {
     public isQueuedStatusEnabled = false;
     public isStoppedStatusEnabled = false;
 
-    // Track filter pin status
-    public isFilterPinned = false;
-
     private _latestOptions: ViewFileOptions;
 
     constructor(private _changeDetector: ChangeDetectorRef,
@@ -87,6 +84,10 @@ export class FileOptionsComponent implements OnInit {
 
     onToggleShowDetails(){
         this.viewFileOptionsService.setShowDetails(!this._latestOptions.showDetails);
+    }
+
+    onTogglePinFilter() {
+        this.viewFileOptionsService.setPinFilter(!this._latestOptions.pinFilter);
     }
 
     private static isStatusEnabled(files: Immutable.List<ViewFile>, status: ViewFile.Status) {

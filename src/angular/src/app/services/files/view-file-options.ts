@@ -18,6 +18,9 @@ interface IViewFileOptions {
 
     // Name filter setting
     nameFilter: string;
+
+    // Track filter pin status
+    pinFilter: boolean;
 }
 
 
@@ -27,6 +30,7 @@ const DefaultViewFileOptions: IViewFileOptions = {
     sortMethod: null,
     selectedStatusFilter: null,
     nameFilter: null,
+    pinFilter: null,
 };
 const ViewFileOptionsRecord = Record(DefaultViewFileOptions);
 
@@ -39,6 +43,7 @@ export class ViewFileOptions extends ViewFileOptionsRecord implements IViewFileO
     sortMethod: ViewFileOptions.SortMethod;
     selectedStatusFilter: ViewFile.Status;
     nameFilter: string;
+    pinFilter: boolean;
 
     constructor(props) {
         super(props);
