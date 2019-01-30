@@ -17,6 +17,27 @@
         </p>
     </ng-template>
 
+    <button id="btn-scroll-top"
+            type="button"
+            class="btn btn-primary btn-scroll"
+            [class.visible]="showScrollToTopButton"
+            [style.top.px]="headerHeight | async"
+            (click)="scrollToTop()">
+        Scroll To Top
+    </button>
+
+    <div #logHead class="log-marker"></div>
+
     <!-- marks where template should be copied -->
     <ng-container #container></ng-container>
+
+    <div #logTail class="log-marker"></div>
+
+    <button id="btn-scroll-bottom"
+            type="button"
+            class="btn btn-primary btn-scroll"
+            [class.visible]="showScrollToBottomButton"
+            (click)="scrollToBottom()">
+        Scroll To Bottom
+    </button>
 </div>
