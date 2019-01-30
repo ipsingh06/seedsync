@@ -17,15 +17,6 @@
         </p>
     </ng-template>
 
-    <!--suppress HtmlUnknownAttribute -->
-    <ng-template #templateConnected let-connected="connected">
-        <div class="connected">
-            <span *ngIf="connected">{{Localization.Log.CONNECTED}}</span>
-            <span *ngIf="!connected">{{Localization.Log.DISCONNECTED}}</span>
-        </div>
-    </ng-template>
-
-
     <!-- marks where template should be copied -->
     <ng-container #container></ng-container>
 </div>

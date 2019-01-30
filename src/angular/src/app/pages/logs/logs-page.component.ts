@@ -26,12 +26,10 @@ export class LogsPageComponent implements OnInit {
     @ViewChild('container', {read:ViewContainerRef}) container;
 
     private _logService: LogService;
-    private _connectedService: ConnectedService;
 
     constructor(private _changeDetector: ChangeDetectorRef,
                 private _streamRegistry: StreamServiceRegistry) {
         this._logService = _streamRegistry.logService;
-        this._connectedService = _streamRegistry.connectedService;
     }
 
     ngOnInit() {
@@ -40,16 +38,6 @@ export class LogsPageComponent implements OnInit {
                 this.insertRecord(record);
             }
         });
-        this._connectedService.connected.subscribe({
-            next: connected => {
-                this.insertConnected(connected);
-            }
-        });
-    }
-
-    private insertConnected(connected: boolean) {
-        this.container.createEmbeddedView(this.templateConnected, {connected: connected});
-        this._changeDetector.detectChanges();
     }
 
     private insertRecord(record: LogRecord) {

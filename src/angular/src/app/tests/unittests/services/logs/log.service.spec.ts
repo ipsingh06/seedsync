@@ -67,7 +67,7 @@ describe("Testing log service", () => {
         expect(Immutable.is(latestRecord, LogRecord.fromJson(json))).toBe(true);
     }));
 
-    it("should not cache records", fakeAsync(() => {
+    it("should cache records", fakeAsync(() => {
         let count = 0;
         let latestRecord: LogRecord = null;
         // noinspection JSUnusedAssignment
@@ -100,17 +100,17 @@ describe("Testing log service", () => {
             }
         });
         tick();
-        // Except no data yet
-        expect(count).toBe(0);
+        // Expect some data here
+        expect(count).toBe(2);
 
         logService.notifyEvent("log-record", JSON.stringify(data2));
         tick();
-        expect(count).toBe(1);
+        expect(count).toBe(3);
         expect(Immutable.is(latestRecord, LogRecord.fromJson(data2))).toBe(true);
 
         logService.notifyEvent("log-record", JSON.stringify(data1));
         tick();
-        expect(count).toBe(2);
+        expect(count).toBe(4);
         expect(Immutable.is(latestRecord, LogRecord.fromJson(data1))).toBe(true);
     }));
 });

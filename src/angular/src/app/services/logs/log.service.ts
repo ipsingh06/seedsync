@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
-import {Subject} from "rxjs/Subject";
+import {ReplaySubject} from "rxjs/ReplaySubject";
 
 import {BaseStreamService} from "../base/base-stream.service";
 import {LogRecord} from "./log-record";
@@ -9,7 +9,7 @@ import {LogRecord} from "./log-record";
 @Injectable()
 export class LogService extends BaseStreamService {
 
-    private _logs: Subject<LogRecord> = new Subject();
+    private _logs: ReplaySubject<LogRecord> = new ReplaySubject();
 
     constructor() {
         super();
