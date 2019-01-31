@@ -7,6 +7,8 @@
         color: white;
         height: 34px;
         width: 100%;
+        cursor: default;
+        user-select: none;
 
         display: flex;
         flex-direction: row;
@@ -39,6 +41,8 @@
         border: 1px solid $primary-dark-color;
         color: white;
         padding: 0;
+        cursor: default;
+        user-select: none;
 
         .dropdown-item {
             color: white;
@@ -49,8 +53,14 @@
             align-items: center;
             flex-wrap: nowrap;
 
-            &.active {
+            &.active,
+            &.active:hover {
                 background-color: $secondary-dark-color;
+            }
+
+            &:hover,
+            &:active {
+                background-color: $primary-color;
             }
 
             &.disabled {
@@ -99,15 +109,23 @@
     border: 1px solid $primary-dark-color;
     color: white;
     height: 34px;
+    cursor: default;
+    user-select: none;
 
     display: flex;
     flex-direction: row;
     align-items: center;
     flex-wrap: nowrap;
 
-    &.active {
+    &.active,
+    &.active:hover{
         background-color: $secondary-dark-color;
         border-color: $secondary-darker-color;
+    }
+
+    &:hover,
+    &:active {
+        background-color: $primary-color;
     }
 
     &.disabled {
