@@ -385,6 +385,17 @@ class TestAutoQueue(unittest.TestCase):
         self.assertEqual(set([Controller.Command.Action.QUEUE]*3), {c.action for c in commands})
         self.assertEqual({"File.One", "File.Two", "File.Three"}, {c.filename for c in commands})
 
+    def test_non_matches(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="One"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        file_one = ModelFile("Two", True)
+        file_one.remote_size = 100
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
     def test_matching_is_case_insensitive(self):
         persist = AutoQueuePersist()
         persist.add_pattern(AutoQueuePattern(pattern="FiLe.oNe"))
@@ -413,16 +424,155 @@ class TestAutoQueue(unittest.TestCase):
 
     def test_partial_matches(self):
         persist = AutoQueuePersist()
-        persist.add_pattern(AutoQueuePattern(pattern="One"))
+        persist.add_pattern(AutoQueuePattern(pattern="file"))
         # noinspection PyTypeChecker
         auto_queue = AutoQueue(self.context, persist, self.controller)
-        file_one = ModelFile("File.One", True)
+        file_one = ModelFile("fileone", True)  # at start
         file_one.remote_size = 100
+        file_two = ModelFile("twofile", True)  # at end
+        file_two.remote_size = 100
+        file_three = ModelFile("onefiletwo", True)  # in middle
+        file_three.remote_size = 100
+        file_four = ModelFile("fionele", True)  # no match
+        file_four.remote_size = 100
         self.model_listener.file_added(file_one)
+        self.model_listener.file_added(file_two)
+        self.model_listener.file_added(file_three)
+        self.model_listener.file_added(file_four)
         auto_queue.process()
-        command = self.controller.queue_command.call_args[0][0]
-        self.assertEqual(Controller.Command.Action.QUEUE, command.action)
-        self.assertEqual("File.One", command.filename)
+        self.assertEqual(3, self.controller.queue_command.call_count)
+        commands = [call[0][0] for call in self.controller.queue_command.call_args_list]
+        commands_dict = {command.filename: command for command in commands}
+        self.assertTrue("fileone" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["fileone"].action)
+        self.assertTrue("twofile" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["twofile"].action)
+        self.assertTrue("onefiletwo" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["onefiletwo"].action)
+
+    def test_wildcard_at_start_matches(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="*.mkv"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        file_one = ModelFile("File.One.mkv", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two.jpg", True)
+        file_two.remote_size = 100
+        file_three = ModelFile(".mkvFile.Three", True)
+        file_three.remote_size = 100
+        file_four = ModelFile("FileFour.mkv", True)
+        file_four.remote_size = 100
+        file_five = ModelFile("FileFive.mkv.more", True)
+        file_five.remote_size = 100
+        self.model_listener.file_added(file_one)
+        self.model_listener.file_added(file_two)
+        self.model_listener.file_added(file_three)
+        self.model_listener.file_added(file_four)
+        self.model_listener.file_added(file_five)
+        auto_queue.process()
+        self.assertEqual(2, self.controller.queue_command.call_count)
+        commands = [call[0][0] for call in self.controller.queue_command.call_args_list]
+        commands_dict = {command.filename: command for command in commands}
+        self.assertTrue("File.One.mkv" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["File.One.mkv"].action)
+        self.assertTrue("FileFour.mkv" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["FileFour.mkv"].action)
+
+    def test_wildcard_at_end_matches(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File*"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        file_one = ModelFile("File.One.mkv", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two.jpg", True)
+        file_two.remote_size = 100
+        file_three = ModelFile(".mkvFile.Three", True)
+        file_three.remote_size = 100
+        file_four = ModelFile("FileFour.mkv", True)
+        file_four.remote_size = 100
+        file_five = ModelFile("FileFive.mkv.more", True)
+        file_five.remote_size = 100
+        self.model_listener.file_added(file_one)
+        self.model_listener.file_added(file_two)
+        self.model_listener.file_added(file_three)
+        self.model_listener.file_added(file_four)
+        self.model_listener.file_added(file_five)
+        auto_queue.process()
+        self.assertEqual(4, self.controller.queue_command.call_count)
+        commands = [call[0][0] for call in self.controller.queue_command.call_args_list]
+        commands_dict = {command.filename: command for command in commands}
+        self.assertTrue("File.One.mkv" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["File.One.mkv"].action)
+        self.assertTrue("File.Two.jpg" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["File.Two.jpg"].action)
+        self.assertTrue("FileFour.mkv" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["FileFour.mkv"].action)
+        self.assertTrue("FileFive.mkv.more" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["FileFive.mkv.more"].action)
+
+    def test_wildcard_in_middle_matches(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="*mkv*"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        file_one = ModelFile("File.One.mkv", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two.jpg", True)
+        file_two.remote_size = 100
+        file_three = ModelFile(".mkvFile.Three", True)
+        file_three.remote_size = 100
+        file_four = ModelFile("FileFour.mkv", True)
+        file_four.remote_size = 100
+        file_five = ModelFile("FileFive.mkv.more", True)
+        file_five.remote_size = 100
+        self.model_listener.file_added(file_one)
+        self.model_listener.file_added(file_two)
+        self.model_listener.file_added(file_three)
+        self.model_listener.file_added(file_four)
+        self.model_listener.file_added(file_five)
+        auto_queue.process()
+        self.assertEqual(4, self.controller.queue_command.call_count)
+        commands = [call[0][0] for call in self.controller.queue_command.call_args_list]
+        commands_dict = {command.filename: command for command in commands}
+        self.assertTrue("File.One.mkv" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["File.One.mkv"].action)
+        self.assertTrue(".mkvFile.Three" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict[".mkvFile.Three"].action)
+        self.assertTrue("FileFour.mkv" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["FileFour.mkv"].action)
+        self.assertTrue("FileFive.mkv.more" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["FileFive.mkv.more"].action)
+
+    def test_wildcard_matches_are_case_insensitive(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="*.mkv"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+        file_one = ModelFile("File.One.mKV", True)
+        file_one.remote_size = 100
+        file_two = ModelFile("File.Two.jpg", True)
+        file_two.remote_size = 100
+        file_three = ModelFile(".mkvFile.Three", True)
+        file_three.remote_size = 100
+        file_four = ModelFile("FileFour.MKV", True)
+        file_four.remote_size = 100
+        file_five = ModelFile("FileFive.mkv.more", True)
+        file_five.remote_size = 100
+        self.model_listener.file_added(file_one)
+        self.model_listener.file_added(file_two)
+        self.model_listener.file_added(file_three)
+        self.model_listener.file_added(file_four)
+        self.model_listener.file_added(file_five)
+        auto_queue.process()
+        self.assertEqual(2, self.controller.queue_command.call_count)
+        commands = [call[0][0] for call in self.controller.queue_command.call_args_list]
+        commands_dict = {command.filename: command for command in commands}
+        self.assertTrue("File.One.mKV" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["File.One.mKV"].action)
+        self.assertTrue("FileFour.MKV" in commands_dict)
+        self.assertEqual(Controller.Command.Action.QUEUE, commands_dict["FileFour.MKV"].action)
 
     def test_matching_local_files_are_not_queued(self):
         persist = AutoQueuePersist()

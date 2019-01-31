@@ -3,6 +3,7 @@
 import json
 from abc import ABC, abstractmethod
 from typing import Set, List, Callable, Tuple
+import fnmatch
 
 from common import overrides, Constants, Context, Persist, PersistError, Serializable
 from model import IModelListener, ModelFile
@@ -300,4 +301,10 @@ class AutoQueue:
         :param file:
         :return:
         """
-        return pattern.pattern.lower() in file.name.lower()
+        # make the search case insensitive
+        pattern = pattern.pattern.lower()
+        filename = file.name.lower()
+        # 1. pattern match
+        # 2. wildcard match
+        return pattern in filename or \
+            fnmatch.fnmatch(filename, pattern)
