@@ -23,3 +23,11 @@ div {
     /* make padding and border inside box */
     box-sizing: border-box;
 }
+
+// Bootstrap modifications
+.modal-body {
+    /* break up long text */
+    overflow-wrap: normal;
+    hyphens: auto;
+    word-break: break-word;
+}
