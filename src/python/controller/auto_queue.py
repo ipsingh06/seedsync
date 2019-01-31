@@ -211,8 +211,10 @@ class AutoQueue:
             extract_candidate_files += self.__model_listener.new_files
 
             # Candidate modified files that just became DOWNLOADED
+            # But not files that went EXTRACTING -> DOWNLOADED (failed extraction)
             for old_file, new_file in self.__model_listener.modified_files:
                 if old_file.state != ModelFile.State.DOWNLOADED and \
+                        old_file.state != ModelFile.State.EXTRACTING and \
                         new_file.state == ModelFile.State.DOWNLOADED:
                     extract_candidate_files.append(new_file)
 

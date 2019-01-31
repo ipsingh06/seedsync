@@ -180,17 +180,6 @@ class TestAutoQueuePersist(unittest.TestCase):
         persist.remove_pattern(AutoQueuePattern(pattern="four"))
         listener.pattern_removed.assert_not_called()
 
-    # {
-    #     "patterns": [
-    #         "{\"pattern\": \"one\"}",
-    #         "{\"pattern\": \"two\"}",
-    #         "{\"pattern\": \"th ree\"}",
-    #         "{\"pattern\": \"fo.ur\"}",
-    #         "{\"pattern\": \"fi\\\"ve\"}",
-    #         "{\"pattern\": \"si'x\"}"
-    #     ]
-    # }
-
     def test_from_str(self):
         content = """
         {{
@@ -1200,5 +1189,42 @@ class TestAutoQueue(unittest.TestCase):
         file_one_new.state = ModelFile.State.DOWNLOADED
         file_one_new.is_extractable = True
         self.model_listener.file_updated(file_one, file_one_new)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+    def test_downloaded_file_is_NOT_re_extracted_after_failed_extraction(self):
+        persist = AutoQueuePersist()
+        persist.add_pattern(AutoQueuePattern(pattern="File.One"))
+        # noinspection PyTypeChecker
+        auto_queue = AutoQueue(self.context, persist, self.controller)
+
+        # File is auto-extracted
+        file_one = ModelFile("File.One", True)
+        file_one.local_size = 100
+        file_one.state = ModelFile.State.DOWNLOADED
+        file_one.is_extractable = True
+        self.model_listener.file_added(file_one)
+        auto_queue.process()
+        self.controller.queue_command.assert_called_once_with(unittest.mock.ANY)
+        command = self.controller.queue_command.call_args[0][0]
+        self.assertEqual(Controller.Command.Action.EXTRACT, command.action)
+        self.assertEqual("File.One", command.filename)
+        self.controller.queue_command.reset_mock()
+
+        # File is extracting
+        file_one_new = ModelFile("File.One", True)
+        file_one_new.local_size = 101
+        file_one_new.state = ModelFile.State.EXTRACTING
+        file_one_new.is_extractable = True
+        self.model_listener.file_updated(file_one, file_one_new)
+        auto_queue.process()
+        self.controller.queue_command.assert_not_called()
+
+        # Extraction fails and file goes back to DOWNLOADED
+        file_one_newer = ModelFile("File.One", True)
+        file_one_newer.local_size = 101
+        file_one_newer.state = ModelFile.State.DOWNLOADED
+        file_one_newer.is_extractable = True
+        self.model_listener.file_updated(file_one_new, file_one_newer)
         auto_queue.process()
         self.controller.queue_command.assert_not_called()
