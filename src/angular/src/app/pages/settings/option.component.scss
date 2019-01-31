@@ -32,9 +32,14 @@ input[type="checkbox"] {
     width: auto;
     margin-right: 10px;
     box-shadow: none;
+    height: 20px;
 
     &:focus {
         box-shadow: none;
+    }
+
+    & ~ .description {
+        margin-left: 23px;
     }
 }
 

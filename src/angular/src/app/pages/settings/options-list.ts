@@ -8,11 +8,13 @@ export interface IOption {
 }
 export interface IOptionsContext {
     header: string;
+    id: string;
     options: IOption[];
 }
 
 export const OPTIONS_CONTEXT_SERVER: IOptionsContext = {
     header: "Server",
+    id: "server",
     options: [
         {
             type: OptionType.Text,
@@ -67,6 +69,7 @@ export const OPTIONS_CONTEXT_SERVER: IOptionsContext = {
 
 export const OPTIONS_CONTEXT_DISCOVERY: IOptionsContext = {
     header: "File Discovery",
+    id: "file-discovery",
     options: [
         {
             type: OptionType.Text,
@@ -91,6 +94,7 @@ export const OPTIONS_CONTEXT_DISCOVERY: IOptionsContext = {
 
 export const OPTIONS_CONTEXT_CONNECTIONS: IOptionsContext = {
     header: "Connections",
+    id: "connections",
     options: [
         {
             type: OptionType.Text,
@@ -138,6 +142,7 @@ export const OPTIONS_CONTEXT_CONNECTIONS: IOptionsContext = {
 
 export const OPTIONS_CONTEXT_OTHER: IOptionsContext = {
     header: "Other Settings",
+    id: "other-settings",
     options: [
         {
             type: OptionType.Text,
@@ -156,6 +161,7 @@ export const OPTIONS_CONTEXT_OTHER: IOptionsContext = {
 
 export const OPTIONS_CONTEXT_AUTOQUEUE: IOptionsContext = {
     header: "AutoQueue",
+    id: "autoqueue",
     options: [
         {
             type: OptionType.Checkbox,
@@ -180,6 +186,7 @@ export const OPTIONS_CONTEXT_AUTOQUEUE: IOptionsContext = {
 
 export const OPTIONS_CONTEXT_EXTRACT: IOptionsContext = {
     header: "Archive Extraction",
+    id: "extraction",
     options: [
         {
             type: OptionType.Checkbox,

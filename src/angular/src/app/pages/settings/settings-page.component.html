@@ -1,52 +1,66 @@
 <!--suppress HtmlUnknownAttribute -->
-<ng-template #optionsList let-header="header" let-options="options">
-    <h1>{{header}}</h1>
-    <hr>
-    <div *ngFor="let option of options">
-        <app-option
-            [type]="option.type"
-            [label]="option.label"
-            [description]="option.description"
-            [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
-            (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
-        </app-option>
+<ng-template #optionsList let-header="header" let-options="options" let-id="id">
+    <div class="card">
+        <h3 class="card-header" id="heading-{{id}}">
+            <button class="btn"
+                    type="button"
+                    data-toggle="collapse"
+                    attr.data-target="#collapse-{{id}}">
+                {{header}}
+            </button>
+        </h3>
+        <div id="collapse-{{id}}" class="collapse" data-parent="#accordion">
+            <div class="card-body">
+                <div *ngFor="let option of options">
+                    <app-option
+                        [type]="option.type"
+                        [label]="option.label"
+                        [description]="option.description"
+                        [value]="(config | async)?.get(option.valuePath[0]).get(option.valuePath[1])"
+                        (changeEvent)="onSetConfig(option.valuePath[0], option.valuePath[1], $event)">
+                    </app-option>
+                </div>
+            </div>
+        </div>
     </div>
 </ng-template>
 
 
 <div id="settings">
-    <div id="left">
-        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
-        <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_SERVER">
-        </ng-container>
+    <div id="accordion">
+        <div id="left">
+            <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+            <ng-container
+                *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_SERVER">
+            </ng-container>
 
-        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
-        <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_AUTOQUEUE">
-        </ng-container>
+            <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+            <ng-container
+                *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_AUTOQUEUE">
+            </ng-container>
 
-        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
-        <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_EXTRACT">
-        </ng-container>
+            <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+            <ng-container
+                *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_EXTRACT">
+            </ng-container>
 
-    </div>
-    <div id="right">
-        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
-        <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_CONNECTIONS">
-        </ng-container>
+        </div>
+        <div id="right">
+            <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+            <ng-container
+                *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_CONNECTIONS">
+            </ng-container>
 
-        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
-        <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_DISCOVERY">
-        </ng-container>
+            <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+            <ng-container
+                *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_DISCOVERY">
+            </ng-container>
 
-        <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
-        <ng-container
-            *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_OTHER">
-        </ng-container>
+            <!--suppress HtmlUnknownAttribute, UnnecessaryLabelJS -->
+            <ng-container
+                *ngTemplateOutlet="optionsList;context:OPTIONS_CONTEXT_OTHER">
+            </ng-container>
+        </div>
     </div>
 
     <div id="commands">
