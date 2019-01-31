@@ -24,6 +24,7 @@
     "@types/eventsource": "^1.0.2",
     "angular-webstorage-service": "^1.0.2",
     "bootstrap": "^4.2.1",
+    "compare-versions": "^3.4.0",
     "core-js": "^2.4.1",
     "css-element-queries": "^1.1.1",
     "font-awesome": "^4.7.0",

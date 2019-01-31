@@ -43,6 +43,7 @@ import {ViewFileOptionsService} from "./services/files/view-file-options.service
 import {ViewFileSortService} from "./services/files/view-file-sort.service";
 import {DomService} from "./services/utils/dom.service";
 import {StorageServiceModule} from "angular-webstorage-service";
+import {VersionCheckService} from "./services/utils/version-check.service";
 
 @NgModule({
     declarations: [
@@ -83,7 +84,9 @@ import {StorageServiceModule} from "angular-webstorage-service";
         ViewFileSortService,
         ViewFileOptionsService,
         DomService,
+        VersionCheckService,
 
+        // Stream services
         StreamDispatchService,
         StreamServiceRegistryProvider,
         ServerStatusService,
@@ -106,6 +109,12 @@ import {StorageServiceModule} from "angular-webstorage-service";
             provide: APP_INITIALIZER,
             useFactory: dummyFactory,
             deps: [ViewFileSortService],
+            multi: true
+        },
+        {
+            provide: APP_INITIALIZER,
+            useFactory: dummyFactory,
+            deps: [VersionCheckService],
             multi: true
         },
     ],

@@ -11,6 +11,6 @@
                 (click)="dismiss(notif)">
             <span>&#10006;</span>
         </button>
-        {{notif.text}}
+        <span [innerHTML]="notif.text"></span>
     </div>
 </div>
