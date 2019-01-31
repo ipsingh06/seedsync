@@ -4,8 +4,8 @@ import {HttpClientModule} from "@angular/common/http";
 import {FormsModule} from "@angular/forms";
 import {RouteReuseStrategy, RouterModule} from "@angular/router";
 
-import { ModalModule } from 'ngx-modialog';
-import { BootstrapModalModule } from 'ngx-modialog/plugins/bootstrap';
+import {ModalModule} from "ngx-modialog";
+import {bootstrap4Mode, BootstrapModalModule} from "ngx-modialog/plugins/bootstrap";
 
 import {AppComponent} from "./pages/main/app.component";
 import {environment} from "../environments/environment";
@@ -130,3 +130,6 @@ export class AppModule {
 export function dummyFactory(s) {
     return () => null;
 }
+
+// Run the ngx-modialog plugin to work with version 4 of bootstrap
+bootstrap4Mode();

@@ -3,7 +3,7 @@ import {
     EventEmitter, OnChanges, SimpleChanges, ViewChild
 } from "@angular/core";
 
-import {Modal} from 'ngx-modialog/plugins/bootstrap';
+import {Modal} from "ngx-modialog/plugins/bootstrap";
 
 import {ViewFile} from "../../services/files/view-file";
 import {Localization} from "../../common/localization";
@@ -28,7 +28,7 @@ export class FileComponent implements OnChanges {
     min = Math.min;
 
     // Entire div element
-    @ViewChild('fileElement') fileElement: any;
+    @ViewChild("fileElement") fileElement: any;
 
     @Input() file: ViewFile;
     @Input() options: ViewFileOptions;
@@ -46,14 +46,14 @@ export class FileComponent implements OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         // Check for status changes
-        let oldFile: ViewFile = changes.file.previousValue;
-        let newFile: ViewFile = changes.file.currentValue;
-        if(oldFile != null && newFile != null && oldFile.status != newFile.status) {
+        const oldFile: ViewFile = changes.file.previousValue;
+        const newFile: ViewFile = changes.file.currentValue;
+        if (oldFile != null && newFile != null && oldFile.status !== newFile.status) {
             // Reset any active action
             this.activeAction = null;
 
             // Scroll into view if this file is selected and not already in viewport
-            if(newFile.isSelected && !FileComponent.isElementInViewport(this.fileElement.nativeElement)) {
+            if (newFile.isSelected && !FileComponent.isElementInViewport(this.fileElement.nativeElement)) {
                 this.fileElement.nativeElement.scrollIntoView();
             }
         }
@@ -62,19 +62,19 @@ export class FileComponent implements OnChanges {
     showDeleteConfirmation(title: string, message: string, callback: () => void) {
         const dialogRef = this.modal.confirm()
             .title(title)
-            .okBtn('Delete')
-            .okBtnClass('btn btn-danger')
-            .cancelBtn('Cancel')
-            .cancelBtnClass('btn btn-secondary')
+            .okBtn("Delete")
+            .okBtnClass("btn btn-danger")
+            .cancelBtn("Cancel")
+            .cancelBtnClass("btn btn-secondary")
             .isBlocking(false)
             .showClose(false)
             .body(message)
             .open();
 
-        dialogRef.then( dialogRef => {
-           dialogRef.result.then(
-               () => {callback()},
-               () => {return}
+        dialogRef.then( dRef => {
+           dRef.result.then(
+               () => { callback(); },
+               () => { return; }
            );
         });
     }
@@ -143,7 +143,7 @@ export class FileComponent implements OnChanges {
 
     // Source: https://stackoverflow.com/a/7557433
     private static isElementInViewport (el) {
-        let rect = el.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
         return (
             rect.top >= 0 &&
             rect.left >= 0 &&
