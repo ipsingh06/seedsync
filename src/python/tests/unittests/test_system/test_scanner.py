@@ -575,17 +575,19 @@ class TestSystemScanner(unittest.TestCase):
         thread = Thread(target=monkey_with_files)
         thread.start()
 
-        # Scan a bunch of times
-        for i in range(0, 2000):
-            files = scanner.scan()
-            # Must have at least the untouched files
-            self.assertGreaterEqual(len(files), 3)
-            names = set([f.name for f in files])
-            self.assertIn("a", names)
-            self.assertIn("b", names)
-            self.assertIn("c", names)
-        stop = True
-        thread.join()
+        try:
+            # Scan a bunch of times
+            for i in range(0, 2000):
+                files = scanner.scan()
+                # Must have at least the untouched files
+                self.assertGreaterEqual(len(files), 3)
+                names = set([f.name for f in files])
+                self.assertIn("a", names)
+                self.assertIn("b", names)
+                self.assertIn("c", names)
+        finally:
+            stop = True
+            thread.join()
 
     def test_scan_modified_time(self):
         # directory

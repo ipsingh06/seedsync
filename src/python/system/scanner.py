@@ -157,25 +157,25 @@ class SystemScanner:
     def __create_children(self, path: str) -> List[SystemFile]:
         children = []
         # Files may get deleted while scanning, ignore the error
-        try:
-            for entry in os.scandir(path):
-                # Skip excluded entries
-                skip = False
-                for prefix in self.exclude_prefixes:
-                    if entry.name.startswith(prefix):
-                        skip = True
-                for suffix in self.exclude_suffixes:
-                    if entry.name.endswith(suffix):
-                        skip = True
-                if skip:
-                    continue
+        for entry in os.scandir(path):
+            # Skip excluded entries
+            skip = False
+            for prefix in self.exclude_prefixes:
+                if entry.name.startswith(prefix):
+                    skip = True
+            for suffix in self.exclude_suffixes:
+                if entry.name.endswith(suffix):
+                    skip = True
+            if skip:
+                continue
 
+            try:
                 sys_file = self.__create_system_file(entry)
-                children.append(sys_file)
-            children.sort(key=lambda fl: fl.name)
-            return children
-        except FileNotFoundError:
-            return []
+            except FileNotFoundError:
+                continue
+            children.append(sys_file)
+        children.sort(key=lambda fl: fl.name)
+        return children
 
     @staticmethod
     def _lftp_status_file_size(status: str) -> int:
