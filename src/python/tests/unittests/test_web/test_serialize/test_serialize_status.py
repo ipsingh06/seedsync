@@ -3,7 +3,7 @@
 import unittest
 import json
 from datetime import datetime
-import time
+from pytz import timezone
 
 from .test_serialize import parse_stream
 from common import Status
@@ -55,11 +55,11 @@ class TestSerializeStatus(unittest.TestCase):
         data = json.loads(out["data"])
         self.assertIsNone(data["controller"]["latest_local_scan_time"])
 
-        timestamp = datetime(2018, 11, 9, 21, 40, 18)
+        timestamp = datetime(2018, 11, 9, 21, 40, 18, tzinfo=timezone('UTC'))
         status.controller.latest_local_scan_time = timestamp
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual(str(1541828418.0), data["controller"]["latest_local_scan_time"])
+        self.assertEqual(str(1541799618.0), data["controller"]["latest_local_scan_time"])
 
     def test_controller_status_latest_remote_scan_time(self):
         serialize = SerializeStatus()
@@ -68,8 +68,8 @@ class TestSerializeStatus(unittest.TestCase):
         data = json.loads(out["data"])
         self.assertIsNone(data["controller"]["latest_remote_scan_time"])
 
-        timestamp = datetime(2018, 11, 9, 21, 40, 18)
+        timestamp = datetime(2018, 11, 9, 21, 40, 18, tzinfo=timezone('UTC'))
         status.controller.latest_remote_scan_time = timestamp
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
-        self.assertEqual(str(1541828418.0), data["controller"]["latest_remote_scan_time"])
+        self.assertEqual(str(1541799618.0), data["controller"]["latest_remote_scan_time"])
