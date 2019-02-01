@@ -54,6 +54,7 @@ make
 ```
 
 2. The .deb package will be generated inside build/ directory.
+   The docker image will be listed under `docker image ls`.
 
 
 # Setup dev environment
@@ -93,3 +94,17 @@ ng test
 ./scripts/tests/run_python_tests.py
 ./scripts/tests/run_e2e_tests.py -d <path to deb file> -i <image version>
 ```
+
+# Release Checklist
+
+1. Do all of these in one change
+    1. Version update in src/angular/package.json
+    2. Version update in src/docker/release/VERSION
+    3. Version update and changelog in src/debian/changelog.
+       Use command `LANG=C date -R` to get the date.
+    4. Update src/e2e/tests/about.page.spec.ts
+2. Tag the commit as vX.X-X
+3. make clean && make
+4. Run all 3 tests
+5. Upload deb file to github
+6. Run release.sh in build/docker

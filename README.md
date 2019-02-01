@@ -293,6 +293,13 @@ where &lt;directory on host&gt; refers to the location on host machine where you
 state.
 
 
+## Contribute
+
+Contributions to SeedSync are welcome!
+Please take a look at the [Developer Readme](doc/DeveloperReadme.md) for instructions
+on environment setup and the build process.
+
+
 ## License
 
 SeedSync is distributed under Apache License Version 2.0.
