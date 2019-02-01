@@ -1,7 +1,7 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, PropertyMock
 import os
 import tempfile
 import shutil
@@ -269,6 +269,17 @@ class TestController(unittest.TestCase):
             f_ra, f_rb, f_rc, f_rd, f_re, f_rf,
             f_la, f_lb, f_lc
         ]}
+
+        # We need to overwrite the timestamp properties since it's too tedious to make
+        # them match manually for all the model files
+        pm = patch("model.file.ModelFile.remote_modified_timestamp", new_callable=PropertyMock)
+        self.addCleanup(pm.stop)
+        pm_cls = pm.start()
+        pm_cls.return_value = None
+        pm = patch("model.file.ModelFile.local_modified_timestamp", new_callable=PropertyMock)
+        self.addCleanup(pm.stop)
+        pm_cls = pm.start()
+        pm_cls.return_value = None
 
         # config file
         # Note: seedsynctest account must be set up. See DeveloperReadme.md for details
