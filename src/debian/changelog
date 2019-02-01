@@ -1,3 +1,21 @@
+seedsync (0.7-0) stable; urgency=low
+
+  * Fixed 100% CPU utilization when idle
+  * Fixed file permission issues with Docker application
+  * Docker application is now architecture independent
+  * Faster startup by skipping remote scanfs installation when possible
+  * Show file created and modified timestamps in UI
+  * Added UI option to sort list of files by name
+  * Improved filtering UI
+  * Improved settings UI on mobile devices
+  * Improved logging UI
+  * Remember some UI preferences
+  * Support for wildcards in auto-queue patterns
+  * Added a notification for newer releases of SeedSync
+  * Various other bugfixes
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Fri, 01 Feb 2019 01:11:07 -0800
+
 seedsync (0.6-0) stable; urgency=low
 
   * Added support for password-based SSH login
