@@ -2,7 +2,7 @@ import * as Immutable from "immutable";
 
 import {ModelFile} from "../../../../services/files/model-file";
 
-describe("Testing config record initialization", () => {
+describe("Testing model file initialization", () => {
     let baseJson;
     let baseModelFile;
 
@@ -68,9 +68,9 @@ describe("Testing config record initialization", () => {
         expect(baseModelFile.eta).toBe(54);
         expect(baseModelFile.full_path).toBe("/full/path/to/file.one");
         expect(baseModelFile.is_extractable).toBe(true);
-        expect(baseModelFile.local_created_timestamp).toEqual(new Date("November 9, 2018 21:40:18"));
+        expect(baseModelFile.local_created_timestamp).toEqual(new Date("November 9, 2018 21:40:18 PST"));
         expect(baseModelFile.local_modified_timestamp).toEqual(new Date(1541828418943));
-        expect(baseModelFile.remote_created_timestamp).toEqual(new Date("November 9, 2018 21:40:18"));
+        expect(baseModelFile.remote_created_timestamp).toEqual(new Date("November 9, 2018 21:40:18 PST"));
         expect(baseModelFile.remote_modified_timestamp).toEqual(new Date(1541828418943));
         expect(baseModelFile.children.size).toBe(0);
     });
