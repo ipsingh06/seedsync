@@ -1160,3 +1160,91 @@ class TestLftpJobStatusParser(unittest.TestCase):
         self.assertEqual(golden_queue, statuses_queue)
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
+
+    def test_jobs_chmod(self):
+        output = """
+        [0] queue (sftp://someone:@localhost:22)  -- 12.26 MiB/s
+        sftp://someone:@localhost:22/remote/path
+        Now executing: [3] mirror -c /remote/path/Space.Trek.S23E03.720p /local/path/ -- 985M/985M (100%)
+            -[4] mirror -c /remote/path/Star.Battle.Movie /local/path/ -- 116M/1.2G (9%) 12.26 MiB/s
+        [3] mirror -c /remote/path/Space.Trek.S23E03.720p /local/path/  -- 985M/985M (100%)
+        chmod Space.Trek.S23E03.720p.r06 
+        file:/local/path/Space.Trek.S23E03.720p
+        `Space.Trek.S23E03.720p.r06' []
+        chmod Space.Trek.S23E03.720p.r07 
+        file:/local/path/Space.Trek.S23E03.720p
+        `Space.Trek.S23E03.720p.r07' []
+        chmod Space.Trek.S23E03.720p.r08 
+        file:/local/path/Space.Trek.S23E03.720p
+        `Space.Trek.S23E03.720p.r08' []
+        chmod Space.Trek.S23E03.720p.r09 
+        file:/local/path/Space.Trek.S23E03.720p
+        `Space.Trek.S23E03.720p.r09' []
+        [4] mirror -c /remote/path/Star.Battle.Movie /local/path/  -- 116M/1.2G (9%) 12.26 MiB/s
+        \\transfer `star.battle.movie.720p.r07' 
+        `star.battle.movie.720p.r07', got 44628032 of 50000000 (89%) 1.10M/s eta:5s 
+        \chunk 9011200-25000000
+        `star.battle.movie.720p.r07' at 19628032 (25%) 1.10M/s eta:5s [Receiving data]
+        \\transfer `star.battle.movie.720p.r08' 
+        `star.battle.movie.720p.r08', got 15237120 of 50000000 (30%) 2.04M/s 
+        \chunk 0-25000000
+        `star.battle.movie.720p.r08' at 13664256 (27%) 1.36M/s eta:8s [Receiving data]
+        \chunk 37500000-49999999 
+        `star.battle.movie.720p.r08' at 38581344 (8%) 696.2K/s eta:16s [Receiving data]
+        \chunk 25000000-37499999 
+        `star.battle.movie.720p.r08' at 25491520 (3%) [Receiving data]
+        \\transfer `star.battle.movie.720p.r09' 
+        `star.battle.movie.720p.r09', got 21692416 of 50000000 (43%) 4.05M/s eta:16s 
+        \chunk 0-12500000
+        `star.battle.movie.720p.r09' at 12419072 (24%) 1.28M/s eta:0s [Receiving data]
+        \chunk 37500000-49999999 
+        `star.battle.movie.720p.r09' at 38843488 (10%) 662.8K/s eta:16s [Receiving data]
+        \chunk 25000000-37499999 
+        `star.battle.movie.720p.r09' at 28047424 (24%) 963.8K/s eta:10s [Receiving data]
+        \chunk 12500000-24999999 
+        `star.battle.movie.720p.r09' at 17382432 (39%) 1.19M/s eta:6s [Receiving data]
+        \\transfer `star.battle.movie.720p.r10' 
+        `star.battle.movie.720p.r10', got 33930272 of 50000000 (67%) 5.06M/s eta:6s 
+        \chunk 37500000-49999999 
+        `star.battle.movie.720p.r10' at 43037792 (44%) 1.16M/s eta:6s [Receiving data]
+        \chunk 25000000-37499999 
+        `star.battle.movie.720p.r10' at 32503872 (60%) 1.19M/s eta:4s [Receiving data]
+        \chunk 12500000-24999999 
+        `star.battle.movie.720p.r10' at 20888608 (67%) 1.33M/s eta:3s [Receiving data]
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+
+        golden_job1 = LftpJobStatus(job_id=3,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="Space.Trek.S23E03.720p",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(1032847360, 1032847360, 100, None, None)
+
+        golden_job2 = LftpJobStatus(job_id=4,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="Star.Battle.Movie",
+                                    flags="-c")
+        golden_job2.total_transfer_state = LftpJobStatus.TransferState(121634816, 1288490188, 9, 12855541, None)
+        golden_job2.add_active_file_transfer_state(
+            "star.battle.movie.720p.r07",
+            LftpJobStatus.TransferState(44628032, 50000000, 89, 1153433, 5)
+        )
+        golden_job2.add_active_file_transfer_state(
+            "star.battle.movie.720p.r08",
+            LftpJobStatus.TransferState(15237120, 50000000, 30, 2139095, None)
+        )
+        golden_job2.add_active_file_transfer_state(
+            "star.battle.movie.720p.r09",
+            LftpJobStatus.TransferState(21692416, 50000000, 43, 4246732, 16)
+        )
+        golden_job2.add_active_file_transfer_state(
+            "star.battle.movie.720p.r10",
+            LftpJobStatus.TransferState(33930272, 50000000, 67, 5305794, 6)
+        )
+
+        self.assertEqual(2, len(statuses))
+        self.assertEqual(golden_job1, statuses[0])
+        self.assertEqual(golden_job2, statuses[1])

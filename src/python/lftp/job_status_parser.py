@@ -162,6 +162,14 @@ class LftpJobStatusParser:
                                 "(?P<end>\d+)")
         chunk_header_m = re.compile(chunk_header_pattern)
 
+        chmod_header_pattern = ("chmod\s"
+                                "(?P<name>.*)")
+        chmod_header_m = re.compile(chmod_header_pattern)
+
+        chmod_pattern = (LftpJobStatusParser.__QUOTED_FILE_NAME_REGEX + ""
+                         "\s\[\]")
+        chmod_pattern_m = re.compile(chmod_pattern)
+
         mirror_pattern = ("\\\\mirror\s"
                           "" + LftpJobStatusParser.__QUOTED_FILE_NAME_REGEX + "\s+"
                           "--\s+"
@@ -422,6 +430,26 @@ class LftpJobStatusParser:
                 # Also need to ignore the next line
                 if not lines:
                     raise ValueError("Missing data line for chunk '{}'".format(line))
+                lines.pop(0)
+                # Continue the outer loop
+                continue
+
+            # Search for but ignore "chmod" line
+            result = chmod_header_m.search(line)
+            if result:
+                name = result.group("name")
+                # Also ignore the next two lines
+                if not lines or not lines[0].startswith("file:"):
+                    raise ValueError("Missing 'file:' line for chmod '{}'".format(name))
+                lines.pop(0)
+                if not lines:
+                    raise ValueError("Missing last line for chmod '{}'".format(name))
+                result_chmod = chmod_pattern_m.search(lines[0])
+                if not result_chmod:
+                    raise ValueError("Missing last line for chmod '{}'".format(name))
+                name_chmod = result_chmod.group("name")
+                if name != name_chmod:
+                    raise ValueError("Mismatch in names chmod '{}'".format(name))
                 lines.pop(0)
                 # Continue the outer loop
                 continue
