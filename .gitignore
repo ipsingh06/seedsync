@@ -1,2 +1,5 @@
 .idea
 *.pyc
+build
+.venv
+package-lock.json
