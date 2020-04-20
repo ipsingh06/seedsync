@@ -86,7 +86,7 @@ class TestAutoQueueHandler(BaseTestWebApp):
         self.assertEqual(0, len(self.auto_queue_persist.patterns))
 
         resp = self.test_app.get("/server/autoqueue/add/", expect_errors=True)
-        self.assertEqual(404, resp.status_int)
+        self.assertEqual(500, resp.status_int)
         self.assertEqual(0, len(self.auto_queue_persist.patterns))
 
     def test_remove_good(self):
@@ -138,5 +138,5 @@ class TestAutoQueueHandler(BaseTestWebApp):
         self.assertEqual(0, len(self.auto_queue_persist.patterns))
 
         resp = self.test_app.get("/server/autoqueue/remove/", expect_errors=True)
-        self.assertEqual(404, resp.status_int)
+        self.assertEqual(500, resp.status_int)
         self.assertEqual(0, len(self.auto_queue_persist.patterns))
