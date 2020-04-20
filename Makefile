@@ -3,6 +3,9 @@
 SOURCEDIR:=$(shell realpath ./src)
 BUILDDIR:=$(shell realpath ./build)
 
+PYINSTALLER:=${SOURCEDIR}/python/.venv/bin/pyinstaller
+NG:=${SOURCEDIR}/angular/node_modules/@angular/cli/bin/ng
+
 .PHONY: py scanfs ng artifacts deb builddir clean
 
 all: py scanfs ng artifacts deb docker
@@ -11,7 +14,7 @@ builddir:
 	mkdir -p build
 
 py: builddir
-	pyinstaller ${SOURCEDIR}/python/seedsync.py \
+	${PYINSTALLER} ${SOURCEDIR}/python/seedsync.py \
 		-y \
 		-p ${SOURCEDIR}/python \
 		--distpath ${BUILDDIR}/py-dist \
@@ -21,7 +24,7 @@ py: builddir
 		--name seedsync
 
 scanfs: builddir
-	pyinstaller ${SOURCEDIR}/python/scan_fs.py \
+	${PYINSTALLER} ${SOURCEDIR}/python/scan_fs.py \
 		-y \
 		--onefile \
 		-p ${SOURCEDIR}/python \
@@ -32,7 +35,7 @@ scanfs: builddir
 
 ng: builddir
 	cd ${SOURCEDIR}/angular && \
-	ng build -prod --output-path ${BUILDDIR}/ng-dist
+	${NG} build -prod --output-path ${BUILDDIR}/ng-dist
 
 artifacts:
 	rm -rf ${BUILDDIR}/artifacts
