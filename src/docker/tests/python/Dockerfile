@@ -1,15 +1,34 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 # install OS dependencies
 RUN apt-get update && apt-get install -y \
     openssh-server \
     lftp \
     rar \
-    python3-pip
+    python3.7 \
+    python3.7-dev \
+    python3.7-distutils \
+    curl
+
+# Switch to Python 3.7
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
+RUN update-alternatives --set python /usr/bin/python3.7
+RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py --force-reinstall && \
+    rm get-pip.py
+
+RUN apt-get install -y python3-pip
+RUN pip3 --version
+
+RUN pip3 install pipenv
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+RUN pipenv --version
 
 # install python dependencies
-ADD requirements.txt /app/
-RUN pip3 install -r /app/requirements.txt
+ADD Pipfile /app/
+ADD Pipfile.lock /app/
+RUN cd /app/ && LC_ALL=C.UTF-8 LANG=C.UTF-8 pipenv install --system --deploy
 
 ADD entrypoint.sh /app/
 
