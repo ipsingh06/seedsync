@@ -1,4 +1,4 @@
-FROM node:6.12
+FROM node:12.16
 
 RUN npm install -g \
     angular \
