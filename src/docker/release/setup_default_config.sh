@@ -18,11 +18,13 @@ replace_setting() {
 }
 
 # Generate default config
-python3.5 ${SCRIPT_PATH} \
+python ${SCRIPT_PATH} \
     -c ${CONFIG_DIR} \
     --html / \
     --scanfs / \
     --exit > /dev/null 2>&1 > /dev/null || true
+
+cat ${SETTINGS_FILE}
 
 
 # Replace default values

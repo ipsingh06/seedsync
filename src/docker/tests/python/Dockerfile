@@ -28,7 +28,7 @@ RUN pipenv --version
 # install python dependencies
 ADD Pipfile /app/
 ADD Pipfile.lock /app/
-RUN cd /app/ && LC_ALL=C.UTF-8 LANG=C.UTF-8 pipenv install --system --deploy
+RUN cd /app/ && pipenv install --system --deploy
 
 ADD entrypoint.sh /app/
 

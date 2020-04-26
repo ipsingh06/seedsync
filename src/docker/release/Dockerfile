@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -8,7 +8,25 @@ RUN apt-get update && apt-get install -y \
     rar \
     unrar \
     p7zip \
-    python3-pip
+    python3.7 \
+    python3.7-dev \
+    python3.7-distutils \
+    curl
+
+# Switch to Python 3.7
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
+RUN update-alternatives --set python /usr/bin/python3.7
+RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py --force-reinstall && \
+    rm get-pip.py
+
+RUN apt-get install -y python3-pip
+RUN pip3 --version
+
+RUN pip3 install pipenv
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+RUN pipenv --version
 
 # Disable the known hosts prompt
 RUN mkdir -p /root/.ssh && echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /root/.ssh/config
@@ -19,8 +37,7 @@ COPY html /app/html
 COPY scanfs /app/scanfs
 ADD setup_default_config.sh /scripts/
 
-RUN pip3 install --upgrade pip
-RUN pip3 install -r /app/python/requirements.txt
+RUN cd /app/python && pipenv install --system --deploy
 
 # Create non-root user and directories under that user
 RUN groupadd -g 1000 seedsync && \
@@ -39,7 +56,7 @@ RUN /scripts/setup_default_config.sh
 # Must run app inside shell
 # Otherwise the container crashes as soon as a child process exits
 CMD [ \
-    "python3.5", \
+    "python", \
     "/app/python/seedsync.py", \
     "-c", "/config", \
     "--html", "/app/html", \
