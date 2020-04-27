@@ -21,6 +21,7 @@ py: builddir
 		--workpath ${BUILDDIR}/py-work \
 		--specpath ${BUILDDIR} \
 		--additional-hooks-dir ${SOURCEDIR}/pyinstaller_hooks/ \
+		--hidden-import="pkg_resources.py2_warn" \
 		--name seedsync
 
 scanfs: builddir
