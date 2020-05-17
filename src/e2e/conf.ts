@@ -12,10 +12,19 @@ import {Config} from 'protractor';
 
 import {Urls} from "./urls";
 
+let SpecReporter = require('jasmine-spec-reporter').SpecReporter;
+
 export let config: Config = {
     framework: 'jasmine',
     capabilities: {
-        browserName: 'chrome'
+        browserName: 'chrome',
+        chromeOptions: { args: [
+                '--headless',
+                '--disable-gpu',
+                '--no-sandbox',
+                '--disable-extensions',
+                '--disable-dev-shm-usage'
+            ] },
     },
     specs: ['tests/**/*.spec.js'],
     seleniumAddress: Urls.SELENIUM_ADDRESS,
@@ -29,6 +38,15 @@ export let config: Config = {
     // Options to be passed to Jasmine-node.
     jasmineNodeOpts: {
         showColors: true,
-        defaultTimeoutInterval: 3000
+        defaultTimeoutInterval: 3000,
+        print: function() {}
+    },
+
+    onPrepare: function () {
+        jasmine.getEnv().addReporter(new SpecReporter({
+            spec: {
+                displayStacktrace: true
+            }
+        }));
     }
 };
