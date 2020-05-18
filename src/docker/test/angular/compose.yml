@@ -1,0 +1,19 @@
+version: "3.4"
+services:
+  tests:
+    image: seedsync/test/angular
+    container_name: seedsync_test_angular
+    tty: true
+    build:
+      context: ../../../../
+      dockerfile: src/docker/test/angular/Dockerfile
+      target: seedsync_test_angular
+    volumes:
+      - type: bind
+        source: ../../../angular/src
+        target: /app/src
+        read_only: true
+
+      - type: bind
+        source: /tmp
+        target: /tmp

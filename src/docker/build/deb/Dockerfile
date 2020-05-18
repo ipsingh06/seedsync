@@ -53,12 +53,17 @@ RUN	pyinstaller /python/scan_fs.py \
     --name scanfs
 
 
-# Builds angular app
-# Output is in /build/dist/
-FROM node:12.16 as seedsync_build_html
-COPY src/angular /angular
-WORKDIR /angular
+# Creates environment for angular
+FROM node:12.16 as seedsync_build_angular_env
+COPY src/angular/package*.json /app/
+WORKDIR /app
 RUN npm install
+
+# Builds angular app into html
+# Output is in /build/dist/
+FROM seedsync_build_angular_env as seedsync_build_angular
+COPY src/angular /app
+WORKDIR /app
 RUN node_modules/@angular/cli/bin/ng build -prod --output-path /build/dist/
 
 
@@ -76,7 +81,7 @@ RUN mkdir -p /build/work
 COPY src/debian /build/work/debian
 COPY --from=seedsync_build_pyinstaller /build/dist/seedsync /build/work/seedsync
 COPY --from=seedsync_build_scanfs /build/dist/scanfs /build/work/seedsync/
-COPY --from=seedsync_build_html /build/dist /build/work/seedsync/html
+COPY --from=seedsync_build_angular /build/dist /build/work/seedsync/html
 WORKDIR /build/work
 RUN dpkg-buildpackage -B -uc -us
 RUN ls /build/*.deb && echo "----" && ls /build/work
@@ -91,5 +96,5 @@ FROM scratch AS seedsync_build_scanfs_export
 COPY --from=seedsync_build_scanfs /build/dist/scanfs .
 
 # Exports html to host
-FROM scratch AS seedsync_build_html_export
-COPY --from=seedsync_build_html /build/dist ./html
+FROM scratch AS seedsync_build_angular_export
+COPY --from=seedsync_build_angular /build/dist ./html

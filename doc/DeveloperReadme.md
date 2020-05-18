@@ -146,8 +146,8 @@ node_modules/@angular/cli/bin/ng test
 ## Docker-based Test Suite
 
 ```bash
-./scripts/tests/run_angular_tests.py
-./scripts/tests/run_python_tests.py
+make run-tests-python
+make run-tests-angular
 ./scripts/tests/run_e2e_tests.py -d <path to deb file> -i <image version>
 ```
 

@@ -1,4 +1,5 @@
 # Creates environment to run Seedsync python code
+# Installs all python dependencies
 FROM ubuntu:18.04 as seedsync_run_python_env
 
 # Install dependencies
@@ -29,22 +30,26 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 RUN pipenv --version
 
-# Disable the known hosts prompt
-RUN mkdir -p /root/.ssh && echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /root/.ssh/config
-
-# Installs Seedsync python code and dependencies
-# Code is installed in /app
-FROM seedsync_run_python_env as seedsync_run_python
-RUN mkdir /app
-COPY src/python /app/python
+RUN mkdir -p /app
+COPY src/python/Pipfile /app/python/
+COPY src/python/Pipfile.lock /app/python/
 RUN cd /app/python && pipenv install --system --deploy
+
+
+# Installs Seedsync python code
+FROM seedsync_run_python_env as seedsync_run_python
+RUN mkdir -p /app
+COPY src/python /app/python
 
 
 # Full Seedsync docker image
 FROM seedsync_run_python as seedsync_run
-COPY --from=seedsync/build/html/export /html /app/html
+COPY --from=seedsync/build/angular/export /html /app/html
 COPY --from=seedsync/build/scanfs/export /scanfs /app/scanfs
 COPY src/docker/build/docker-image/setup_default_config.sh /scripts/
+
+# Disable the known hosts prompt
+RUN mkdir -p /root/.ssh && echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /root/.ssh/config
 
 # Create non-root user and directories under that user
 RUN groupadd -g 1000 seedsync && \

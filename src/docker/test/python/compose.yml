@@ -1,0 +1,18 @@
+version: "3.4"
+services:
+  tests:
+    image: seedsync/test/python
+    container_name: seedsync_test_python
+    build:
+      context: ../../../../
+      dockerfile: src/docker/test/python/Dockerfile
+      target: seedsync_test_python
+    volumes:
+      - type: bind
+        source: ../../../python
+        target: /src
+        read_only: true
+
+      - type: bind
+        source: /tmp
+        target: /tmp
