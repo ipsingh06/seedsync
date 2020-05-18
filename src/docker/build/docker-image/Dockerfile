@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 as seedsync_docker_image
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,10 +32,10 @@ RUN pipenv --version
 RUN mkdir -p /root/.ssh && echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /root/.ssh/config
 
 RUN mkdir /app
-COPY python /app/python
-COPY html /app/html
-COPY scanfs /app/scanfs
-ADD setup_default_config.sh /scripts/
+COPY src/python /app/python
+COPY --from=seedsync/build/html /html /app/html
+COPY --from=seedsync/build/scanfs /scanfs /app/scanfs
+COPY src/docker/build/docker-image/setup_default_config.sh /scripts/
 
 RUN cd /app/python && pipenv install --system --deploy
 

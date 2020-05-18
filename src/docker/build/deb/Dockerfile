@@ -89,3 +89,7 @@ COPY --from=seedsync_deb /build/*.deb .
 # Exports scanfs to host
 FROM scratch AS export_scanfs
 COPY --from=pyinstaller_scanfs /build/dist/scanfs .
+
+# Exports html to host
+FROM scratch AS export_html
+COPY --from=node_angular /build/dist ./html

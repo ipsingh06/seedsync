@@ -4,36 +4,48 @@ ROOTDIR:=$(shell realpath .)
 SOURCEDIR:=$(shell realpath ./src)
 BUILDDIR:=$(shell realpath ./build)
 
-.PHONY: deb builddir docker clean
+.PHONY: builddir deb docker-image clean
 
-all: deb docker
+all: deb docker-image
 
 builddir:
 	mkdir -p ${BUILDDIR}
 
 scanfs: builddir
 	DOCKER_BUILDKIT=1 docker build \
-		-f ${SOURCEDIR}/docker/build/Dockerfile \
+		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target export_scanfs \
 		--output ${BUILDDIR} \
 		${ROOTDIR}
 
 deb: builddir
 	DOCKER_BUILDKIT=1 docker build \
-		-f ${SOURCEDIR}/docker/build/Dockerfile \
+		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target export_deb \
 		--output ${BUILDDIR} \
 		${ROOTDIR}
 
-docker: builddir
-	rm -rf ${BUILDDIR}/docker
-	mkdir -p ${BUILDDIR}/docker
-	cp -rf ${SOURCEDIR}/python ${BUILDDIR}/docker/python
-	cp -rf ${BUILDDIR}/artifacts/html ${BUILDDIR}/docker/html
-	cp -rf ${BUILDDIR}/artifacts/scanfs ${BUILDDIR}/docker/scanfs
-	cp -rf ${BUILDDIR}/artifacts/VERSION ${BUILDDIR}/docker/ARTIFACTS_VERSION
-	cp -rf ${SOURCEDIR}/docker/release/. ${BUILDDIR}/docker/
-	${BUILDDIR}/docker/build.sh
+docker-image:
+	# scanfs image
+	DOCKER_BUILDKIT=1 docker build \
+		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
+		--target export_scanfs \
+		--tag seedsync/build/scanfs \
+		${ROOTDIR}
+
+	# angular html image
+	DOCKER_BUILDKIT=1 docker build \
+		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
+		--target export_html \
+		--tag seedsync/build/html \
+		${ROOTDIR}
+
+	# final image
+	DOCKER_BUILDKIT=1 docker build \
+		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
+		--target seedsync_docker_image \
+		--tag seedsync:latest \
+		${ROOTDIR}
 
 clean:
 	rm -rf ${BUILDDIR}

@@ -6,3 +6,4 @@
 .idea
 build
 src/angular/dist
+src/python/tests
