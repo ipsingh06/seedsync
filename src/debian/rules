@@ -5,7 +5,13 @@ export DESTROOT=$(CURDIR)/debian/seedsync
 %:
 	dh $@ --with=systemd
 
+override_dh_auto_build:
+	dh_auto_build
+
 override_dh_auto_install:
 	dh_auto_install
 	mkdir -p $(DESTROOT)/usr/lib
 	cp -rf seedsync $(DESTROOT)/usr/lib/
+
+override_dh_shlibdeps:
+	dh_shlibdeps -l$(CURDIR)/seedsync

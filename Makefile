@@ -1,63 +1,31 @@
 # Copyright 2017, Inderpreet Singh, All rights reserved.
 
+ROOTDIR:=$(shell realpath .)
 SOURCEDIR:=$(shell realpath ./src)
 BUILDDIR:=$(shell realpath ./build)
 
-PYINSTALLER:=${SOURCEDIR}/python/.venv/bin/pyinstaller
-NG:=${SOURCEDIR}/angular/node_modules/@angular/cli/bin/ng
+.PHONY: deb builddir docker clean
 
-.PHONY: py scanfs ng artifacts deb builddir clean
-
-all: py scanfs ng artifacts deb docker
+all: deb docker
 
 builddir:
-	mkdir -p build
-
-py: builddir
-	${PYINSTALLER} ${SOURCEDIR}/python/seedsync.py \
-		-y \
-		-p ${SOURCEDIR}/python \
-		--distpath ${BUILDDIR}/py-dist \
-		--workpath ${BUILDDIR}/py-work \
-		--specpath ${BUILDDIR} \
-		--additional-hooks-dir ${SOURCEDIR}/pyinstaller_hooks/ \
-		--hidden-import="pkg_resources.py2_warn" \
-		--name seedsync
+	mkdir -p ${BUILDDIR}
 
 scanfs: builddir
-	${PYINSTALLER} ${SOURCEDIR}/python/scan_fs.py \
-		-y \
-		--onefile \
-		-p ${SOURCEDIR}/python \
-		--distpath ${BUILDDIR}/scanfs-dist \
-		--workpath ${BUILDDIR}/scanfs-work \
-		--specpath ${BUILDDIR} \
-		--name scanfs
+	DOCKER_BUILDKIT=1 docker build \
+		-f ${SOURCEDIR}/docker/build/Dockerfile \
+		--target export_scanfs \
+		--output ${BUILDDIR} \
+		${ROOTDIR}
 
-ng: builddir
-	cd ${SOURCEDIR}/angular && \
-	${NG} build -prod --output-path ${BUILDDIR}/ng-dist
+deb: builddir
+	DOCKER_BUILDKIT=1 docker build \
+		-f ${SOURCEDIR}/docker/build/Dockerfile \
+		--target export_deb \
+		--output ${BUILDDIR} \
+		${ROOTDIR}
 
-artifacts:
-	rm -rf ${BUILDDIR}/artifacts
-	mkdir -p ${BUILDDIR}/artifacts
-	cp -rf ${BUILDDIR}/py-dist/seedsync/* ${BUILDDIR}/artifacts/
-	cp -rf ${BUILDDIR}/ng-dist ${BUILDDIR}/artifacts/html
-	cp -f ${BUILDDIR}/scanfs-dist/scanfs ${BUILDDIR}/artifacts/
-	cat ${SOURCEDIR}/debian/changelog \
-        | grep -m1 -o "seedsync \(([0-9\.\-]*)\) stable" \
-        | grep -o [0-9\.\-]* \
-        | sed 's/\-/\./' \
-        > ${BUILDDIR}/artifacts/VERSION
-
-deb:
-	rm -rf ${BUILDDIR}/deb
-	mkdir -p ${BUILDDIR}/deb
-	cp -rf ${BUILDDIR}/artifacts ${BUILDDIR}/deb/seedsync
-	cp -rf ${SOURCEDIR}/debian ${BUILDDIR}/deb/
-	cd ${BUILDDIR}/deb && dpkg-buildpackage -B -uc -us
-
-docker:
+docker: builddir
 	rm -rf ${BUILDDIR}/docker
 	mkdir -p ${BUILDDIR}/docker
 	cp -rf ${SOURCEDIR}/python ${BUILDDIR}/docker/python
@@ -68,4 +36,4 @@ docker:
 	${BUILDDIR}/docker/build.sh
 
 clean:
-	rm -rf build
+	rm -rf ${BUILDDIR}

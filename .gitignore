@@ -1,5 +1,5 @@
 .idea
 *.pyc
-build
+/build
 .venv
 package-lock.json

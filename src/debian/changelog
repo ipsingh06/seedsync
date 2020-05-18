@@ -1,4 +1,4 @@
-seedsync (0.7-0) stable; urgency=low
+seedsync (0.7.0) stable; urgency=low
 
   * Fixed 100% CPU utilization when idle
   * Fixed file permission issues with Docker application
@@ -16,7 +16,7 @@ seedsync (0.7-0) stable; urgency=low
 
  -- Inderpreet Singh <inder@singhsnet.ca>  Fri, 01 Feb 2019 01:11:07 -0800
 
-seedsync (0.6-0) stable; urgency=low
+seedsync (0.6.0) stable; urgency=low
 
   * Added support for password-based SSH login
   * Fixed some SSH errors
@@ -30,13 +30,13 @@ seedsync (0.5-1) stable; urgency=low
 
  -- Inderpreet Singh <inder@singhsnet.ca>  Wed, 14 Mar 2018 00:37:42 -0700
 
-seedsync (0.5-0) stable; urgency=low
+seedsync (0.5.0) stable; urgency=low
 
   * Added LFTP option to rename downloading/unfinished files
 
  -- Inderpreet Singh <inder@singhsnet.ca>  Fri, 09 Mar 2018 15:21:29 -0800
 
-seedsync (0.4-0) stable; urgency=low
+seedsync (0.4.0) stable; urgency=low
 
   * Docker image released
   * Fixed auto-queue not working when patterns list empty
@@ -44,7 +44,7 @@ seedsync (0.4-0) stable; urgency=low
 
  -- Inderpreet Singh <inder@singhsnet.ca>  Thu, 08 Mar 2018 02:31:30 -0800
 
-seedsync (0.3-0) stable; urgency=low
+seedsync (0.3.0) stable; urgency=low
 
   * Added ability to extract archive files
   * Added ability to delete files on local and remote server
@@ -56,7 +56,7 @@ seedsync (0.3-0) stable; urgency=low
 
  -- Inderpreet Singh <inder@singhsnet.ca>  Tue, 06 Mar 2018 02:28:12 -0800
 
-seedsync (0.2-0) stable; urgency=low
+seedsync (0.2.0) stable; urgency=low
 
   * Added option for remote SSH port
   * Added ability to view log in web GUI
@@ -67,7 +67,7 @@ seedsync (0.2-0) stable; urgency=low
 
  -- Inderpreet Singh <inder@singhsnet.ca>  Thu, 04 Jan 2018 02:00:54 -0800
 
-seedsync (0.1-0) stable; urgency=low
+seedsync (0.1.0) stable; urgency=low
 
   * Initial Release
 

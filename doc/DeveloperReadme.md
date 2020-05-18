@@ -1,11 +1,13 @@
 # Environment Setup
 
 ## Install dependencies
-1. Install angular and its dependencies:
-https://angular.io/guide/quickstart
+1. Install [nodejs](https://joshtronic.com/2019/04/29/how-to-install-node-v12-on-debian-and-ubuntu/) (comes with npm)
 
-2. Install pip:
-https://pip.pypa.io/en/stable/installing/
+2. Install pipenv:
+
+  ```bash
+  sudo apt install -y python3-pip pipenv
+  ```
 
 3. Install docker and docker-compose:
 https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce
@@ -13,12 +15,7 @@ https://docs.docker.com/compose/install/
 
 4. Install the rest:
 ```bash
-sudo apt-get install -y \
-    python3-dev \
-    debhelper \
-    dh-systemd \
-    rar
-sudo pip install virtualenvwrapper
+sudo apt-get install -y lftp python3-dev rar
 ```
 
 ## Fetch code
@@ -29,8 +26,8 @@ cd seedsync
 
 ## Setup python virtual environment
 ```bash
-mkvirtualenv -p python3.5 seedsync
-pip install -r src/python/requirements.txt
+cd src/python
+PIPENV_VENV_IN_PROJECT=True pipenv install
 ```
 
 ## Setup angular node modules
@@ -53,22 +50,67 @@ make clean
 make
 ```
 
-2. The .deb package will be generated inside build/ directory.
-   The docker image will be listed under `docker image ls`.
+2. The .deb package will be generated inside `build` directory.
+   The docker image will be listed under `docker image ls`
+
+## Python Dev Build and Run
+
+### Build scanfs
+
+```bash
+make scanfs
+```
+
+### Run python
+
+```bash
+cd src/python
+mkdir -p build/config
+pipenv run python seedsync.py -c build/config --html ../angular/dist --scanfs build/scanfs
+```
+
+
+
+## Angular Dev Build and Run
+
+```bash
+cd src/angular
+node_modules/@angular/cli/bin/ng build
+node_modules/@angular/cli/bin/ng serve
+```
+
+Dev build will be served at [http://localhost:4200](http://localhost:4200)
 
 
 # Setup dev environment
 
 ## PyCharm
-1. Switch interpreter to virtualenv
-2. Mark src/python as 'Sources Root'
+1. Set project root to top-level `seedsync` directory
 
+2. Switch interpreter to virtualenv
+
+3. Mark src/python as 'Sources Root'
+
+4. Add run configuration
+
+   | Config      | Value                                                        |
+   | ----------- | ------------------------------------------------------------ |
+   | Name        | seedsync                                                     |
+   | Script path | seedsync.py                                                  |
+   | Parameters  | -c build/config --html ../angular/dist --scanfs build/scanfs |
+
+   
 
 # Run tests
-## Prerequisites
+
+## Manual
+
+### Python Unit Tests
+
 Create a new user account for python tests, and add the current user to its authorized keys.
 Also add the test account to the current user group so it may access any files created by the current user.
 Note: the current user must have SSH keys already generated.
+
 ```bash
 sudo adduser -q --disabled-password --disabled-login --gecos 'seedsynctest' seedsynctest
 sudo bash -c "echo seedsynctest:seedsyncpass | chpasswd"
@@ -79,16 +121,30 @@ sudo -u seedsynctest chmod 664 /home/seedsynctest/.ssh/authorized_keys
 sudo usermod -a -G $USER seedsynctest
 ```
 
-## Python Unit Tests
 Run from PyCharm
 
-## Angular Unit Tests
+OR
+
+Run from ```green```
+
 ```bash
-cd src/angular
-ng test
+cd src/python
+pipenv run green -vv
 ```
 
+### Angular Unit Tests
+
+```bash
+cd src/angular
+node_modules/@angular/cli/bin/ng test
+```
+
+### E2E Tests
+
+[See here](../src/e2e/README.md)
+
 ## Docker-based Test Suite
+
 ```bash
 ./scripts/tests/run_angular_tests.py
 ./scripts/tests/run_python_tests.py
