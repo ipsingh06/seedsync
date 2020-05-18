@@ -1,5 +1,5 @@
 # Creates environment to build python binaries
-FROM ubuntu:16.04 as python_build
+FROM ubuntu:16.04 as seedsync_build_pyinstaller_env
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && apt-get install -y \
@@ -23,7 +23,7 @@ RUN pipenv install --system --deploy
 
 # Builds seedsync with pyinstaller
 # Output is in /build/dist/seedsync/
-FROM python_build as pyinstaller_seedsync
+FROM seedsync_build_pyinstaller_env as seedsync_build_pyinstaller
 COPY src/python /python
 COPY src/pyinstaller_hooks /pyinstaller_hooks
 RUN mkdir -p /build
@@ -40,7 +40,7 @@ RUN pyinstaller /python/seedsync.py \
 
 # Builds scanfs with pyinstaller
 # Output is in /build/dist/
-FROM python_build as pyinstaller_scanfs
+FROM seedsync_build_pyinstaller_env as seedsync_build_scanfs
 COPY src/python /python
 RUN mkdir -p /build
 RUN	pyinstaller /python/scan_fs.py \
@@ -55,7 +55,7 @@ RUN	pyinstaller /python/scan_fs.py \
 
 # Builds angular app
 # Output is in /build/dist/
-FROM node:12.16 as node_angular
+FROM node:12.16 as seedsync_build_html
 COPY src/angular /angular
 WORKDIR /angular
 RUN npm install
@@ -63,7 +63,7 @@ RUN node_modules/@angular/cli/bin/ng build -prod --output-path /build/dist/
 
 
 # Creates environment to build deb packages
-FROM ubuntu:16.04 as deb_build
+FROM ubuntu:16.04 as seedsync_build_deb_env
 RUN apt-get update
 RUN apt-get install -y build-essential dh-systemd debhelper
 RUN apt-get install -y devscripts
@@ -71,25 +71,25 @@ RUN apt-get install -y devscripts
 
 # Builds debian package
 # Output is in /build/dist/
-FROM deb_build as seedsync_deb
+FROM seedsync_build_deb_env as seedsync_build_deb
 RUN mkdir -p /build/work
 COPY src/debian /build/work/debian
-COPY --from=pyinstaller_seedsync /build/dist/seedsync /build/work/seedsync
-COPY --from=pyinstaller_scanfs /build/dist/scanfs /build/work/seedsync/
-COPY --from=node_angular /build/dist /build/work/seedsync/html
+COPY --from=seedsync_build_pyinstaller /build/dist/seedsync /build/work/seedsync
+COPY --from=seedsync_build_scanfs /build/dist/scanfs /build/work/seedsync/
+COPY --from=seedsync_build_html /build/dist /build/work/seedsync/html
 WORKDIR /build/work
 RUN dpkg-buildpackage -B -uc -us
 RUN ls /build/*.deb && echo "----" && ls /build/work
 
 
 # Exports deb package to host
-FROM scratch AS export_deb
-COPY --from=seedsync_deb /build/*.deb .
+FROM scratch AS seedsync_build_deb_export
+COPY --from=seedsync_build_deb /build/*.deb .
 
 # Exports scanfs to host
-FROM scratch AS export_scanfs
-COPY --from=pyinstaller_scanfs /build/dist/scanfs .
+FROM scratch AS seedsync_build_scanfs_export
+COPY --from=seedsync_build_scanfs /build/dist/scanfs .
 
 # Exports html to host
-FROM scratch AS export_html
-COPY --from=node_angular /build/dist ./html
+FROM scratch AS seedsync_build_html_export
+COPY --from=seedsync_build_html /build/dist ./html

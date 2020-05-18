@@ -14,14 +14,14 @@ builddir:
 scanfs: builddir
 	DOCKER_BUILDKIT=1 docker build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
-		--target export_scanfs \
+		--target seedsync_build_scanfs_export \
 		--output ${BUILDDIR} \
 		${ROOTDIR}
 
 deb: builddir
 	DOCKER_BUILDKIT=1 docker build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
-		--target export_deb \
+		--target seedsync_build_deb_export \
 		--output ${BUILDDIR} \
 		${ROOTDIR}
 
@@ -29,21 +29,21 @@ docker-image:
 	# scanfs image
 	DOCKER_BUILDKIT=1 docker build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
-		--target export_scanfs \
-		--tag seedsync/build/scanfs \
+		--target seedsync_build_scanfs_export \
+		--tag seedsync/build/scanfs/export \
 		${ROOTDIR}
 
 	# angular html image
 	DOCKER_BUILDKIT=1 docker build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
-		--target export_html \
-		--tag seedsync/build/html \
+		--target seedsync_build_html_export \
+		--tag seedsync/build/html/export \
 		${ROOTDIR}
 
 	# final image
 	DOCKER_BUILDKIT=1 docker build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
-		--target seedsync_docker_image \
+		--target seedsync_run \
 		--tag seedsync:latest \
 		${ROOTDIR}
 
