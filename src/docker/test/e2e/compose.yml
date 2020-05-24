@@ -1,0 +1,38 @@
+version: "3.4"
+services:
+  tests:
+    image: seedsync/test/e2e
+    container_name: seedsync_test_e2e
+    build:
+      context: ../../../../
+      dockerfile: src/docker/test/e2e/Dockerfile
+      target: seedsync_test_e2e
+    depends_on:
+      - chrome
+      - remote
+
+  chrome:
+    image: seedsync/test/e2e/chrome
+    container_name: seedsync_test_e2e_chrome
+    build:
+      context: ../../../../
+      dockerfile: src/docker/test/e2e/chrome/Dockerfile
+    shm_size: 1024M
+    cap_add:
+     - SYS_ADMIN
+
+  remote:
+    image: seedsync/test/e2e/remote
+    container_name: seedsync_test_e2e_remote
+    build:
+      context: ../../../../
+      dockerfile: src/docker/test/e2e/remote/Dockerfile
+
+  configure:
+    image: seedsync/test/e2e/configure
+    container_name: seedsync_test_e2e_configure
+    build:
+      context: ../../../../
+      dockerfile: src/docker/test/e2e/configure/Dockerfile
+    depends_on:
+      - myapp
