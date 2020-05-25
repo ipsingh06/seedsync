@@ -1,0 +1,8 @@
+version: "3.4"
+services:
+  myapp:
+    image: seedsync/stage/deb/ubu1804
+    container_name: seedsync_stage_deb_ubu1804
+    build:
+      args:
+        - BASE_IMAGE=ubuntu-systemd:18.04

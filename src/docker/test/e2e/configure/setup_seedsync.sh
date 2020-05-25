@@ -3,6 +3,7 @@
 ./wait-for-it.sh myapp:8800 -- echo "Seedsync app is up (before configuring)"
 curl -sS "http://myapp:8800/server/config/set/general/debug/true"; echo
 curl -sS "http://myapp:8800/server/config/set/general/verbose/true"; echo
+curl -sS "http://myapp:8800/server/config/set/lftp/local_path/%252Fdownloads"; echo
 curl -sS "http://myapp:8800/server/config/set/lftp/remote_address/remote"; echo
 curl -sS "http://myapp:8800/server/config/set/lftp/remote_username/remoteuser"; echo
 curl -sS "http://myapp:8800/server/config/set/lftp/remote_password/remotepass"; echo

@@ -2,8 +2,11 @@ version: "3.4"
 services:
 
   myapp:
+    image: seedsync/stage/deb
+    container_name: seedsync_stage_deb
     build:
-      context: ../install
+      context: ../../../..
+      dockerfile: src/docker/stage/deb/Dockerfile
     tty: true
     tmpfs:
       - /run
@@ -12,7 +15,7 @@ services:
       - seccomp:unconfined
     volumes:
       - type: bind
-        source: ${PATH_TO_INSTALL_DEB}
+        source: ${SEEDSYNC_DEB}
         target: /install/seedsync.deb
         read_only: true
 

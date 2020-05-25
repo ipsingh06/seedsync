@@ -3,7 +3,6 @@
 1. Install dependencies
 
    ```bash
-   sudo npm install -g protractor
    cd src/e2e
    npm install
    ```

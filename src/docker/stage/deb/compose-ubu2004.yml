@@ -1,0 +1,8 @@
+version: "3.4"
+services:
+  myapp:
+    image: seedsync/stage/deb/ubu2004
+    container_name: seedsync_stage_deb_ubu2004
+    build:
+      args:
+        - BASE_IMAGE=ubuntu-systemd:20.04
