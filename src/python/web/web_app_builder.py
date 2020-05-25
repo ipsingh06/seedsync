@@ -10,6 +10,7 @@ from .handler.server import ServerHandler
 from .handler.config import ConfigHandler
 from .handler.auto_queue import AutoQueueHandler
 from .handler.stream_log import LogStreamHandler
+from .handler.status import StatusHandler
 
 
 class WebAppBuilder:
@@ -27,6 +28,7 @@ class WebAppBuilder:
         self.server_handler = ServerHandler(context)
         self.config_handler = ConfigHandler(context.config)
         self.auto_queue_handler = AutoQueueHandler(auto_queue_persist)
+        self.status_handler = StatusHandler(context.status)
 
     def build(self) -> WebApp:
         web_app = WebApp(context=self.__context,
@@ -45,6 +47,7 @@ class WebAppBuilder:
         self.server_handler.add_routes(web_app)
         self.config_handler.add_routes(web_app)
         self.auto_queue_handler.add_routes(web_app)
+        self.status_handler.add_routes(web_app)
 
         web_app.add_default_routes()
 

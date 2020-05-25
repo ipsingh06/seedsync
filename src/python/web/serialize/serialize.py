@@ -5,7 +5,7 @@ from abc import ABC
 
 class Serialize(ABC):
     """
-    Base class for serialization
+    Base class for SSE serialization
     """
     # noinspection PyMethodMayBeStatic
     def _sse_pack(self, event: str, data: str) -> str:
