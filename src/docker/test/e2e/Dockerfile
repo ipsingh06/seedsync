@@ -16,10 +16,12 @@ COPY \
 COPY src/e2e/tests /app/tests
 COPY \
     src/docker/test/e2e/urls.ts \
+    src/docker/test/e2e/run_tests.sh \
+    src/docker/test/e2e/parse_seedsync_status.py \
     /app/
 
 WORKDIR /app
 
 RUN node_modules/typescript/bin/tsc --outDir ./tmp
 
-CMD ["node_modules/protractor/bin/protractor", "tmp/conf.js"]
+CMD ["/app/run_tests.sh"]
