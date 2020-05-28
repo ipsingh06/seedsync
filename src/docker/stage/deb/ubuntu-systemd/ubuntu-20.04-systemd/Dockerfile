@@ -1,3 +1,6 @@
+# Copied from:
+# https://github.com/solita/docker-systemd/blob/master/Dockerfile
+# https://hub.docker.com/r/solita/ubuntu-systemd/
 FROM ubuntu:20.04
 
 RUN apt-get update && apt-get install -y systemd
@@ -20,4 +23,4 @@ COPY setup /sbin/
 STOPSIGNAL SIGRTMIN+3
 
 # Workaround for docker/docker#27202, technique based on comments from docker/docker#9212
-CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
+CMD ["/bin/bash", "-c", "exec /lib/systemd/systemd --log-target=journal 3>&1"]

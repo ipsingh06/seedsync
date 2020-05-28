@@ -8,6 +8,6 @@ echo "Running entrypoint"
 echo "Installing SeedSync"
 ./expect_seedsync.exp
 
-echo "Continuing entrypoint"
+echo "Continuing docker CMD"
 echo "$@"
 exec $@

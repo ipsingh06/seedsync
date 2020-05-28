@@ -108,6 +108,10 @@ tests-e2e-deps:
 		${SOURCEDIR}/docker/stage/deb/ubuntu-systemd/ubuntu-20.04-systemd \
 		-t ubuntu-systemd:20.04
 
+	# Setup docker for the systemd container
+	# See: https://github.com/solita/docker-systemd
+	$(DOCKER) run --rm --privileged -v /:/host solita/ubuntu-systemd setup
+
 run-tests-e2e: tests-e2e-deps
 	# Check our settings
 	@if [[ -z "${SEEDSYNC_VERSION}" ]] && [[ -z "${SEEDSYNC_DEB}" ]]; then \

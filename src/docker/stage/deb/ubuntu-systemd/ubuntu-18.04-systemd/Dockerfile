@@ -1,3 +1,6 @@
+# Copied from:
+# https://github.com/solita/docker-systemd/blob/master/Dockerfile
+# https://hub.docker.com/r/solita/ubuntu-systemd/
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y systemd
