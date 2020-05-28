@@ -51,7 +51,7 @@ make
 ```
 
 2. The .deb package will be generated inside `build` directory.
-   The docker image will be listed under `docker image ls`
+   The docker image will be listed under `docker image ls` as `seedsync:latest`
 
 ## Python Dev Build and Run
 
@@ -146,9 +146,17 @@ node_modules/@angular/cli/bin/ng test
 ## Docker-based Test Suite
 
 ```bash
+# Python tests
 make run-tests-python
+
+# Angular tests
 make run-tests-angular
-./scripts/tests/run_e2e_tests.py -d <path to deb file> -i <image version>
+
+# E2E Tests
+# Docker image
+make run-tests-e2e SEEDSYNC_VERSION=latest
+# Debian package (os=ubu1604,ubu1804,ubu2004)
+make run-tests-e2e SEEDSYNC_DEB=<path to deb> SEEDSYNC_OS=<os code>
 ```
 
 # Release
@@ -162,7 +170,7 @@ make run-tests-angular
     4. Update `src/e2e/tests/about.page.spec.ts`
 2. Tag the commit as vX.X.X
 3. make clean && make
-4. Run all 3 tests
+4. Run all tests
 5. Upload deb file to github
 6. Tag and upload image to Dockerhub (see below)
 
