@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
     python3.7 \
     python3.7-dev \
     python3.7-distutils \
-    curl
+    curl \
+    libnss-wrapper
 
 # Switch to Python 3.7
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
@@ -50,6 +51,14 @@ COPY src/docker/build/docker-image/setup_default_config.sh /scripts/
 
 # Disable the known hosts prompt
 RUN mkdir -p /root/.ssh && echo "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /root/.ssh/config
+
+# SSH as any user fix
+# https://stackoverflow.com/a/57531352
+COPY src/docker/build/docker-image/run_as_user /usr/local/bin/
+RUN chmod a+x /usr/local/bin/run_as_user
+COPY src/docker/build/docker-image/ssh /usr/local/sbin
+RUN chmod a+x /usr/local/sbin/ssh
+
 
 # Create non-root user and directories under that user
 RUN groupadd -g 1000 seedsync && \
