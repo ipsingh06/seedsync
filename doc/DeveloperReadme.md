@@ -165,9 +165,10 @@ make run-tests-e2e SEEDSYNC_DEB=<path to deb> SEEDSYNC_OS=<os code>
 
 1. Do all of these in one change
     1. Version update in `src/angular/package.json`
-    3. Version update and changelog in `src/debian/changelog`.
+    2. Version update and changelog in `src/debian/changelog`.
        Use command `LANG=C date -R` to get the date.
-    4. Update `src/e2e/tests/about.page.spec.ts`
+    3. Update `src/e2e/tests/about.page.spec.ts`
+    4. Update Copyright date in `about-page.component.html`
 2. Tag the commit as vX.X.X
 3. make clean && make
 4. Run all tests
