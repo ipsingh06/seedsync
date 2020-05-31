@@ -1,3 +1,11 @@
+seedsync (0.7.1) stable; urgency=low
+
+  * Support for Ubuntu 20.04 (debian package)
+  * Support for arbitrary host uid in Docker image
+  * Fixed some lftp parsing errors
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Sat, 30 May 2020 23:26:59 -0700
+
 seedsync (0.7.0) stable; urgency=low
 
   * Fixed 100% CPU utilization when idle
@@ -23,7 +31,7 @@ seedsync (0.6.0) stable; urgency=low
 
  -- Inderpreet Singh <inder@singhsnet.ca>  Wed, 21 Mar 2018 19:38:14 -0700
 
-seedsync (0.5-1) stable; urgency=low
+seedsync (0.5.1) stable; urgency=low
 
   * Added (hidden) setting to enable verbose logging
   * Fixed LFTP timeout errors crashing the app
