@@ -438,19 +438,17 @@ class LftpJobStatusParser:
             result = chmod_header_m.search(line)
             if result:
                 name = result.group("name")
-                # Also ignore the next two lines
+                # Also ignore the next one or two lines
                 if not lines or not lines[0].startswith("file:"):
                     raise ValueError("Missing 'file:' line for chmod '{}'".format(name))
                 lines.pop(0)
-                if not lines:
-                    raise ValueError("Missing last line for chmod '{}'".format(name))
-                result_chmod = chmod_pattern_m.search(lines[0])
-                if not result_chmod:
-                    raise ValueError("Missing last line for chmod '{}'".format(name))
-                name_chmod = result_chmod.group("name")
-                if name != name_chmod:
-                    raise ValueError("Mismatch in names chmod '{}'".format(name))
-                lines.pop(0)
+                if lines:
+                    result_chmod = chmod_pattern_m.search(lines[0])
+                    if result_chmod:
+                        name_chmod = result_chmod.group("name")
+                        if name != name_chmod:
+                            raise ValueError("Mismatch in names chmod '{}'".format(name))
+                    lines.pop(0)
                 # Continue the outer loop
                 continue
 

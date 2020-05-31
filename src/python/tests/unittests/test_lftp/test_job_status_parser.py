@@ -1248,3 +1248,46 @@ class TestLftpJobStatusParser(unittest.TestCase):
         self.assertEqual(2, len(statuses))
         self.assertEqual(golden_job1, statuses[0])
         self.assertEqual(golden_job2, statuses[1])
+
+    def test_jobs_chmod_two_liner(self):
+        output = """
+        [0] queue (sftp://someone:@localhost:22)  -- 1.8 KiB/s
+        sftp://someone:@localhost:22/remote/path
+        Now executing: [1] mirror -c /remote/path/Space.Trek /local/path/ -- 3.1k/617M (0%) 1.8 KiB/s
+        [1] mirror -c /remote/path/Space.Trek /local/path/  -- 3.1k/617M (0%) 1.8 KiB/s
+        \mirror `Space.Trek.S08E04' 
+        chmod Space.Trek.S08E04.sfv 
+            file:/local/path/Space.Trek/Space.Trek.S08E04
+        \mirror `Space.Trek.S08E05'  -- 605/51M (0%)
+        \\transfer `Space.Trek.S08E05/space.trek.s08e05.r06' 
+            `space.trek.s08e05.r06' at 0 (0%) [Waiting for response...]
+        \mirror `Space.Trek.S08E06'  -- 1.6k/517M (0%) 932 B/s
+        \\transfer `Space.Trek.S08E06/space.trek.s08e06.nfo' 
+            `space.trek.s08e06.nfo' at 932 (100%) [Receiving data]
+        \mirror `Space.Trek.S08E07'  -- 932/51M (0%) 932 B/s
+        \\transfer `Space.Trek.S08E07/space.trek.s08e07.nfo' 
+        `space.trek.s08e07.nfo' at 932 (100%) [Receiving data]
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="Space.Trek",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(3174, 646971392, 0, 1843, None)
+        golden_job1.add_active_file_transfer_state(
+            "Space.Trek.S08E05/space.trek.s08e05.r06",
+            LftpJobStatus.TransferState(None, None, None, None, None)
+        )
+        golden_job1.add_active_file_transfer_state(
+            "Space.Trek.S08E06/space.trek.s08e06.nfo",
+            LftpJobStatus.TransferState(None, None, None, None, None)
+        )
+        golden_job1.add_active_file_transfer_state(
+            "Space.Trek.S08E07/space.trek.s08e07.nfo",
+            LftpJobStatus.TransferState(None, None, None, None, None)
+        )
+        self.assertEqual(1, len(statuses))
+        self.assertEqual(golden_job1, statuses[0])
