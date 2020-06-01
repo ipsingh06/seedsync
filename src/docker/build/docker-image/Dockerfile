@@ -58,6 +58,8 @@ COPY src/docker/build/docker-image/run_as_user /usr/local/bin/
 RUN chmod a+x /usr/local/bin/run_as_user
 COPY src/docker/build/docker-image/ssh /usr/local/sbin
 RUN chmod a+x /usr/local/sbin/ssh
+COPY src/docker/build/docker-image/scp /usr/local/sbin
+RUN chmod a+x /usr/local/sbin/scp
 
 
 # Create non-root user and directories under that user
