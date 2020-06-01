@@ -4,7 +4,7 @@
 U=`id -u`
 G=`id -g`
 
-HOME_DIR=/tmp/user
+HOME_DIR=/home/seedsync
 PASSWD=/var/tmp/passwd
 GROUP=/var/tmp/group
 
