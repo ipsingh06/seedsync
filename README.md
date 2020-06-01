@@ -194,7 +194,7 @@ It is strongly recommended that you setup key-based authentication.
    Note: make sure the access is setup for the user under which SeedSync is running.
 
    Note2: if you're using docker, also see the
-   [Installing SSH Keys into the Docker Container](#keys-inside-docker) section.
+   [Using SSH Keys with Docker](#keys-inside-docker) section.
 
 
 2. Before continuing, verify the password-less access by SSH'ing into your remote server in a terminal:
@@ -211,37 +211,23 @@ It is strongly recommended that you setup key-based authentication.
    3. Select "Use password-less key-based authentication".
    4. Restart SeedSync
 
-#### <a name="keys-inside-docker"></a> Installing SSH Keys into the Docker Container
+#### <a name="keys-inside-docker"></a> Using SSH Keys with Docker
 
-1. Generate a SSH private/public key pair.
+1. Generate a SSH private/public key pair if you haven't already.
    Here is a [simple tutorial](https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/)
    that walks you through this process.
 
-2. Run this command in a new Docker terminal while the SeedSync container is running:
+2. Include the following option with your docker command:
    ```bash
-   docker container ls
-
-   CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS              PORTS                    NAMES
-   28c87db489e1        ipsingh06/seedsync   "/bin/sh -c '/app/..."   12 seconds ago      Up 11 seconds       0.0.0.0:8800->8800/tcp   pedantic_raman
-   ```
-   Note down the container id for the image named ipsingh06/seedsync.
-   It this example the container id is 28c87db489e1
-
-3. Copy the private key 'id_rsa' that you generated earlier into the container:
+   -v <path to .ssh directory>:/home/seedsync/.ssh
+```
+   Most commonly this should be:
+   
    ```bash
-   docker cp id_rsa 28c87db489e1:/root/.ssh/
+   -v ~/.ssh:/home/seedsync/.ssh
    ```
 
-4. Set the correct permissions on the private key
-   ```bash
-   docker exec 28c87db489e1 chmod 600 /root/.ssh/id_rsa
-   ```
-
-5. Verify that the container can SSH into remote server without password.
-   ```bash
-   docker exec -it 28c87db489e1 ssh <username>@<address>
-   ```
-   where &lt;username&gt; and &lt;address&gt; are the username and address of the remote server.    
+Note: If you are running the docker guest with a non-standard user using the `--user` option, then you must make sure that your `.ssh` directory is also readable by that user.
 
 ### Dashboard
 
@@ -289,7 +275,7 @@ Add the following option when starting the container.
 ```bash
 -v <directory on host>:/config
 ```
-where &lt;directory on host&gt; refers to the location on host machine where you wish to store the application
+where `<directory on host>` refers to the location on host machine where you wish to store the application
 state.
 
 
