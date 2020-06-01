@@ -1,3 +1,9 @@
+seedsync (0.7.3) stable; urgency=low
+
+  * Fixed docker image scp error with unknown user
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Sun, 31 May 2020 18:50:38 -0700
+
 seedsync (0.7.2) stable; urgency=low
 
   * Fixed docker image ssh directory path
