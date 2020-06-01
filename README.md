@@ -220,9 +220,8 @@ It is strongly recommended that you setup key-based authentication.
 2. Include the following option with your docker command:
    ```bash
    -v <path to .ssh directory>:/home/seedsync/.ssh
-```
+    ```
    Most commonly this should be:
-   
    ```bash
    -v ~/.ssh:/home/seedsync/.ssh
    ```
