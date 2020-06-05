@@ -97,7 +97,7 @@ Dev build will be served at [http://localhost:4200](http://localhost:4200)
    | ----------- | ------------------------------------------------------------ |
    | Name        | seedsync                                                     |
    | Script path | seedsync.py                                                  |
-   | Parameters  | -c build/config --html ../angular/dist --scanfs build/scanfs |
+   | Parameters  | -c ./build/config --html ../angular/dist --scanfs ./build/scanfs |
 
    
 
@@ -186,4 +186,27 @@ docker tag ${IMAGE}:latest ${USERNAME}/${IMAGE}:${VERSION}
 docker push ${USERNAME}/${IMAGE}:latest
 docker push ${USERNAME}/${IMAGE}:${VERSION}
 ```
+
+
+
+# Development
+
+## Remote Server
+
+Use the following command to run the docker image for the remote server for development testing.
+This is the same image used by the end-to-end tests.
+
+```bash
+make run-remote-server
+```
+
+The connection parameters for the remote server are:
+
+| Option         | Value                  |
+| -------------- | ---------------------- |
+| Remote Address | localhost              |
+| Remote Port    | 1234                   |
+| Username       | remoteuser             |
+| Pass           | remotepass             |
+| Remote Path    | /home/remoteuser/files |
 

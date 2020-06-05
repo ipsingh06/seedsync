@@ -167,6 +167,13 @@ run-tests-e2e: tests-e2e-deps
 		$(DOCKER) logs -f seedsync_test_e2e
 	fi
 
+run-remote-server:
+	$(DOCKER) container rm -f seedsync_test_e2e_remote-dev
+	$(DOCKER) run \
+		-it --init \
+		-p 1234:1234 \
+		--name seedsync_test_e2e_remote-dev \
+		seedsync/test/e2e/remote
 
 clean:
 	rm -rf ${BUILDDIR}
