@@ -9,9 +9,8 @@ import os
 import pickle
 import shutil
 
-from controller.scan import RemoteScanner
+from controller.scan import RemoteScanner, ScannerError
 from ssh import SshcpError
-from common import AppError
 from common import Localization
 
 
@@ -291,7 +290,7 @@ class TestRemoteScanner(unittest.TestCase):
             "'/remote/path/to/scan/script' '/remote/path/to/scan'"
         )
 
-    def test_raises_app_error_on_failed_ssh(self):
+    def test_raises_recoverable_error_on_failed_ssh(self):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
@@ -319,11 +318,45 @@ class TestRemoteScanner(unittest.TestCase):
                 return pickle.dumps([])
         self.mock_ssh.shell.side_effect = ssh_shell
 
-        with self.assertRaises(AppError) as ctx:
+        with self.assertRaises(ScannerError) as ctx:
             scanner.scan()
         self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(ctx.exception))
+        self.assertTrue(ctx.exception.recoverable)
 
-    def test_raises_app_error_on_failed_copy(self):
+    def test_recovers_from_failed_ssh(self):
+        scanner = RemoteScanner(
+            remote_address="my remote address",
+            remote_username="my remote user",
+            remote_password="my password",
+            remote_port=1234,
+            remote_path_to_scan="/remote/path/to/scan",
+            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
+            remote_path_to_scan_script="/remote/path/to/scan/script"
+        )
+
+        self.ssh_run_command_count = 0
+
+        # Ssh run command raises error the first time, succeeds the second time
+        # noinspection PyUnusedLocal
+        def ssh_shell(*args):
+            self.ssh_run_command_count += 1
+            if self.ssh_run_command_count == 1:
+                # md5sum check
+                return b''
+            elif self.ssh_run_command_count == 2:
+                # first try
+                raise SshcpError("an ssh error")
+            else:
+                # later tries
+                return pickle.dumps([])
+        self.mock_ssh.shell.side_effect = ssh_shell
+
+        with self.assertRaises(ScannerError):
+            scanner.scan()
+        scanner.scan()
+        self.assertEqual(3, self.mock_ssh.shell.call_count)
+
+    def test_raises_nonrecoverable_error_on_failed_copy(self):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
@@ -339,152 +372,12 @@ class TestRemoteScanner(unittest.TestCase):
             raise SshcpError("an scp error")
         self.mock_ssh.copy.side_effect = ssh_copy
 
-        with self.assertRaises(AppError) as ctx:
+        with self.assertRaises(ScannerError) as ctx:
             scanner.scan()
         self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(ctx.exception))
+        self.assertFalse(ctx.exception.recoverable)
 
-    def test_suppresses_and_retries_on_ssh_error_text_file_busy(self):
-        scanner = RemoteScanner(
-            remote_address="my remote address",
-            remote_username="my remote user",
-            remote_password="my password",
-            remote_port=1234,
-            remote_path_to_scan="/remote/path/to/scan",
-            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
-            remote_path_to_scan_script="/remote/path/to/scan/script"
-        )
-
-        self.ssh_run_command_count = 0
-
-        # Ssh run command raises error the first time, succeeds the second time
-        # noinspection PyUnusedLocal
-        def ssh_shell(*args):
-            self.ssh_run_command_count += 1
-            if self.ssh_run_command_count == 1:
-                # md5sum check
-                return b''
-            elif self.ssh_run_command_count == 2:
-                # first try
-                raise SshcpError("bash: /remote/path/to/scan: Text file busy")
-            else:
-                # later tries
-                return pickle.dumps([])
-        self.mock_ssh.shell.side_effect = ssh_shell
-
-        scanner.scan()
-        self.assertEqual(3, self.mock_ssh.shell.call_count)
-
-    def test_fails_after_max_retries_on_suppressed_error(self):
-        scanner = RemoteScanner(
-            remote_address="my remote address",
-            remote_username="my remote user",
-            remote_password="my password",
-            remote_port=1234,
-            remote_path_to_scan="/remote/path/to/scan",
-            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
-            remote_path_to_scan_script="/remote/path/to/scan/script"
-        )
-
-        # noinspection PyUnusedLocal
-        def ssh_shell(*args):
-                raise SshcpError("bash: /remote/path/to/scan: Text file busy")
-        self.mock_ssh.shell.side_effect = ssh_shell
-
-        with self.assertRaises(AppError) as ctx:
-            scanner.scan()
-        self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(ctx.exception))
-        # 7 tries: md5sum check + initial try + 5 retries
-        self.assertEqual(7, self.mock_ssh.shell.call_count)
-
-    def test_suppresses_and_retries_on_ssh_error_exchange_identification(self):
-        scanner = RemoteScanner(
-            remote_address="my remote address",
-            remote_username="my remote user",
-            remote_password="my password",
-            remote_port=1234,
-            remote_path_to_scan="/remote/path/to/scan",
-            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
-            remote_path_to_scan_script="/remote/path/to/scan/script"
-        )
-
-        self.ssh_run_command_count = 0
-
-        # Ssh run command raises error the first time, succeeds the second time
-        # noinspection PyUnusedLocal
-        def ssh_run_command(*args):
-            self.ssh_run_command_count += 1
-            if self.ssh_run_command_count < 2:
-                raise SshcpError("ssh_exchange_identification: read: Connection reset by peer")
-            else:
-                return pickle.dumps([])
-        self.mock_ssh.shell.side_effect = ssh_run_command
-
-        scanner.scan()
-        self.assertEqual(2, self.mock_ssh.shell.call_count)
-
-    def test_suppresses_and_retries_on_ssh_error_cannot_create_temp_dir(self):
-        scanner = RemoteScanner(
-            remote_address="my remote address",
-            remote_username="my remote user",
-            remote_password="my password",
-            remote_port=1234,
-            remote_path_to_scan="/remote/path/to/scan",
-            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
-            remote_path_to_scan_script="/remote/path/to/scan/script"
-        )
-
-        self.ssh_run_command_count = 0
-
-        # Ssh run command raises error the first time, succeeds the second time
-        # noinspection PyUnusedLocal
-        def ssh_shell(*args):
-            self.ssh_run_command_count += 1
-            if self.ssh_run_command_count == 1:
-                # md5sum check
-                return b''
-            elif self.ssh_run_command_count == 2:
-                # first try
-                raise SshcpError("[23033] INTERNAL ERROR: cannot create temporary directory!")
-            else:
-                # later tries
-                return pickle.dumps([])
-        self.mock_ssh.shell.side_effect = ssh_shell
-
-        scanner.scan()
-        self.assertEqual(3, self.mock_ssh.shell.call_count)
-
-    def test_suppresses_and_retries_on_ssh_error_connection_timed_out(self):
-        scanner = RemoteScanner(
-            remote_address="my remote address",
-            remote_username="my remote user",
-            remote_password="my password",
-            remote_port=1234,
-            remote_path_to_scan="/remote/path/to/scan",
-            local_path_to_scan_script=TestRemoteScanner.temp_scan_script,
-            remote_path_to_scan_script="/remote/path/to/scan/script"
-        )
-
-        self.ssh_run_command_count = 0
-
-        # Ssh run command raises error the first time, succeeds the second time
-        # noinspection PyUnusedLocal
-        def ssh_shell(*args):
-            self.ssh_run_command_count += 1
-            if self.ssh_run_command_count == 1:
-                # md5sum check
-                return b''
-            elif self.ssh_run_command_count == 2:
-                # first try
-                raise SshcpError("connect to host host.remote.com port 2202: Connection timed out")
-            else:
-                # later tries
-                return pickle.dumps([])
-        self.mock_ssh.shell.side_effect = ssh_shell
-
-        scanner.scan()
-        self.assertEqual(3, self.mock_ssh.shell.call_count)
-
-    def test_raises_app_error_on_mangled_output(self):
+    def test_raises_nonrecoverable_error_on_mangled_output(self):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
@@ -499,6 +392,7 @@ class TestRemoteScanner(unittest.TestCase):
             return "mangled data".encode()
         self.mock_ssh.shell.side_effect = ssh_shell
 
-        with self.assertRaises(AppError) as ctx:
+        with self.assertRaises(ScannerError) as ctx:
             scanner.scan()
         self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(ctx.exception))
+        self.assertFalse(ctx.exception.recoverable)

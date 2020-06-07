@@ -7,8 +7,20 @@ from datetime import datetime
 from typing import List, Optional
 import queue
 
-from common import overrides, AppProcess
+from common import overrides, AppProcess, AppError
 from system import SystemFile
+
+
+class ScannerError(AppError):
+    """
+    Indicates a scanner error
+
+    Args:
+        recoverable: indicates scans can be retried
+    """
+    def __init__(self, message: str, recoverable: bool = False):
+        super().__init__(message)
+        self.recoverable = recoverable
 
 
 class IScanner(ABC):
@@ -30,9 +42,15 @@ class ScannerResult:
     """
     Results of a system scan
     """
-    def __init__(self, timestamp: datetime, files: List[SystemFile]):
+    def __init__(self,
+                 timestamp: datetime,
+                 files: List[SystemFile],
+                 failed: bool = False,
+                 error_message: str = None):
         self.timestamp = timestamp
         self.files = files
+        self.failed = failed
+        self.error_message = error_message
 
 
 class ScannerProcess(AppProcess):
@@ -68,9 +86,18 @@ class ScannerProcess(AppProcess):
         timestamp_start = datetime.now()
         if self.verbose:
             self.logger.debug("Running a scan")
-        files = self.__scanner.scan()
-        result = ScannerResult(timestamp=timestamp_start,
-                               files=files)
+        try:
+            files = self.__scanner.scan()
+            result = ScannerResult(timestamp=timestamp_start,
+                                   files=files)
+        except ScannerError as e:
+            # Non-recoverable errors continue up as a fatal error
+            if not e.recoverable:
+                raise
+            result = ScannerResult(timestamp=timestamp_start,
+                                   files=[],
+                                   failed=True,
+                                   error_message=str(e))
         self.__queue.put(result)
         delta_in_s = (datetime.now() - timestamp_start).total_seconds()
         delta_in_ms = int(delta_in_s * 1000)

@@ -7,22 +7,16 @@ import os
 from typing import Optional
 import hashlib
 
-from .scanner_process import IScanner
-from common import overrides, AppError, Localization
+from .scanner_process import IScanner, ScannerError
+from common import overrides, Localization
 from ssh import Sshcp, SshcpError
 from system import SystemFile
-
-
-class RemoteScannerError(AppError):
-    pass
 
 
 class RemoteScanner(IScanner):
     """
     Scanner implementation to scan the remote filesystem
     """
-    RETRY_COUNT = 5
-
     def __init__(self,
                  remote_address: str,
                  remote_username: str,
@@ -57,30 +51,20 @@ class RemoteScanner(IScanner):
             self._install_scanfs()
             self.__first_run = False
 
-        retries = 0
-        out = None
-        while out is None:
-            try:
-                out = self.__ssh.shell("'{}' '{}'".format(
-                    self.__remote_path_to_scan_script,
-                    self.__remote_path_to_scan)
-                )
-            except SshcpError as e:
-                # Suppress specific errors and retry a fixed number of times
-                # Otherwise raise a fatal AppError
-                if RemoteScanner.__suppress_error(e) and retries < RemoteScanner.RETRY_COUNT:
-                    self.logger.warning("Retrying remote scan after error: {}".format(str(e)))
-                    out = None
-                    retries += 1
-                else:
-                    self.logger.exception("Caught an SshError")
-                    raise AppError(Localization.Error.REMOTE_SERVER_SCAN)
+        try:
+            out = self.__ssh.shell("'{}' '{}'".format(
+                self.__remote_path_to_scan_script,
+                self.__remote_path_to_scan)
+            )
+        except SshcpError as e:
+            self.logger.warning("Caught an SshcpError: {}".format(str(e)))
+            raise ScannerError(Localization.Error.REMOTE_SERVER_SCAN, recoverable=True)
 
         try:
             remote_files = pickle.loads(out)
         except pickle.UnpicklingError as err:
             self.logger.error("Unpickling error: {}\n{}".format(str(err), out))
-            raise AppError(Localization.Error.REMOTE_SERVER_SCAN)
+            raise ScannerError(Localization.Error.REMOTE_SERVER_SCAN, recoverable=False)
         return remote_files
 
     def _install_scanfs(self):
@@ -107,23 +91,13 @@ class RemoteScanner(IScanner):
             self.__remote_path_to_scan_script
         ))
         if not os.path.isfile(self.__local_path_to_scan_script):
-            raise RemoteScannerError("Failed to find scanfs executable at {}".format(
-                self.__local_path_to_scan_script
-            ))
+            raise ScannerError(
+                "Failed to find scanfs executable at {}".format(self.__local_path_to_scan_script),
+                recoverable=False
+            )
         try:
             self.__ssh.copy(local_path=self.__local_path_to_scan_script,
                             remote_path=self.__remote_path_to_scan_script)
         except SshcpError:
             self.logger.exception("Caught scp exception")
-            raise AppError(Localization.Error.REMOTE_SERVER_INSTALL)
-
-    @staticmethod
-    def __suppress_error(error: SshcpError) -> bool:
-        error_str = str(error).lower()
-        errors_to_suppress = [
-            "text file busy",
-            "ssh_exchange_identification",
-            "cannot create temporary directory",
-            "connection timed out"
-        ]
-        return any(e in error_str for e in errors_to_suppress)
+            raise ScannerError(Localization.Error.REMOTE_SERVER_INSTALL, recoverable=False)

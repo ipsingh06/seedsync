@@ -3,8 +3,8 @@
 import logging
 from typing import List
 
-from .scanner_process import IScanner
-from common import overrides, AppError, Localization, Constants
+from .scanner_process import IScanner, ScannerError
+from common import overrides, Localization, Constants
 from system import SystemScanner, SystemFile, SystemScannerError
 
 
@@ -28,5 +28,5 @@ class LocalScanner(IScanner):
             result = self.__scanner.scan()
         except SystemScannerError:
             self.logger.exception("Caught SystemScannerError")
-            raise AppError(Localization.Error.LOCAL_SERVER_SCAN)
+            raise ScannerError(Localization.Error.LOCAL_SERVER_SCAN, recoverable=False)
         return result

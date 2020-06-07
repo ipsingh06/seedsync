@@ -113,7 +113,16 @@ class TestSshcp(unittest.TestCase):
         sshcp = Sshcp(host="badhost", port=self.port, user=self.user, password=password)
         with self.assertRaises(SshcpError) as ctx:
             sshcp.copy(local_path=self.local_file, remote_path=self.remote_file)
-        self.assertTrue("Bad hostname" in str(ctx.exception))
+        self.assertTrue("Connection refused by server" in str(ctx.exception))
+
+    @parameterized.expand(_PARAMS)
+    @timeout_decorator.timeout(5)
+    def test_copy_error_bad_port(self, _, password):
+        sshcp = Sshcp(host=self.host, port=666, user=self.user, password=password)
+        with self.assertRaises(SshcpError) as ctx:
+            sshcp.copy(local_path=self.local_file, remote_path=self.remote_file)
+        print(str(ctx.exception))
+        self.assertTrue("Connection refused by server" in str(ctx.exception))
 
     @parameterized.expand(_PARAMS)
     @timeout_decorator.timeout(5)
@@ -159,6 +168,14 @@ class TestSshcp(unittest.TestCase):
         with self.assertRaises(SshcpError) as ctx:
             sshcp.shell("cd {}; pwd".format(self.local_dir))
         self.assertTrue("Bad hostname" in str(ctx.exception))
+
+    @parameterized.expand(_PARAMS)
+    @timeout_decorator.timeout(5)
+    def test_shell_error_bad_port(self, _, password):
+        sshcp = Sshcp(host=self.host, port=666, user=self.user, password=password)
+        with self.assertRaises(SshcpError) as ctx:
+            sshcp.shell("cd {}; pwd".format(self.local_dir))
+        self.assertTrue("Connection refused by server" in str(ctx.exception))
 
     @parameterized.expand(_PARAMS)
     @timeout_decorator.timeout(5)

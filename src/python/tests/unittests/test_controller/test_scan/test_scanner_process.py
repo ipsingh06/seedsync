@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import timeout_decorator
 
-from controller import IScanner, ScannerProcess
+from controller import IScanner, ScannerProcess, ScannerError
 from system import SystemFile
 
 
@@ -141,3 +141,36 @@ class TestScannerProcess(unittest.TestCase):
             pass
         result = self.process.pop_latest_result()
         self.assertEqual(0, len(result.files))
+
+    @timeout_decorator.timeout(10)
+    def test_sends_error_result_on_recoverable_error(self):
+        mock_scanner = DummyScanner()
+        mock_scanner.scan = MagicMock()
+        mock_scanner.scan.side_effect = ScannerError("recoverable error", recoverable=True)
+
+        self.process = ScannerProcess(scanner=mock_scanner,
+                                      interval_in_ms=100)
+        self.process.start()
+
+        while True:
+            result = self.process.pop_latest_result()
+            if result:
+                break
+        self.assertEqual(0, len(result.files))
+        self.assertTrue(result.failed)
+        self.assertEqual("recoverable error", result.error_message)
+
+    @timeout_decorator.timeout(10)
+    def test_sends_fatal_exception_on_nonrecoverable_error(self):
+        mock_scanner = DummyScanner()
+        mock_scanner.scan = MagicMock()
+        mock_scanner.scan.side_effect = ScannerError("non-recoverable error", recoverable=False)
+
+        self.process = ScannerProcess(scanner=mock_scanner,
+                                      interval_in_ms=100)
+        self.process.start()
+        with self.assertRaises(ScannerError) as ctx:
+            while True:
+                self.process.propagate_exception()
+        # noinspection PyUnreachableCode
+        self.assertEqual("non-recoverable error", str(ctx.exception))

@@ -75,26 +75,32 @@ class Sshcp:
             if self.__password is not None:
                 i = sp.expect([
                     'password: ',  # i=0, all's good
-                    'lost connection',  # i=1, bad hostname
+                    'lost connection',  # i=1, connection refused
                     'Could not resolve hostname',  # i=2, bad hostname
+                    'Connection refused',  # i=3, connection refused
                 ])
-                if i in (1, 2):
+                if i == 2:
                     raise SshcpError("Bad hostname: {}".format(self.__host))
+                elif i in {1, 3}:
+                    raise SshcpError("Connection refused by server")
                 sp.sendline(self.__password)
 
             i = sp.expect(
                 [
                     pexpect.EOF,  # i=0, all's good
                     'password: ',  # i=1, wrong password
-                    'lost connection',  # i=2, bad hostname
+                    'lost connection',  # i=2, connection refused
                     'Could not resolve hostname',  # i=3, bad hostname
+                    'Connection refused',  # i=4, connection refused
                 ],
                 timeout=self.__TIMEOUT_SECS
             )
             if i == 1:
                 raise SshcpError("Incorrect password")
-            elif i in (2, 3):
+            elif i == 3:
                 raise SshcpError("Bad hostname: {}".format(self.__host))
+            elif i in {2, 4}:
+                raise SshcpError("Connection refused by server")
 
         except pexpect.exceptions.TIMEOUT:
             self.logger.exception("Timed out")
