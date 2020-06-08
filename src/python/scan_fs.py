@@ -5,7 +5,7 @@ import sys
 import argparse
 
 # my libs
-from system import SystemScanner, SystemFile
+from system import SystemScanner, SystemFile, SystemScannerError
 
 
 if __name__ == "__main__":
@@ -23,7 +23,10 @@ if __name__ == "__main__":
     scanner = SystemScanner(args.path)
     if args.exclude_hidden:
         scanner.add_exclude_prefix(".")
-    root_files = scanner.scan()
+    try:
+        root_files = scanner.scan()
+    except SystemScannerError as e:
+        sys.exit("SystemScannerError: {}".format(str(e)))
     if args.human_readable:
         def print_file(file: SystemFile, level: int):
             sys.stdout.write("  "*level)
