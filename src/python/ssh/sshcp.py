@@ -79,10 +79,17 @@ class Sshcp:
                     'Could not resolve hostname',  # i=2, bad hostname
                     'Connection refused',  # i=3, connection refused
                 ])
+                if i > 0:
+                    before = sp.before.decode().strip() if sp.before != pexpect.EOF else ""
+                    after = sp.after.decode().strip() if sp.after != pexpect.EOF else ""
+                    self.logger.warning("Command failed: '{} - {}'".format(before, after))
                 if i == 2:
                     raise SshcpError("Bad hostname: {}".format(self.__host))
                 elif i in {1, 3}:
-                    raise SshcpError("Connection refused by server")
+                    error_msg = "Connection refused by server"
+                    if sp.before.decode().strip():
+                        error_msg += " - " + sp.before.decode().strip()
+                    raise SshcpError(error_msg)
                 sp.sendline(self.__password)
 
             i = sp.expect(
@@ -95,12 +102,19 @@ class Sshcp:
                 ],
                 timeout=self.__TIMEOUT_SECS
             )
+            if i > 0:
+                before = sp.before.decode().strip() if sp.before != pexpect.EOF else ""
+                after = sp.after.decode().strip() if sp.after != pexpect.EOF else ""
+                self.logger.warning("Command failed: '{} - {}'".format(before, after))
             if i == 1:
                 raise SshcpError("Incorrect password")
             elif i == 3:
                 raise SshcpError("Bad hostname: {}".format(self.__host))
             elif i in {2, 4}:
-                raise SshcpError("Connection refused by server")
+                error_msg = "Connection refused by server"
+                if sp.before.decode().strip():
+                    error_msg += " - " + sp.before.decode().strip()
+                raise SshcpError(error_msg)
 
         except pexpect.exceptions.TIMEOUT:
             self.logger.exception("Timed out")
@@ -112,7 +126,10 @@ class Sshcp:
         self.logger.debug("Return code: {}".format(sp.exitstatus))
         self.logger.debug("Command took {:.3f}s".format(end_time-start_time))
         if sp.exitstatus != 0:
-            raise SshcpError(sp.before.decode())
+            before = sp.before.decode().strip() if sp.before != pexpect.EOF else ""
+            after = sp.after.decode().strip() if sp.after != pexpect.EOF else ""
+            self.logger.warning("Command failed: '{} - {}'".format(before, after))
+            raise SshcpError(sp.before.decode().strip())
 
         return sp.before.replace(b'\r\n', b'\n').strip()
 
