@@ -73,3 +73,27 @@ class TestSerializeStatus(unittest.TestCase):
         out = parse_stream(serialize.status(status))
         data = json.loads(out["data"])
         self.assertEqual(str(1541799618.0), data["controller"]["latest_remote_scan_time"])
+
+    def test_controller_status_latest_remote_scan_failed(self):
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertIsNone(data["controller"]["latest_remote_scan_failed"])
+
+        status.controller.latest_remote_scan_failed = True
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertEqual(True, data["controller"]["latest_remote_scan_failed"])
+
+    def test_controller_status_latest_remote_scan_error(self):
+        serialize = SerializeStatus()
+        status = Status()
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertIsNone(data["controller"]["latest_remote_scan_error"])
+
+        status.controller.latest_remote_scan_error = "remote server went boom"
+        out = parse_stream(serialize.status(status))
+        data = json.loads(out["data"])
+        self.assertEqual("remote server went boom", data["controller"]["latest_remote_scan_error"])

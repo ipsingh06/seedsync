@@ -14,6 +14,8 @@ class SerializeStatusJson:
     __KEY_CONTROLLER = "controller"
     __KEY_CONTROLLER_LATEST_LOCAL_SCAN_TIME = "latest_local_scan_time"
     __KEY_CONTROLLER_LATEST_REMOTE_SCAN_TIME = "latest_remote_scan_time"
+    __KEY_CONTROLLER_LATEST_REMOTE_SCAN_FAILED = "latest_remote_scan_failed"
+    __KEY_CONTROLLER_LATEST_REMOTE_SCAN_ERROR = "latest_remote_scan_error"
 
     @staticmethod
     def status(status: Status) -> str:
@@ -32,6 +34,10 @@ class SerializeStatusJson:
         json_dict[SerializeStatusJson.__KEY_CONTROLLER][SerializeStatusJson.__KEY_CONTROLLER_LATEST_REMOTE_SCAN_TIME] = \
             str(status.controller.latest_remote_scan_time.timestamp()) \
                 if status.controller.latest_remote_scan_time else None
+        json_dict[SerializeStatusJson.__KEY_CONTROLLER][SerializeStatusJson.__KEY_CONTROLLER_LATEST_REMOTE_SCAN_FAILED] = \
+            status.controller.latest_remote_scan_failed
+        json_dict[SerializeStatusJson.__KEY_CONTROLLER][SerializeStatusJson.__KEY_CONTROLLER_LATEST_REMOTE_SCAN_ERROR] = \
+            status.controller.latest_remote_scan_error
 
         status_json = json.dumps(json_dict)
         return status_json

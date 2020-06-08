@@ -395,6 +395,8 @@ class Controller:
         # Update the controller status
         if latest_remote_scan is not None:
             self.__context.status.controller.latest_remote_scan_time = latest_remote_scan.timestamp
+            self.__context.status.controller.latest_remote_scan_failed = latest_remote_scan.failed
+            self.__context.status.controller.latest_remote_scan_error = latest_remote_scan.error_message
         if latest_local_scan is not None:
             self.__context.status.controller.latest_local_scan_time = latest_local_scan.timestamp
 

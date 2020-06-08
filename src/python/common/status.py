@@ -115,11 +115,15 @@ class Status(BaseStatus):
     class ControllerStatus(StatusComponent):
         latest_local_scan_time = StatusComponent._create_property("latest_local_scan_time")
         latest_remote_scan_time = StatusComponent._create_property("latest_remote_scan_time")
+        latest_remote_scan_failed = StatusComponent._create_property("latest_remote_scan_failed")
+        latest_remote_scan_error = StatusComponent._create_property("latest_remote_scan_error")
 
         def __init__(self):
             super().__init__()
             self.latest_local_scan_time = None
             self.latest_remote_scan_time = None
+            self.latest_remote_scan_failed = None
+            self.latest_remote_scan_error = None
 
     # ----- End of component definition -----
 
