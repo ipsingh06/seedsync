@@ -394,7 +394,10 @@ class TestController(unittest.TestCase):
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
-        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
+        self.assertEqual(
+            Localization.Error.REMOTE_SERVER_INSTALL.format("Connection refused by server"),
+            str(error.exception)
+        )
 
     @timeout_decorator.timeout(20)
     def test_bad_config_remote_username_raises_exception(self):
@@ -406,7 +409,10 @@ class TestController(unittest.TestCase):
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
-        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
+        self.assertEqual(
+            Localization.Error.REMOTE_SERVER_INSTALL.format("Connection refused by server"),
+            str(error.exception)
+        )
 
     @timeout_decorator.timeout(20)
     def test_bad_config_remote_path_raises_exception(self):
@@ -418,7 +424,10 @@ class TestController(unittest.TestCase):
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
-        self.assertEqual(Localization.Error.REMOTE_SERVER_SCAN, str(error.exception))
+        self.assertEqual(
+            Localization.Error.REMOTE_SERVER_SCAN.format("SystemScannerError: Path does not exist: <bad>"),
+            str(error.exception)
+        )
 
     @timeout_decorator.timeout(20)
     def test_bad_config_local_path_raises_exception(self):
@@ -442,7 +451,12 @@ class TestController(unittest.TestCase):
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
-        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
+        self.assertEqual(
+            Localization.Error.REMOTE_SERVER_INSTALL.format(
+                "Connection refused by server - bash: bad: No such file or directory"
+            ),
+            str(error.exception)
+        )
 
     @timeout_decorator.timeout(20)
     def test_bad_remote_password_raises_exception(self):
@@ -455,7 +469,10 @@ class TestController(unittest.TestCase):
             while True:
                 self.controller.process()
         # noinspection PyUnreachableCode
-        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL, str(error.exception))
+        self.assertEqual(
+            Localization.Error.REMOTE_SERVER_INSTALL.format("Incorrect password"),
+            str(error.exception)
+        )
 
     @timeout_decorator.timeout(20)
     def test_initial_model(self):
