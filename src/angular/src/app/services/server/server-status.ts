@@ -12,6 +12,8 @@ interface IServerStatus {
     controller: {
         latestLocalScanTime: Date;
         latestRemoteScanTime: Date;
+        latestRemoteScanFailed: boolean;
+        latestRemoteScanError: string;
     };
 }
 const DefaultServerStatus: IServerStatus = {
@@ -21,7 +23,9 @@ const DefaultServerStatus: IServerStatus = {
     },
     controller: {
         latestLocalScanTime: null,
-        latestRemoteScanTime: null
+        latestRemoteScanTime: null,
+        latestRemoteScanFailed: null,
+        latestRemoteScanError: null
     }
 };
 const ServerStatusRecord = Record(DefaultServerStatus);
@@ -34,6 +38,8 @@ export class ServerStatus extends ServerStatusRecord implements IServerStatus {
     controller: {
         latestLocalScanTime: Date;
         latestRemoteScanTime: Date;
+        latestRemoteScanFailed: boolean;
+        latestRemoteScanError: string;
     };
 
     constructor(props) {
@@ -45,13 +51,13 @@ export class ServerStatus extends ServerStatusRecord implements IServerStatus {
 export module ServerStatus {
     export function fromJson(json: ServerStatusJson): ServerStatus {
         let latestLocalScanTime: Date = null;
-        if(json.controller.latest_local_scan_time != null) {
+        if (json.controller.latest_local_scan_time != null) {
             // str -> number, then sec -> ms
             latestLocalScanTime = new Date(1000 * +json.controller.latest_local_scan_time);
         }
 
         let latestRemoteScanTime: Date = null;
-        if(json.controller.latest_remote_scan_time != null) {
+        if (json.controller.latest_remote_scan_time != null) {
             // str -> number, then sec -> ms
             latestRemoteScanTime = new Date(1000 * +json.controller.latest_remote_scan_time);
         }
@@ -63,7 +69,9 @@ export module ServerStatus {
             },
             controller: {
                 latestLocalScanTime: latestLocalScanTime,
-                latestRemoteScanTime: latestRemoteScanTime
+                latestRemoteScanTime: latestRemoteScanTime,
+                latestRemoteScanFailed: json.controller.latest_remote_scan_failed,
+                latestRemoteScanError: json.controller.latest_remote_scan_error
             }
         });
     }
@@ -82,5 +90,7 @@ export interface ServerStatusJson {
     controller: {
         latest_local_scan_time: string;
         latest_remote_scan_time: string;
-    }
+        latest_remote_scan_failed: boolean;
+        latest_remote_scan_error: string;
+    };
 }

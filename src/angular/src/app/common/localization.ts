@@ -12,6 +12,9 @@ export class Localization {
 
         public static readonly STATUS_CONNECTION_WAITING = "Waiting for SeedSync service to respond...";
         public static readonly STATUS_REMOTE_SCAN_WAITING = "Waiting for remote server to respond...";
+        public static readonly STATUS_REMOTE_SERVER_ERROR = (error: string) =>
+            `Lost connection to remote server. Retrying automatically. \
+             ${error ? "<br />" + error : ""}`
 
         public static readonly NEW_VERSION_AVAILABLE = (url: string) =>
             `A new version of SeedSync is available! \

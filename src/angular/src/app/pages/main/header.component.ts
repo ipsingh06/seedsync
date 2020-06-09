@@ -26,6 +26,7 @@ export class HeaderComponent implements OnInit {
 
     private _prevServerNotification: Notification;
     private _prevWaitingForRemoteScanNotification: Notification;
+    private _prevRemoteServerErrorNotification: Notification;
 
     constructor(private _logger: LoggerService,
                 _streamServiceRegistry: StreamServiceRegistry,
@@ -78,7 +79,7 @@ export class HeaderComponent implements OnInit {
             next: status => {
                 if (status.server.up && status.controller.latestRemoteScanTime == null) {
                     // Server up and no remote scan - show notification if not already shown
-                    if(this._prevWaitingForRemoteScanNotification == null) {
+                    if (this._prevWaitingForRemoteScanNotification == null) {
                         this._prevWaitingForRemoteScanNotification = new Notification({
                             level: Notification.Level.INFO,
                             text: Localization.Notification.STATUS_REMOTE_SCAN_WAITING
@@ -87,9 +88,39 @@ export class HeaderComponent implements OnInit {
                     }
                 } else {
                     // Server down or remote scan available - hide notification if showing
-                    if(this._prevWaitingForRemoteScanNotification != null) {
+                    if (this._prevWaitingForRemoteScanNotification != null) {
                         this._notificationService.hide(this._prevWaitingForRemoteScanNotification);
                         this._prevWaitingForRemoteScanNotification = null;
+                    }
+                }
+            }
+        });
+
+        // Set up a subscriber to show remote server error notifications
+        this._serverStatusService.status.subscribe({
+            next: status => {
+                if (status.server.up && status.controller.latestRemoteScanFailed === true) {
+                    // Server up and remote scan failed - show notification if not already shown
+                    const level = Notification.Level.WARNING;
+                    const text = Localization.Notification.STATUS_REMOTE_SERVER_ERROR(status.controller.latestRemoteScanError);
+                    if (this._prevRemoteServerErrorNotification != null
+                           && this._prevRemoteServerErrorNotification.text !== text) {
+                        // Text changed, hide old notification
+                        this._notificationService.hide(this._prevRemoteServerErrorNotification);
+                        this._prevRemoteServerErrorNotification = null;
+                    }
+                    if (this._prevRemoteServerErrorNotification == null) {
+                        this._prevRemoteServerErrorNotification = new Notification(({
+                            level: level,
+                            text: text
+                        }));
+                        this._notificationService.show(this._prevRemoteServerErrorNotification);
+                    }
+                } else {
+                    // Server down or error is gone - hide notification if showing
+                    if (this._prevRemoteServerErrorNotification != null) {
+                        this._notificationService.hide(this._prevRemoteServerErrorNotification);
+                        this._prevRemoteServerErrorNotification = null;
                     }
                 }
             }

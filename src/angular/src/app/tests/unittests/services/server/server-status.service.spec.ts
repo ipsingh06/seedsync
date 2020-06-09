@@ -45,14 +45,16 @@ describe("Testing server status service", () => {
         expect(latestStatus.server.up).toBe(false);
 
         // New status
-        let statusJson: ServerStatusJson = {
+        const statusJson: ServerStatusJson = {
             server: {
                 up: true,
                 error_msg: null
             },
             controller: {
                 latest_local_scan_time: null,
-                latest_remote_scan_time: null
+                latest_remote_scan_time: null,
+                latest_remote_scan_failed: null,
+                latest_remote_scan_error: null
             }
         };
         serverStatusService.notifyEvent("status", JSON.stringify(statusJson));
@@ -72,14 +74,16 @@ describe("Testing server status service", () => {
 
     it("should send correct status on disconnect", fakeAsync(() => {
         // Initial status
-        let statusJson: ServerStatusJson = {
+        const statusJson: ServerStatusJson = {
             server: {
                 up: true,
                 error_msg: null
             },
             controller: {
                 latest_local_scan_time: null,
-                latest_remote_scan_time: null
+                latest_remote_scan_time: null,
+                latest_remote_scan_failed: null,
+                latest_remote_scan_error: null
             }
         };
         serverStatusService.notifyEvent("status", JSON.stringify(statusJson));
