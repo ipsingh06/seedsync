@@ -306,12 +306,7 @@ class Lftp:
         :return:
         """
         out = self.__run_command("jobs -v")
-        # Remove everything before 'jobs -v'
-        # The following matches one of
-        #   1. Any character followed by a new line followed by 'jobs -v'
-        #   2. Start of string followed by 'jobs -v'
-        statuses_str = re.sub(r"[\w\W]*^\s*jobs -v\s*$", "", out, flags=re.MULTILINE)
-        statuses = self.__job_status_parser.parse(statuses_str)
+        statuses = self.__job_status_parser.parse(out)
         return statuses
 
     def queue(self, name: str, is_dir: bool):

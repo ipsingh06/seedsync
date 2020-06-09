@@ -76,7 +76,11 @@ class LftpJobStatusParser:
     def parse(self, output: str) -> List[LftpJobStatus]:
         statuses = list()
         lines = [s.strip() for s in output.splitlines()]
-        lines = list(filter(None, lines))  # remove blank lines
+        lines = filter(None, lines)  # remove blank lines
+        lines = filter(lambda s: s != "jobs -v", lines)  # remove command
+        # remove log line
+        lines = filter(lambda s: not re.match(r"^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}.*\s->\s.*$", s), lines)
+        lines = list(lines)
         try:
             statuses += self.__parse_queue(lines)
             statuses += self.__parse_jobs(lines)
