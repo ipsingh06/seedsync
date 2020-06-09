@@ -7,3 +7,4 @@
 build
 src/angular/dist
 src/python/tests
+src/python/build
