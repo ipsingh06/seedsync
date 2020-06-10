@@ -88,17 +88,17 @@ class RemoteScanner(IScanner):
             local_md5sum = hashlib.md5(f.read()).hexdigest()
         self.logger.debug("Local scanfs md5sum = {}".format(local_md5sum))
         try:
-            out = self.__ssh.shell("echo '{} {}' | md5sum -c --quiet".format(
-                local_md5sum,
-                self.__remote_path_to_scan_script)
-            )
-            if out == b'':
+            out = self.__ssh.shell("md5sum {} | awk '{{print $1}}' || echo".format(self.__remote_path_to_scan_script))
+            out = out.decode()
+            if out == local_md5sum:
                 self.logger.info("Skipping remote scanfs installation: already installed")
                 return
         except SshcpError as e:
-            # md5sum error, need to continue installation
-            error_str = str(e).lower()
-            self.logger.debug("Remote scanfs checksum error: {}".format(error_str))
+            self.logger.exception("Caught scp exception")
+            raise ScannerError(
+                Localization.Error.REMOTE_SERVER_INSTALL.format(str(e).strip()),
+                recoverable=False
+            )
 
         # Go ahead and install
         self.logger.info("Installing local:{} to remote:{}".format(

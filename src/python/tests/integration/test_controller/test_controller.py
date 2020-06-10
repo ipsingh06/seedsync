@@ -395,7 +395,7 @@ class TestController(unittest.TestCase):
                 self.controller.process()
         # noinspection PyUnreachableCode
         self.assertEqual(
-            Localization.Error.REMOTE_SERVER_INSTALL.format("Connection refused by server"),
+            Localization.Error.REMOTE_SERVER_INSTALL.format("Bad hostname: <bad>"),
             str(error.exception)
         )
 
@@ -410,7 +410,7 @@ class TestController(unittest.TestCase):
                 self.controller.process()
         # noinspection PyUnreachableCode
         self.assertEqual(
-            Localization.Error.REMOTE_SERVER_INSTALL.format("Connection refused by server"),
+            Localization.Error.REMOTE_SERVER_INSTALL.format("<bad>@localhost: Permission denied (publickey,password)."),
             str(error.exception)
         )
 

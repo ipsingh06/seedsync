@@ -87,7 +87,7 @@ class TestRemoteScanner(unittest.TestCase):
             self.ssh_run_command_count += 1
             if self.ssh_run_command_count == 1:
                 # first try
-                raise SshcpError("an ssh error")
+                return "".encode()
             else:
                 # later tries
                 return pickle.dumps([])
@@ -104,7 +104,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner.scan()
         self.mock_ssh.copy.assert_not_called()
 
-    def test_appends_script_name_to_remote_path(self):
+    def test_copy_appends_scanfs_name_to_remote_path(self):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
@@ -122,7 +122,7 @@ class TestRemoteScanner(unittest.TestCase):
             self.ssh_run_command_count += 1
             if self.ssh_run_command_count == 1:
                 # first try
-                raise SshcpError("an ssh error")
+                return "".encode()
             else:
                 # later tries
                 return pickle.dumps([])
@@ -153,7 +153,7 @@ class TestRemoteScanner(unittest.TestCase):
             self.ssh_run_command_count += 1
             if self.ssh_run_command_count == 1:
                 # first try
-                raise SshcpError("an ssh error")
+                return "".encode()
             else:
                 # later tries
                 return pickle.dumps([])
@@ -162,7 +162,7 @@ class TestRemoteScanner(unittest.TestCase):
         scanner.scan()
         self.assertEqual(2, self.mock_ssh.shell.call_count)
         self.mock_ssh.shell.assert_has_calls([
-            call("echo 'd41d8cd98f00b204e9800998ecf8427e /remote/path/to/scan/script' | md5sum -c --quiet"),
+            call("md5sum /remote/path/to/scan/script | awk '{print $1}' || echo"),
             call(ANY)
         ])
 
@@ -184,7 +184,7 @@ class TestRemoteScanner(unittest.TestCase):
             self.ssh_run_command_count += 1
             if self.ssh_run_command_count == 1:
                 # first try
-                return b''
+                return "d41d8cd98f00b204e9800998ecf8427e".encode()
             else:
                 # later tries
                 return pickle.dumps([])
@@ -216,7 +216,7 @@ class TestRemoteScanner(unittest.TestCase):
             self.ssh_run_command_count += 1
             if self.ssh_run_command_count == 1:
                 # first try
-                return b'some output from md5sum'
+                return "some output from md5sum".encode()
             else:
                 # later tries
                 return pickle.dumps([])
@@ -229,7 +229,7 @@ class TestRemoteScanner(unittest.TestCase):
         )
         self.mock_ssh.copy.reset_mock()
 
-    def test_installs_scan_script_on_md5sum_error(self):
+    def test_raises_nonrecoverable_error_on_md5sum_error(self):
         scanner = RemoteScanner(
             remote_address="my remote address",
             remote_username="my remote user",
@@ -253,12 +253,10 @@ class TestRemoteScanner(unittest.TestCase):
                 return pickle.dumps([])
         self.mock_ssh.shell.side_effect = ssh_shell
 
-        scanner.scan()
-        self.mock_ssh.copy.assert_called_once_with(
-            local_path=TestRemoteScanner.temp_scan_script,
-            remote_path="/remote/path/to/scan/script"
-        )
-        self.mock_ssh.copy.reset_mock()
+        with self.assertRaises(ScannerError) as ctx:
+            scanner.scan()
+        self.assertEqual(Localization.Error.REMOTE_SERVER_INSTALL.format("an ssh error"), str(ctx.exception))
+        self.assertFalse(ctx.exception.recoverable)
 
     def test_calls_correct_ssh_scan_command(self):
         scanner = RemoteScanner(
