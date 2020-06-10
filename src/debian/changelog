@@ -1,3 +1,11 @@
+seedsync (0.8.0) stable; urgency=low
+
+  * Remote server disconnections no longer stop the app
+  * Fixed an lftp parser error
+  * Remote server connection error messages are more descriptive
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Tue, 09 Jun 2020 23:00:53 -0700
+
 seedsync (0.7.3) stable; urgency=low
 
   * Fixed docker image scp error with unknown user
