@@ -75,17 +75,23 @@ class Sshcp:
             if self.__password is not None:
                 i = sp.expect([
                     'password: ',  # i=0, all's good
-                    'lost connection',  # i=1, connection refused
-                    'Could not resolve hostname',  # i=2, bad hostname
-                    'Connection refused',  # i=3, connection refused
+                    pexpect.EOF,  # i=1, unknown error
+                    'lost connection',  # i=2, connection refused
+                    'Could not resolve hostname',  # i=3, bad hostname
+                    'Connection refused',  # i=4, connection refused
                 ])
                 if i > 0:
                     before = sp.before.decode().strip() if sp.before != pexpect.EOF else ""
                     after = sp.after.decode().strip() if sp.after != pexpect.EOF else ""
                     self.logger.warning("Command failed: '{} - {}'".format(before, after))
-                if i == 2:
+                if i == 1:
+                    error_msg = "Unknown error"
+                    if sp.before.decode().strip():
+                        error_msg += " - " + sp.before.decode().strip()
+                    raise SshcpError(error_msg)
+                elif i == 3:
                     raise SshcpError("Bad hostname: {}".format(self.__host))
-                elif i in {1, 3}:
+                elif i in {2, 4}:
                     error_msg = "Connection refused by server"
                     if sp.before.decode().strip():
                         error_msg += " - " + sp.before.decode().strip()

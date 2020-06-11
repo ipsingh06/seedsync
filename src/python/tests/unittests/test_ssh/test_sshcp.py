@@ -42,7 +42,7 @@ class TestSshcp(unittest.TestCase):
         TestUtils.chmod_from_to(self.remote_dir, tempfile.gettempdir(), 0o775)
 
         # Note: seedsynctest account must be set up. See DeveloperReadme.md for details
-        self.host = "localhost"
+        self.host = "127.0.0.1"
         self.port = 22
         self.user = "seedsynctest"
 
@@ -172,7 +172,7 @@ class TestSshcp(unittest.TestCase):
     @parameterized.expand(_PARAMS)
     @timeout_decorator.timeout(5)
     def test_shell_error_bad_port(self, _, password):
-        sshcp = Sshcp(host=self.host, port=666, user=self.user, password=password)
+        sshcp = Sshcp(host=self.host, port=6666, user=self.user, password=password)
         with self.assertRaises(SshcpError) as ctx:
             sshcp.shell("cd {}; pwd".format(self.local_dir))
         self.assertTrue("Connection refused by server" in str(ctx.exception))

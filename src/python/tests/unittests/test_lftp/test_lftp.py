@@ -180,45 +180,64 @@ class TestLftp(unittest.TestCase):
         statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
+    @timeout_decorator.timeout(5)
     def test_queue_file(self):
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("c", False)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("c", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.PGET, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
+    @timeout_decorator.timeout(5)
     def test_queue_dir(self):
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
+    @timeout_decorator.timeout(5)
     def test_queue_file_with_spaces(self):
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("d d", False)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("d d", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.PGET, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
+    @timeout_decorator.timeout(5)
     def test_queue_dir_with_spaces(self):
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("e e", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("e e", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
+    @timeout_decorator.timeout(5)
     def test_queue_num_parallel_jobs(self):
         self.lftp.num_parallel_jobs = 2
         self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         self.lftp.queue("c", False)
         self.lftp.queue("b", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 3:
+            statuses = self.lftp.status()
         self.assertEqual(3, len(statuses))
         # queued jobs
         self.assertEqual("b", statuses[0].name)
@@ -232,76 +251,105 @@ class TestLftp(unittest.TestCase):
         self.assertEqual(LftpJobStatus.Type.PGET, statuses[2].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[2].state)
 
+    @timeout_decorator.timeout(5)
     def test_kill_all(self):
         self.lftp.num_parallel_jobs = 2
         self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         self.lftp.queue("c", False)
         self.lftp.queue("b", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 3:
+            statuses = self.lftp.status()
         self.assertEqual(3, len(statuses))
         self.lftp.kill_all()
         statuses = self.lftp.status()
+        while len(statuses) > 0:
+            statuses = self.lftp.status()
+        statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
+    @timeout_decorator.timeout(5)
     def test_kill_all_and_queue_again(self):
         self.lftp.num_parallel_jobs = 2
         self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
         self.lftp.queue("c", False)
         self.lftp.queue("b", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 3:
+            statuses = self.lftp.status()
         self.assertEqual(3, len(statuses))
         self.lftp.kill_all()
         statuses = self.lftp.status()
+        while len(statuses) > 0:
+            statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
         self.lftp.queue("b", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("b", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
+    @timeout_decorator.timeout(5)
     def test_kill_queued_job(self):
         self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.num_parallel_jobs = 1
         self.lftp.queue("a", True)  # this job will run
         self.lftp.queue("b", True)  # this job will queue
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 2:
+            statuses = self.lftp.status()
         self.assertEqual(2, len(statuses))
         self.assertEqual("b", statuses[0].name)
         self.assertEqual(LftpJobStatus.State.QUEUED, statuses[0].state)
         self.assertEqual("a", statuses[1].name)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[1].state)
         self.assertEqual(True, self.lftp.kill("b"))
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 
+    @timeout_decorator.timeout(5)
     def test_kill_running_job(self):
         self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
         self.assertEqual(True, self.lftp.kill("a"))
         statuses = self.lftp.status()
+        while len(statuses) > 0:
+            statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
+    @timeout_decorator.timeout(5)
     def test_kill_missing_job(self):
         self.lftp.rate_limit = 10  # so jobs don't finish right away
         self.lftp.queue("a", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
         self.assertEqual(False, self.lftp.kill("b"))
         self.assertEqual(True, self.lftp.kill("a"))
         statuses = self.lftp.status()
+        while len(statuses) > 0:
+            statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
+    @timeout_decorator.timeout(5)
     def test_kill_job_1(self):
         """Queued and running jobs killed one at a time"""
         self.lftp.rate_limit = 10  # so jobs don't finish right away
@@ -316,37 +364,50 @@ class TestLftp(unittest.TestCase):
         Q = LftpJobStatus.State.QUEUED
         R = LftpJobStatus.State.RUNNING
 
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 5:
+            statuses = self.lftp.status()
         self.assertEqual(5, len(statuses))
         self.assertEqual(["b", "c", "e e", "a", "d d"], [s.name for s in statuses])
         self.assertEqual([Q, Q, Q, R, R], [s.state for s in statuses])
 
         # kill the queued jobs one-by-one
         self.lftp.kill("c")
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) != 4:
+            statuses = self.lftp.status()
         self.assertEqual(4, len(statuses))
         self.assertEqual(["b", "e e", "a", "d d"], [s.name for s in statuses])
         self.assertEqual([Q, Q, R, R], [s.state for s in statuses])
         self.lftp.kill("b")
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) != 3:
+            statuses = self.lftp.status()
         self.assertEqual(3, len(statuses))
         self.assertEqual(["e e", "a", "d d"], [s.name for s in statuses])
         self.assertEqual([Q, R, R], [s.state for s in statuses])
         self.lftp.kill("e e")
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) != 2:
+            statuses = self.lftp.status()
         self.assertEqual(2, len(statuses))
         self.assertEqual(["a", "d d"], [s.name for s in statuses])
         self.assertEqual([R, R], [s.state for s in statuses])
         # kill the running jobs one-by-one
         self.lftp.kill("d d")
         statuses = self.lftp.status()
-        self.assertEqual(1, len(statuses))
+        statuses = []
+        while len(statuses) != 1:
+            statuses = self.lftp.status()
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(R, statuses[0].state)
         self.lftp.kill("a")
         statuses = self.lftp.status()
+        while len(statuses) > 0:
+            statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
+    @timeout_decorator.timeout(5)
     def test_queued_and_kill_jobs_1(self):
         """Queued and running jobs killed one at a time"""
         self.lftp.rate_limit = 10  # so jobs don't finish right away
@@ -359,21 +420,27 @@ class TestLftp(unittest.TestCase):
         self.lftp.queue("a", True)
         self.lftp.queue("d d", False)
         self.lftp.queue("b", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 3:
+            statuses = self.lftp.status()
         self.assertEqual(3, len(statuses))
         self.assertEqual(["b", "a", "d d"], [s.name for s in statuses])
         self.assertEqual([Q, R, R], [s.state for s in statuses])
 
         # remove dd (running)
         self.lftp.kill("d d")
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) != 2:
+            statuses = self.lftp.status()
         self.assertEqual(2, len(statuses))
         self.assertEqual(["a", "b"], [s.name for s in statuses])
         self.assertEqual([R, R], [s.state for s in statuses])
 
         # remove a (running)
         self.lftp.kill("a")
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) != 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual(["b"], [s.name for s in statuses])
         self.assertEqual([R], [s.state for s in statuses])
@@ -382,19 +449,25 @@ class TestLftp(unittest.TestCase):
         self.lftp.queue("c", False)
         self.lftp.queue("e e", True)
         self.lftp.queue("a", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 4:
+            statuses = self.lftp.status()
         self.assertEqual(4, len(statuses))
         self.assertEqual(["e e", "a", "b", "c"], [s.name for s in statuses])
         self.assertEqual([Q, Q, R, R], [s.state for s in statuses])
 
         # remove ee (queued) and b (running)
         self.lftp.kill("e e")
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) != 3:
+            statuses = self.lftp.status()
         self.assertEqual(3, len(statuses))
         self.assertEqual(["a", "b", "c"], [s.name for s in statuses])
         self.assertEqual([Q, R, R], [s.state for s in statuses])
         self.lftp.kill("b")
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) != 2:
+            statuses = self.lftp.status()
         self.assertEqual(2, len(statuses))
         self.assertEqual(["c", "a"], [s.name for s in statuses])
         self.assertEqual([R, R], [s.state for s in statuses])
@@ -402,6 +475,8 @@ class TestLftp(unittest.TestCase):
         # remove all
         self.lftp.kill_all()
         statuses = self.lftp.status()
+        while len(statuses) > 0:
+            statuses = self.lftp.status()
         self.assertEqual(0, len(statuses))
 
     @timeout_decorator.timeout(5)
@@ -480,7 +555,9 @@ class TestLftp(unittest.TestCase):
         self.lftp.sftp_connect_program = program
 
         self.lftp.queue("a", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
@@ -502,6 +579,7 @@ class TestLftp(unittest.TestCase):
         self.lftp.set_base_remote_dir_path(self.remote_dir)
         self.lftp.set_base_local_dir_path(self.local_dir)
         self.lftp.set_verbose_logging(True)
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
 
         # Disable key-based auth
         program = self.lftp.sftp_connect_program
@@ -509,7 +587,9 @@ class TestLftp(unittest.TestCase):
         self.lftp.sftp_connect_program = program
 
         self.lftp.queue("a", True)
-        statuses = self.lftp.status()
+        statuses = []
+        while len(statuses) < 1:
+            statuses = self.lftp.status()
         self.assertEqual(1, len(statuses))
         self.assertEqual("a", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
