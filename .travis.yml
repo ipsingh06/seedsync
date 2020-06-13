@@ -6,7 +6,13 @@ python:
 services:
   - docker
 
+addons:
+  apt:
+    packages:
+      - docker-ce
+
 install:
+  - docker --version
   - make docker-image
 
 script:
