@@ -162,7 +162,7 @@ make run-tests-angular
 # Docker image
 make run-tests-e2e SEEDSYNC_VERSION=latest
 # Debian package (os=ubu1604,ubu1804,ubu2004)
-make run-tests-e2e SEEDSYNC_DEB=<path to deb> SEEDSYNC_OS=<os code>
+make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=<os code>
 ```
 
 # Release
