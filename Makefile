@@ -167,6 +167,11 @@ run-tests-e2e: tests-e2e-deps
 		$(DOCKER) logs -f seedsync_test_e2e
 	fi
 
+	EXITCODE=`$(DOCKER) inspect seedsync_test_e2e | jq '.[].State.ExitCode'`
+	if [[ "$${EXITCODE}" != "0" ]] ; then
+		false
+	fi
+
 run-remote-server:
 	$(DOCKER) container rm -f seedsync_test_e2e_remote-dev
 	$(DOCKER) run \

@@ -13,10 +13,16 @@
 https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce
 https://docs.docker.com/compose/install/
 
-4. Install the rest:
-```bash
-sudo apt-get install -y lftp python3-dev rar
-```
+4. Build dependencies
+
+   ```bash
+   sudo apt-get install -y jq
+   ```
+
+5. Install the rest:
+   ```bash
+   sudo apt-get install -y lftp python3-dev rar
+   ```
 
 ## Fetch code
 ```bash
