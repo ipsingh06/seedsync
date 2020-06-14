@@ -18,14 +18,14 @@ before_install:
   - docker pull yukinying/chrome-headless-browser-selenium:latest
   - docker pull alpine:3.11.6
   - docker pull solita/ubuntu-systemd:latest
+  - BUILDKIT_PROGRESS=plain make run-tests-python
+  - BUILDKIT_PROGRESS=plain make run-tests-angular
 
 install:
   - docker --version
   - BUILDKIT_PROGRESS=plain make
 
 script:
-  - BUILDKIT_PROGRESS=plain make run-tests-python
-  - BUILDKIT_PROGRESS=plain make run-tests-angular
   - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_VERSION=latest
   - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1604
   - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1804
