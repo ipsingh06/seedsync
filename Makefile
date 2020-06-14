@@ -77,7 +77,7 @@ tests-python:
 run-tests-python: tests-python
 	$(DOCKER_COMPOSE) \
 		-f ${SOURCEDIR}/docker/test/python/compose.yml \
-		up --force-recreate
+		up --force-recreate --exit-code-from tests
 
 tests-angular:
 	# angular build
@@ -94,7 +94,7 @@ tests-angular:
 run-tests-angular: tests-angular
 	$(DOCKER_COMPOSE) \
 		-f ${SOURCEDIR}/docker/test/angular/compose.yml \
-		up --force-recreate
+		up --force-recreate --exit-code-from tests
 
 tests-e2e-deps:
 	# deb pre-reqs
