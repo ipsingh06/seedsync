@@ -51,6 +51,7 @@ class Lftp:
         self.logger = logging.getLogger("Lftp")
         self.__expect_pattern = "lftp {}@{}:.*>".format(self.__user, self.__address)
         self.__job_status_parser = LftpJobStatusParser()
+        self.__timeout = 3  # in seconds
 
         self.__log_command_output = False
         self.__pending_error = None
@@ -119,16 +120,19 @@ class Lftp:
             self.logger.debug("command: {}".format(command))
         self.__process.sendline(command)
         try:
-            self.__process.expect(self.__expect_pattern)
+            self.__process.expect(self.__expect_pattern, timeout=self.__timeout)
         except pexpect.exceptions.TIMEOUT:
             self.logger.exception("Lftp timeout exception")
-            raise LftpError("Lftp command timed out")
+            pass
         finally:
             out = self.__process.before.decode()
             out = out.strip()  # remove any CRs
 
             if self.__log_command_output:
                 self.logger.debug("out ({} bytes):\n {}".format(len(out), out))
+                after = self.__process.after.decode().strip() \
+                    if self.__process.after != pexpect.TIMEOUT else ""
+                self.logger.debug("after: {}".format(after))
 
         # let's try and detect some errors
         if self.__detect_errors_from_output(out):
@@ -136,15 +140,17 @@ class Lftp:
             # it doesn't get passed onto next command
             error_out = out
             try:
-                self.__process.expect(self.__expect_pattern)
+                self.__process.expect(self.__expect_pattern, timeout=self.__timeout)
             except pexpect.exceptions.TIMEOUT:
                 self.logger.exception("Lftp timeout exception")
-                raise LftpError("Lftp command timed out")
+                pass
             finally:
                 out = self.__process.before.decode()
                 out = out.strip()  # remove any CRs
                 if self.__log_command_output:
                     self.logger.debug("retry out ({} bytes):\n {}".format(len(out), out))
+                    after = self.__process.after.decode().strip() if self.__process.after != pexpect.EOF else ""
+                    self.logger.debug("retry after: {}".format(after))
                 self.logger.error("Lftp detected error: {}".format(error_out))
                 # save pending error
                 self.__pending_error = error_out
