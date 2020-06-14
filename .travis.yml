@@ -21,12 +21,12 @@ before_install:
 
 install:
   - docker --version
-  - make
+  - BUILDKIT_PROGRESS=plain make
 
 script:
-  - make run-tests-python
-  - make run-tests-angular
-  - make run-tests-e2e SEEDSYNC_VERSION=latest
-  - make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1604
-  - make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1804
-  - make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu2004
+  - BUILDKIT_PROGRESS=plain make run-tests-python
+  - BUILDKIT_PROGRESS=plain make run-tests-angular
+  - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_VERSION=latest
+  - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1604
+  - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1804
+  - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu2004
