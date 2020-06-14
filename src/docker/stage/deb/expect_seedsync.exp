@@ -1,5 +1,5 @@
 #!/usr/bin/expect
-set timeout 2
+set timeout 10
 spawn "./install_seedsync.sh"
 
 expect {
