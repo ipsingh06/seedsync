@@ -1,8 +1,8 @@
 FROM seedsync/build/angular/env as seedsync_test_angular
 
 RUN apt-get update
-RUN wget -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    dpkg -i /tmp/chrome.deb; apt-get -fy install
+RUN wget -nv -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    dpkg -i /tmp/chrome.deb; apt-get -fy install > /dev/null
 
 COPY \
     src/angular/tsconfig.json \

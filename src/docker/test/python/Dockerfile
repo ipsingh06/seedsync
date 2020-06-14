@@ -31,4 +31,4 @@ EXPOSE 22
 WORKDIR /src/
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["green", "-vv"]
+CMD ["green", "-vv", "-q"]
