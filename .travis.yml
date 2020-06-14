@@ -17,10 +17,16 @@ before_install:
   - docker pull node:12.16
   - docker pull yukinying/chrome-headless-browser-selenium:latest
   - docker pull alpine:3.11.6
+  - docker pull solita/ubuntu-systemd:latest
 
 install:
   - docker --version
-  - make docker-image
+  - make
 
 script:
+  - make run-tests-python
+  - make run-tests-angular
   - make run-tests-e2e SEEDSYNC_VERSION=latest
+  - make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1604
+  - make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu1804
+  - make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=ubu2004
