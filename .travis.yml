@@ -11,7 +11,12 @@ before_install:
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - sudo apt-get update
   - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-  - docker pull ubuntu:16.04 ubuntu:18.04 ubuntu:20.04 node:12.16 yukinying/chrome-headless-browser-selenium:latest alpine:3.11.6
+  - docker pull ubuntu:16.04
+  - docker pull ubuntu:18.04
+  - docker pull ubuntu:20.04
+  - docker pull node:12.16
+  - docker pull yukinying/chrome-headless-browser-selenium:latest
+  - docker pull alpine:3.11.6
 
 install:
   - docker --version
