@@ -149,7 +149,8 @@ class Lftp:
                 out = out.strip()  # remove any CRs
                 if self.__log_command_output:
                     self.logger.debug("retry out ({} bytes):\n {}".format(len(out), out))
-                    after = self.__process.after.decode().strip() if self.__process.after != pexpect.EOF else ""
+                    after = self.__process.after.decode().strip() \
+                        if self.__process.after != pexpect.TIMEOUT else ""
                     self.logger.debug("retry after: {}".format(after))
                 self.logger.error("Lftp detected error: {}".format(error_out))
                 # save pending error
