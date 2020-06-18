@@ -76,9 +76,11 @@ class LftpJobStatusParser:
     def parse(self, output: str) -> List[LftpJobStatus]:
         statuses = list()
         lines = [s.strip() for s in output.splitlines()]
-        lines = filter(None, lines)  # remove blank lines
-        lines = filter(lambda s: s != "jobs -v", lines)  # remove command
-        # remove log line
+        lines = list(filter(None, lines))  # remove blank lines
+        # remove all lines before 'jobs -v'
+        start = next((i+1 for i, l in enumerate(lines) if l == "jobs -v"), 0)
+        lines = lines[start:]
+        # remove any remaining log line
         lines = filter(lambda s: not re.match(r"^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}.*\s->\s.*$", s), lines)
         lines = list(lines)
         try:
