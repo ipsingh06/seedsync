@@ -100,6 +100,15 @@ pipenv run mkdocs serve
 
 Preview will be served at  [http://localhost:8000](http://localhost:8000)
 
+### Deploy documentation
+
+```bash
+pipenv run mkdocs gh-deploy
+git push github gh-pages
+```
+
+
+
 # Setup dev environment
 
 ## PyCharm
