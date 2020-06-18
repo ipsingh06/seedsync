@@ -19,6 +19,8 @@ tblib = "*"
 parameterized = "*"
 testfixtures = "*"
 pytz = "*"
+mkdocs = "*"
+mkdocs-material = "*"
 
 [requires]
 python_version = "3.7"

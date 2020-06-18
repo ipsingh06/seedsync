@@ -88,6 +88,18 @@ node_modules/@angular/cli/bin/ng serve
 Dev build will be served at [http://localhost:4200](http://localhost:4200)
 
 
+
+## Documentation
+
+### Preview documentation in brower
+
+```bash
+cd src/python
+pipenv run mkdocs serve
+```
+
+Preview will be served at  [http://localhost:8000](http://localhost:8000)
+
 # Setup dev environment
 
 ## PyCharm

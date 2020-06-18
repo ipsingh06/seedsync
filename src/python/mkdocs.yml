@@ -1,0 +1,19 @@
+site_name: SeedSync
+theme:
+  name: material
+  language: en
+  palette:
+    scheme: preference
+    primary: teal
+    accent: teal
+    font: false
+  logo: images/logo.png
+  favicon: images/favicon.png
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+repo_name: ipsingh06/seedsync
+repo_url: https://github.com/ipsingh06/seedsync
