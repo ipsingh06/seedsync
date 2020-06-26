@@ -10,6 +10,16 @@ from datetime import datetime
 from system import SystemScanner, SystemScannerError
 
 
+def my_mkdir(*args):
+    os.mkdir(os.path.join(TestSystemScanner.temp_dir, *args))
+
+
+def my_touch(size, *args):
+    path = os.path.join(TestSystemScanner.temp_dir, *args)
+    with open(path, 'wb') as f:
+        f.write(bytearray([0xff] * size))
+
+
 # noinspection SpellCheckingInspection
 class TestSystemScanner(unittest.TestCase):
     temp_dir = None
@@ -18,6 +28,11 @@ class TestSystemScanner(unittest.TestCase):
         # Create a temp directory
         TestSystemScanner.temp_dir = tempfile.mkdtemp(prefix="test_system_scanner")
 
+    def tearDown(self):
+        # Cleanup
+        shutil.rmtree(TestSystemScanner.temp_dir)
+
+    def setup_default_tree(self):
         # Create a bunch files and directories
         # a [dir]
         #   aa [dir]
@@ -34,15 +49,6 @@ class TestSystemScanner(unittest.TestCase):
         #        bbca [dir]
         #           .bbcaa [file, 1 byte
         # c [file, 1234 bytes]
-
-        def my_mkdir(*args):
-            os.mkdir(os.path.join(TestSystemScanner.temp_dir, *args))
-
-        def my_touch(size, *args):
-            path = os.path.join(TestSystemScanner.temp_dir, *args)
-            with open(path, 'wb') as f:
-                f.write(bytearray([0xff] * size))
-
         my_mkdir("a")
         my_mkdir("a", "aa")
         my_mkdir("a", "aa", ".aaa")
@@ -59,11 +65,8 @@ class TestSystemScanner(unittest.TestCase):
         my_touch(1, "b", "bb", "bbc", "bbca", ".bbcaa")
         my_touch(1234, "c")
 
-    def tearDown(self):
-        # Cleanup
-        shutil.rmtree(TestSystemScanner.temp_dir)
-
     def test_scan_tree(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         files = scanner.scan()
         self.assertEqual(3, len(files))
@@ -117,6 +120,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertFalse(bbcaa.is_dir)
 
     def test_scan_size(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         files = scanner.scan()
         self.assertEqual(3, len(files))
@@ -146,6 +150,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(1234, c.size)
 
     def test_scan_non_existing_dir_fails(self):
+        self.setup_default_tree()
         scanner = SystemScanner(
             path_to_scan=os.path.join(TestSystemScanner.temp_dir, "nonexisting")
         )
@@ -154,6 +159,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertTrue(str(ex.exception).startswith("Path does not exist"))
 
     def test_scan_file_fails(self):
+        self.setup_default_tree()
         scanner = SystemScanner(
             path_to_scan=os.path.join(TestSystemScanner.temp_dir, "c")
         )
@@ -162,6 +168,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertTrue(str(ex.exception).startswith("Path is not a directory"))
 
     def test_scan_single_dir(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         a = scanner.scan_single("a")
 
@@ -188,6 +195,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(12*1024+4, ab.size)
 
     def test_scan_single_file(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         c = scanner.scan_single("c")
 
@@ -196,6 +204,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(1234, c.size)
 
     def test_scan_single_non_existing_path_fails(self):
+        self.setup_default_tree()
         scanner = SystemScanner(
             path_to_scan=os.path.join(TestSystemScanner.temp_dir)
         )
@@ -204,6 +213,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertTrue(str(ex.exception).startswith("Path does not exist"))
 
     def test_scan_tree_excluded_prefix(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         scanner.add_exclude_prefix(".")
         files = scanner.scan()
@@ -229,6 +239,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(0, len(bbca.children))
 
     def test_scan_size_excluded_prefix(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         scanner.add_exclude_prefix(".")
         files = scanner.scan()
@@ -255,6 +266,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(0, aa.size)
 
     def test_scan_tree_excluded_suffix(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
 
         scanner.add_exclude_suffix("ab")
@@ -273,6 +285,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual("ba", ba.name)
 
     def test_scan_size_excluded_suffix(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
 
         scanner.add_exclude_suffix("ab")
@@ -290,6 +303,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(1234, c.size)
 
     def test_lftp_status_file_size(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
         size = scanner._lftp_status_file_size("""
         size=243644865
@@ -305,7 +319,7 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(104792064, size)
 
     def test_scan_lftp_partial_file(self):
-        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+        tempdir = TestSystemScanner.temp_dir
 
         # Create a partial file
         os.mkdir(os.path.join(tempdir, "t"))
@@ -337,12 +351,9 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual("partial.mkv", partial_mkv.name)
         self.assertEqual(10148, partial_mkv.size)
 
-        # Cleanup
-        shutil.rmtree(tempdir)
-
     def test_scan_single_lftp_partial_file(self):
         # Scan a single partial file
-        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+        tempdir = TestSystemScanner.temp_dir
 
         # Create a partial file
         path = os.path.join(tempdir, "partial.mkv")
@@ -367,11 +378,8 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual("partial.mkv", partial_mkv.name)
         self.assertEqual(10148, partial_mkv.size)
 
-        # Cleanup
-        shutil.rmtree(tempdir)
-
     def test_scan_lftp_temp_file(self):
-        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+        tempdir = TestSystemScanner.temp_dir
 
         # Create some temp and non-temp files
         temp1 = os.path.join(tempdir, "a.mkv.lftp")
@@ -453,11 +461,8 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(0, f.size)
         self.assertEqual(True, f.is_dir)
 
-        # Cleanup
-        shutil.rmtree(tempdir)
-
     def test_scan_single_lftp_temp_file(self):
-        tempdir = tempfile.mkdtemp(prefix="test_system_scanner")
+        tempdir = TestSystemScanner.temp_dir
 
         # Create:
         #   temp file
@@ -556,11 +561,8 @@ class TestSystemScanner(unittest.TestCase):
             scanner.scan_single("blah")
         self.assertTrue("Path does not exist" in str(ctx.exception))
 
-
-        # Cleanup
-        shutil.rmtree(tempdir)
-
     def test_files_deleted_while_scanning(self):
+        self.setup_default_tree()
         scanner = SystemScanner(TestSystemScanner.temp_dir)
 
         stop = False
@@ -590,6 +592,7 @@ class TestSystemScanner(unittest.TestCase):
             thread.join()
 
     def test_scan_modified_time(self):
+        self.setup_default_tree()
         # directory
         os.utime(
             os.path.join(TestSystemScanner.temp_dir, "a"),
@@ -615,3 +618,19 @@ class TestSystemScanner(unittest.TestCase):
 
         self.assertEqual(datetime(2018, 11, 9, 21, 40, 18), a.timestamp_modified)
         self.assertEqual(datetime(2018, 11, 9, 21, 40, 17), c.timestamp_modified)
+
+    def test_scan_file_with_unicode_chars(self):
+        tempdir = TestSystemScanner.temp_dir
+        # déģķ [dir]
+        # dőÀ× [file, 128 bytes]
+        my_mkdir("déģķ")
+        my_touch(128, "dőÀ")
+
+        scanner = SystemScanner(tempdir)
+        files = scanner.scan()
+        self.assertEqual(2, len(files))
+        folder, file = tuple(files)
+        self.assertEqual(0, len(folder.children))
+        self.assertEqual("déģķ", folder.name)
+        self.assertEqual("dőÀ", file.name)
+        self.assertEqual(128, file.size)

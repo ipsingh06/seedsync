@@ -39,6 +39,9 @@ class TestLftp(unittest.TestCase):
         #   "d d" [file, 128*1024 bytes]
         #   "e e" [dir]
         #     "e e a" [file, 128*1024 bytes]
+        #   áßç [dir]
+        #     dőÀ [file, 128*1024 bytes]
+        #   üæÒ [file, 256*1024 bytes]
         # local [dir] for local path, cleared before every test
 
         def my_mkdir(*args):
@@ -62,6 +65,9 @@ class TestLftp(unittest.TestCase):
         my_touch(128*1024, "remote", "d d")
         my_mkdir("remote", "e e")
         my_touch(128*1024, "remote", "e e", "e e a")
+        my_mkdir("áßç")
+        my_touch(128*1024, "áßç", "dőÀ")
+        my_touch(256*1024, "üæÒ")
         my_mkdir("local")
 
     @classmethod
@@ -229,6 +235,32 @@ class TestLftp(unittest.TestCase):
                 break
         self.assertEqual(1, len(statuses))
         self.assertEqual("e e", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+    @timeout_decorator.timeout(20)
+    def test_queue_file_with_unicode(self):
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
+        self.lftp.queue("üæÒ", False)
+        while True:
+            statuses = self.lftp.status()
+            if len(statuses) > 0:
+                break
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("üæÒ", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.PGET, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+    @timeout_decorator.timeout(20)
+    def test_queue_dir_with_unicode(self):
+        self.lftp.rate_limit = 10  # so jobs don't finish right away
+        self.lftp.queue("áßç", True)
+        while True:
+            statuses = self.lftp.status()
+            if len(statuses) > 0:
+                break
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("áßç", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
 

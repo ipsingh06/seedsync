@@ -14,13 +14,15 @@ describe('Testing dashboard page', () => {
 
     it('should have a list of files', () => {
         let golden = [
+                new File("áßç déÀ.mp4", '', "0 B of 840 KB"),
                 new File("clients.jpg", '', "0 B of 36.5 KB"),
                 new File("crispycat", '', "0 B of 1.53 MB"),
                 new File("documentation.png", '', "0 B of 8.88 KB"),
                 new File("goose", '', "0 B of 2.78 MB"),
                 new File("illusion.jpg", '', "0 B of 81.5 KB"),
                 new File("joke", '', "0 B of 168 KB"),
-                new File("testing.gif", '', "0 B of 8.95 MB")
+                new File("testing.gif", '', "0 B of 8.95 MB"),
+                new File("üæÒ", '', "0 B of 70.8 KB"),
             ];
         expect(page.getFiles()).toEqual(golden);
     });

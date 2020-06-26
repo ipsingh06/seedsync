@@ -9,6 +9,20 @@
    
 2. Choose which dev image to run: deb install or docker image
 
+    - deb install
+
+        ```bash
+        make run-tests-e2e SEEDSYNC_VERSION=latest DEV=1
+        ```
+
+    - docker image
+
+        ```bash
+        make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=<os code> DEV=1
+        ```
+
+        
+
 3. Compile and run the tests
 
     ```bash
