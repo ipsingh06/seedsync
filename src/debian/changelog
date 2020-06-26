@@ -1,3 +1,9 @@
+seedsync (0.8.2) stable; urgency=low
+
+  * Fixed more lftp parser errors
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Fri, 26 Jun 2020 15:27:43 -0700
+
 seedsync (0.8.1) stable; urgency=low
 
   * Fixed another lftp parser error
