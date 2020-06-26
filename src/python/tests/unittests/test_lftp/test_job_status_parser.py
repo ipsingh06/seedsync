@@ -1292,8 +1292,73 @@ class TestLftpJobStatusParser(unittest.TestCase):
         self.assertEqual(1, len(statuses))
         self.assertEqual(golden_job1, statuses[0])
 
+    def test_jobs_chmod_2(self):
+        output = """
+        jobs -v
+        [0] queue (sftp://someone:@localhost:22)  -- 3.45 MiB/s
+        sftp://someone:@localhost:22/remote/path
+        Now executing: [1] mirror -c /remote/path/Space.Trek /media/WD/Videos/temp/ -- 7.8M/429M (1%) 1.01 MiB/s (52%) 2.44 MiB/s
+        [1] mirror -c /remote/path/Space.Trek /media/WD/Videos/temp/  -- 7.8M/429M (1%) 1.01 MiB/s
+        \\transfer `Space.Trek.mkv' 
+        `Space.Trek.mkv', got 7700480 of 425302375 (1%) 1.01M/s eta:7m 
+        \chunk 0-106325596
+        `Space.Trek.mkv' at 1867776 (0%) 255.6K/s eta:7m [Receiving data]
+        \chunk 318976782-425302374 
+        `Space.Trek.mkv' at 320910094 (1%) 257.6K/s eta:7m [Receiving data]
+        \chunk 212651189-318976781 
+        `Space.Trek.mkv' at 214584501 (1%) 257.7K/s eta:7m [Receiving data]
+        \chunk 106325596-212651188 
+        `Space.Trek.mkv' at 108291676 (1%) 259.4K/s eta:7m [Receiving data]
+        \mirror `Screens'  -- 0/2.8M (0%)
+        chmod ./Space.Trek.Screen0001.png 
+        file:/media/WD/Videos/temp/Space.Trek/Screens
+        chmod ./Space.Trek.Screen0002.png 
+        file:/media/WD/Videos/temp/Space.Trek/Screens
+        chmod ./Space.Trek.Screen0003.png 
+        file:/media/WD/Videos/temp/Space.Trek/Screens
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="Space.Trek",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(8178892, 449839104, 1, 1059061, None)
+        golden_job1.add_active_file_transfer_state(
+            "Space.Trek.mkv",
+            LftpJobStatus.TransferState(7700480, 425302375, 1, 1059061, 420)
+        )
+
+        self.assertEqual(1, len(statuses))
+        self.assertEqual(golden_job1, statuses[0])
+
     def test_removes_jobs_command(self):
         output = """
+        jobs -v
+        [0] queue (sftp://someone:@localhost)  -- 90 B/s
+        sftp://someone:@localhost/home/someone
+        Now executing: [1] mirror -c /tmp/test_lftp_rm_s6oau/remote/a /tmp/test_lftp_rm_s6oau/local/ -- 345/26M (0%) 90 B/s
+        [1] mirror -c /tmp/test_lftp_rm_s6oau/remote/a /tmp/test_lftp_rm_s6oau/local/  -- 345/26M (0%) 90 B/s
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="a",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(345, 26*1024*1024, 0, 90, None)
+        golden_jobs = [golden_job1]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
+    def test_removes_multiple_jobs_lines(self):
+        output = """
+        jobs -v
+        jobs -v
         jobs -v
         [0] queue (sftp://someone:@localhost)  -- 90 B/s
         sftp://someone:@localhost/home/someone
