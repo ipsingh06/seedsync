@@ -1,4 +1,28 @@
-![](https://user-images.githubusercontent.com/12875506/85908858-c637a100-b7cb-11ea-8ab3-75c0c0ddf756.png)
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/12875506/85908858-c637a100-b7cb-11ea-8ab3-75c0c0ddf756.png" alt="SeedSync" />
+</p>
+
+
+<p align="center">
+  <a href="https://travis-ci.com/ipsingh06/seedsync">
+    <img src="https://img.shields.io/travis/com/ipsingh06/seedsync" alt="Build">
+  </a>
+  <a href="https://github.com/ipsingh06/seedsync">
+    <img src="https://img.shields.io/github/stars/ipsingh06/seedsync" alt="Stars">
+  </a>
+  <a href="https://hub.docker.com/r/ipsingh06/seedsync">
+    <img src="https://img.shields.io/docker/pulls/ipsingh06/seedsync" alt="Downloads">
+  </a>
+  <a href="https://hub.docker.com/r/ipsingh06/seedsync">
+    <img src="https://img.shields.io/docker/v/ipsingh06/seedsync?color=blue" alt="Version">
+  </a>
+  <a href="https://hub.docker.com/r/ipsingh06/seedsync">
+    <img src="https://img.shields.io/docker/image-size/ipsingh06/seedsync/latest?style=flat" alt="Size">
+  </a>
+  <a href="https://github.com/ipsingh06/seedsync/blob/master/LICENSE.txt">
+    <img src="https://img.shields.io/github/license/ipsingh06/seedsync" alt="License">
+  </a>
+</p>
 
 SeedSync is a tool to sync the files on a remote Linux server (like your seedbox, for example).
 It uses LFTP to transfer files fast!
