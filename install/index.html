@@ -1,0 +1,683 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="shortcut icon" href="../images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.3.0">
+    
+    
+      
+        <title>Installation - SeedSync</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6e35a1a6.min.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/palette.a46bcfb3.min.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="#009688">
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+      <script>matchMedia("(prefers-color-scheme: dark)").matches&&document.body.setAttribute("data-md-color-scheme","slate")</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#installation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="SeedSync" class="md-header-nav__button md-logo" aria-label="SeedSync">
+      
+  <img src="../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            SeedSync
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Installation
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/ipsingh06/seedsync/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ipsingh06/seedsync
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SeedSync" class="md-nav__button md-logo" aria-label="SeedSync">
+      
+  <img src="../images/logo.png" alt="logo">
+
+    </a>
+    SeedSync
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/ipsingh06/seedsync/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ipsingh06/seedsync
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Installation
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Installation" class="md-nav__link md-nav__link--active">
+      Installation
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubuntu-deb-package" class="md-nav__link">
+     Ubuntu Deb Package
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-image-on-linux" class="md-nav__link">
+     Docker Image on Linux
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-image-on-windows" class="md-nav__link">
+     Docker Image on Windows
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-install-setup" class="md-nav__link">
+    Post-Install Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-Install Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#password-lesskey-based-authentication-setup" class="md-nav__link">
+     Password-less/Key-based Authentication Setup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-ssh-keys-with-docker" class="md-nav__link">
+     Using SSH Keys with Docker
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../usage/" title="Usage" class="md-nav__link">
+      Usage
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../faq/" title="FAQ" class="md-nav__link">
+      FAQ
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ubuntu-deb-package" class="md-nav__link">
+     Ubuntu Deb Package
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-image-on-linux" class="md-nav__link">
+     Docker Image on Linux
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-image-on-windows" class="md-nav__link">
+     Docker Image on Windows
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-install-setup" class="md-nav__link">
+    Post-Install Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-Install Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#password-lesskey-based-authentication-setup" class="md-nav__link">
+     Password-less/Key-based Authentication Setup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-ssh-keys-with-docker" class="md-nav__link">
+     Using SSH Keys with Docker
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/ipsingh06/seedsync/edit/master/docs/install.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
+<p>Installation options are:</p>
+<ul>
+<li><a href="#install-ubuntu">Ubuntu Deb Package</a> (easiest method)</li>
+<li><a href="#install-docker">Docker Image on Linux</a></li>
+<li><a href="#install-windows">Docker Image on Windows</a></li>
+</ul>
+<h2 id="ubuntu-deb-package"><a name="install-ubuntu"></a> Ubuntu Deb Package<a class="headerlink" href="#ubuntu-deb-package" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p>Download the deb package from the <a href="https://github.com/ipsingh06/seedsync/releases/latest">latest</a> release</p>
+</li>
+<li>
+<p>Install the deb package:</p>
+<div class="codehilite"><pre><span></span><code>sudo dpkg -i &lt;deb file&gt;
+</code></pre></div>
+
+
+</li>
+<li>
+<p>During the first install, you will be prompted for a user name:
+   <img alt="Install prompt for username" src="https://raw.githubusercontent.com/ipsingh06/seedsync/master/doc/images/install_1.png" />
+   This is the user under which the SeedSync service will run. The transferred files will be owned by this user.
+   It is recommended that you set this to your user (and NOT root).</p>
+</li>
+<li>
+<p>After the installation is complete, verify that the application is running by going to <a href="http://localhost:8800">http://localhost:8800</a> in your browser.</p>
+</li>
+<li>
+<p>Go to the Settings page and fill out the required information.
+   <strong>While password-based login is supported, key-based authentication is highly recommended!</strong>
+   See the <a href="#key-auth">Key-Based Authentication Setup</a> section for details.</p>
+</li>
+</ol>
+<h2 id="docker-image-on-linux"><a name="install-docker"></a> Docker Image on Linux<a class="headerlink" href="#docker-image-on-linux" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p>Run the docker image with the following command:</p>
+<div class="codehilite"><pre><span></span><code>docker run <span class="se">\</span>
+   -p <span class="m">8800</span>:8800 <span class="se">\</span>
+   -v &lt;downloads directory&gt;:/downloads <span class="se">\</span>
+   -v &lt;config directory&gt;:/config <span class="se">\</span>
+   ipsingh06/seedsync
+</code></pre></div>
+
+
+<p>where</p>
+<ul>
+<li><code>&lt;downloads directory&gt;</code> refers to the location on host machine where downloaded files will be placed</li>
+<li><code>&lt;config directory&gt;</code> refers to the location on host machine where config files will be placed</li>
+<li>both these directories must already exist</li>
+</ul>
+<p>By default the docker image is run under the default user (uid=1000).
+To run as a different user, include the option <code>--user &lt;uid&gt;:&lt;gid&gt;</code>.</p>
+</li>
+<li>
+<p>Access application GUI by going to <a href="http://localhost:8800">http://localhost:8800</a> in your browser.</p>
+</li>
+<li>
+<p>Go to the Settings page and fill out the required information.
+   Under the Local Directory setting, enter <code>/downloads</code>.</p>
+</li>
+<li>
+<p><strong>While password-based login is supported, key-based authentication is highly recommended!</strong>
+   See the <a href="#key-auth">Key-Based Authentication Setup</a> section for details.</p>
+</li>
+</ol>
+<h2 id="docker-image-on-windows"><a name="install-windows"></a> Docker Image on Windows<a class="headerlink" href="#docker-image-on-windows" title="Permanent link">&para;</a></h2>
+<p>SeedSync supports Windows via the Docker container.</p>
+<ol>
+<li>
+<p>Install Docker on Windows.</p>
+</li>
+<li>
+<p><a href="https://www.docker.com/docker-windows">Docker for Windows</a> if you have Windows 10 Pro or above</p>
+</li>
+<li>
+<p><a href="https://docs.docker.com/toolbox/toolbox_install_windows/">Docker Toolbox</a> if you have Windows 10 Home or below</p>
+</li>
+<li>
+<p>Make sure you can successfully run the <a href="https://docs.docker.com/get-started/#test-docker-installation">Hello World</a> app in Docker.</p>
+</li>
+<li>
+<p>Open the Docker terminal and run the SeedSync image with the following command:</p>
+<div class="codehilite"><pre><span></span><code>docker run <span class="se">\</span>
+   -p <span class="m">8800</span>:8800 <span class="se">\</span>
+   -v &lt;downloads directory&gt;:/downloads <span class="se">\</span>
+   -v &lt;config directory&gt;:/config <span class="se">\</span>
+   ipsingh06/seedsync
+</code></pre></div>
+
+
+<p>where</p>
+<ul>
+<li><code>&lt;downloads directory&gt;</code> refers to the location on host machine where downloaded files will be placed</li>
+<li><code>&lt;config directory&gt;</code> refers to the location on host machine where config files will be placed</li>
+<li>both these directories must already exist</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Windows host machine path is specified as <code>/c/Users/...</code></p>
+</div>
+</li>
+<li>
+<p>Access application GUI to verify SeedSync is running.
+   Docker on Windows may not forward port to the local host. We need to find the IP address of the container.</p>
+</li>
+<li>
+<p>Open a new Docker terminal and run the command:</p>
+<div class="codehilite"><pre><span></span><code>docker-machine ip
+<span class="m">192</span>.168.100.17
+</code></pre></div>
+
+
+</li>
+<li>
+<p>Open &lt;ip address&gt;:8800 in your browser.
+      In this example that would be <a href="http://192.168.100.17:8800">http://192.168.100.17:8800</a></p>
+</li>
+<li>
+<p>Verify that SeedSync dashboard loads.</p>
+</li>
+<li>
+<p>Go to the Settings page and fill out the required information.
+   Under the Local Directory setting, enter <code>/downloads</code>.</p>
+</li>
+<li>
+<p><strong>While password-based login is supported, key-based authentication is highly recommended!</strong>
+   See the <a href="#key-auth">Key-Based Authentication Setup</a> section for details.</p>
+</li>
+</ol>
+<h2 id="post-install-setup">Post-Install Setup<a class="headerlink" href="#post-install-setup" title="Permanent link">&para;</a></h2>
+<p>SeedSync's web-based GUI can be accessed at <a href="http://localhost:8800">http://localhost:8800</a>.
+Or in case of docker, whatever host port you specified in the <code>-p &lt;port&gt;:8800</code> option.</p>
+<p>You may also access it from another device by replacing 'localhost' with the IP address or hostname of the machine where it is installed.</p>
+<h3 id="password-lesskey-based-authentication-setup"><a name="key-auth"></a> Password-less/Key-based Authentication Setup<a class="headerlink" href="#password-lesskey-based-authentication-setup" title="Permanent link">&para;</a></h3>
+<p>Password-based access to your remote server is highly unsecure.
+It is strongly recommended that you setup key-based authentication.</p>
+<ol>
+<li>
+<p>You will need to generate a public-private key pair.
+   Here is a <a href="https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/">simple tutorial</a>
+   that walks you through this process.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure the access is setup for the user under which SeedSync is running.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you're using docker, also see the <a href="#keys-inside-docker">Using SSH Keys with Docker</a> section.</p>
+</div>
+</li>
+<li>
+<p>Before continuing, verify the password-less access by SSH'ing into your remote server in a terminal:</p>
+<div class="codehilite"><pre><span></span><code>ssh &lt;remote user&gt;@&lt;remote server&gt;
+</code></pre></div>
+
+
+<p>You should be able to log in to the remote server without being prompted for a password</p>
+</li>
+<li>
+<p>Update the settings</p>
+<ol>
+<li>Access the web GUI and choose the Settings page from the menu.</li>
+<li>Replace your password in the "Server Password" field with anything else (it can't be empty).</li>
+<li>Select "Use password-less key-based authentication".</li>
+<li>Restart SeedSync</li>
+</ol>
+</li>
+</ol>
+<h3 id="using-ssh-keys-with-docker"><a name="keys-inside-docker"></a> Using SSH Keys with Docker<a class="headerlink" href="#using-ssh-keys-with-docker" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p>Generate a SSH private/public key pair if you haven't already.
+   Here is a <a href="https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/">simple tutorial</a>
+   that walks you through this process.</p>
+</li>
+<li>
+<p>Include the following option with your docker command:</p>
+<div class="codehilite"><pre><span></span><code>-v &lt;path to .ssh directory&gt;:/home/seedsync/.ssh
+</code></pre></div>
+
+
+<p>Most commonly this should be:</p>
+<div class="codehilite"><pre><span></span><code>-v ~/.ssh:/home/seedsync/.ssh
+</code></pre></div>
+
+
+</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are running the docker guest with a non-standard user using the <code>--user</code> option,
+then you must make sure that your <code>.ssh</code> directory is also readable by that user.</p>
+</div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href=".." title="Home" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Home
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../usage/" title="Usage" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Usage
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="../assets/javascripts/bundle.a14cc5fd.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.7a2ea5ba.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
