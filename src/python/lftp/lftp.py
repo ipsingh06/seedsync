@@ -10,7 +10,11 @@ import pexpect
 
 # my libs
 from common import AppError
-from .job_status_parser import LftpJobStatus, LftpJobStatusParser
+from .job_status_parser import LftpJobStatus, LftpJobStatusParser, LftpJobStatusParserError
+
+
+# How many status errors are allowed before error propagates out
+MAX_CONSECUTIVE_STATUS_ERRORS = 2
 
 
 class LftpError(AppError):
@@ -52,6 +56,7 @@ class Lftp:
         self.__expect_pattern = "lftp {}@{}:.*>".format(self.__user, self.__address)
         self.__job_status_parser = LftpJobStatusParser()
         self.__timeout = 3  # in seconds
+        self.__consecutive_status_errors = 0
 
         self.__log_command_output = False
         self.__pending_error = None
@@ -313,7 +318,16 @@ class Lftp:
         :return:
         """
         out = self.__run_command("jobs -v")
-        statuses = self.__job_status_parser.parse(out)
+        try:
+            statuses = self.__job_status_parser.parse(out)
+            self.__consecutive_status_errors = 0
+        except LftpJobStatusParserError:
+            self.__consecutive_status_errors += 1
+            if self.__consecutive_status_errors <= MAX_CONSECUTIVE_STATUS_ERRORS:
+                self.logger.warning(f"Ignoring status error (count={self.__consecutive_status_errors})")
+                statuses = []
+            else:
+                raise
         return statuses
 
     def queue(self, name: str, is_dir: bool):
