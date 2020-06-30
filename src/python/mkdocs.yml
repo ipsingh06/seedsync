@@ -17,3 +17,8 @@ markdown_extensions:
       permalink: true
 repo_name: ipsingh06/seedsync
 repo_url: https://github.com/ipsingh06/seedsync
+nav:
+  - Home: index.md
+  - Installation: install.md
+  - Usage: usage.md
+  - FAQ: faq.md
