@@ -29,7 +29,7 @@ It uses LFTP to transfer files fast!
 
 ## Features
 
-* Built on [LFTP](http://lftp.tech/), the fastest file transfer program ever
+* Built on top of [LFTP](http://lftp.tech/), the fastest file transfer program ever
 * Web UI - track and control your transfers from anywhere
 * Automatically extract your files after sync
 * Auto-Queue - only sync the files you want based on pattern matching
