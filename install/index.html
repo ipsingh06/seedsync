@@ -458,6 +458,10 @@
 </ul>
 <p>By default the docker image is run under the default user (uid=1000).
 To run as a different user, include the option <code>--user &lt;uid&gt;:&lt;gid&gt;</code>.</p>
+<p>If you receive errors related to locale when connecting to the remote server, then also include
+the following options.</p>
+<p><code>-e LC_ALL=en_US.UTF-8
+-e LANG=en_US.UTF-8</code></p>
 </li>
 <li>
 <p>Access application GUI by going to <a href="http://localhost:8800">http://localhost:8800</a> in your browser.</p>
