@@ -1399,7 +1399,7 @@ class TestLftpJobStatusParser(unittest.TestCase):
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
         self.assertEqual(golden_jobs, statuses_jobs)
 
-    def test_removes_log_line_2(self):
+    def test_removes_lines_before_first_jobs(self):
         output = """
         /path/on/local/file.nfo.lftp 914457562-997590066 436.5 KiB/s
         jobs -v
@@ -1416,6 +1416,52 @@ class TestLftpJobStatusParser(unittest.TestCase):
                                     name="a",
                                     flags="-c")
         golden_job1.total_transfer_state = LftpJobStatus.TransferState(345, 26*1024*1024, 0, 90, None)
+        golden_jobs = [golden_job1]
+        self.assertEqual(len(golden_jobs), len(statuses))
+        statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]
+        self.assertEqual(golden_jobs, statuses_jobs)
+
+    def test_jobs_removes_multiple_jobs_lines(self):
+        output = """
+        jobs -v
+        [0] queue (sftp://user:password@server:22) -- 3.18 MiB/s
+        sftp://user:password@server:22/home/someone
+        Now executing: [1] mirror -c files/sync/movie /incoming// -- 628M/21G (3%) 3.18 MiB/s
+        [1] mirror -c files/sync/movie /incoming// -- 628M/21G (3%) 3.18 MiB/s
+        \\transfer `movie.mkv'
+        `movie.mkv', got 627933184 of 20757383669 (3%) 3.18M/s eta:69m
+        \chunk 0-2594672963
+        `movie.mkv' at 79953920 (0%) 407.2K/s eta:46m [Receiving data]
+        \chunk 18162710711-20757383668
+        `movie.mkv' at 18251249847 (3%) 471.1K/s eta:42m [Receiving data]
+        \chunk 15568037753-18162710710
+        `movie.mkv' at 15636785017 (2%) 341.4K/s eta:54m [Receiving data]
+        \chunk 12973364795-15568037752
+        `movie.mkv' at 13027497531 (2%) 321.5K/s eta:69m [Receiving data]
+        \chunk 10378691837-12973364794
+        `movie.mkv' at 10463528189 (3%) 419.7K/s eta:44m [Receiving data]
+        \chunk 7784018879-10378691836
+        `movie.mkv' at 7865185215 (3%) 419.2K/s eta:46m [Receiving data]
+        \chunk 5189345921-7784018878
+        `movie.mkv' at 5271265921 (3%) 426.4K/s eta:45m [Receiving data]
+        jobs -v
+        jobs -v
+        \chunk 2594672963-5189345920
+        `movie.mkv' at 2683310403 (3%) 449.5K/s eta:42m [Receiving data]
+        """
+        parser = LftpJobStatusParser()
+        statuses = parser.parse(output)
+        golden_job1 = LftpJobStatus(job_id=1,
+                                    job_type=LftpJobStatus.Type.MIRROR,
+                                    state=LftpJobStatus.State.RUNNING,
+                                    name="movie",
+                                    flags="-c")
+        golden_job1.total_transfer_state = LftpJobStatus.TransferState(
+            628*1024*1024, 21*1024*1024*1024, 3, 3334471, None
+        )
+        golden_job1.add_active_file_transfer_state(
+            "movie.mkv", LftpJobStatus.TransferState(627933184, 20757383669, 3, 3334471, 69*60)
+        )
         golden_jobs = [golden_job1]
         self.assertEqual(len(golden_jobs), len(statuses))
         statuses_jobs = [j for j in statuses if j.state == LftpJobStatus.State.RUNNING]

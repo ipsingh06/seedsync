@@ -77,11 +77,11 @@ class LftpJobStatusParser:
         statuses = list()
         lines = [s.strip() for s in output.splitlines()]
         lines = list(filter(None, lines))  # remove blank lines
-        # remove all lines before the last 'jobs -v'
-        # search from the back and reverse the index
-        start = next((i-1 for i, l in enumerate(lines[::-1]) if l == "jobs -v"), len(lines) - 1)
-        start = len(lines) - 1 - start
+        # remove all lines before the first 'jobs -v'
+        start = next((i+1 for i, l in enumerate(lines) if l == "jobs -v"), 0)
         lines = lines[start:]
+        # remove any remaining 'jobs -v' lines
+        lines = list(filter(lambda s: s != "jobs -v", lines))
         # remove any remaining log line
         lines = filter(lambda s: not re.match(r"^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}.*\s->\s.*$", s), lines)
         lines = list(lines)
