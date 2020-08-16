@@ -5,17 +5,19 @@
 
 2. Install pipenv:
 
-  ```bash
-  sudo apt install -y python3-pip pipenv
-  ```
+   ```bash
+   sudo apt install -y python3-pip pipenv
+   ```
 
 3. Install docker and docker-compose:
 https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce
 https://docs.docker.com/compose/install/
 
 4. Install docker buildx
-    https://dev.to/arturklauser/building-multi-architecture-docker-images-with-buildx-1mii
-
+   
+    1. https://github.com/docker/buildx/issues/132#issuecomment-582218096
+    2. https://github.com/docker/buildx/issues/132#issuecomment-636041307
+    
 5. Build dependencies
 
    ```bash
