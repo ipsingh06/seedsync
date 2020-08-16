@@ -14,8 +14,8 @@ before_install:
   - mkdir -vp ~/.docker/cli-plugins/
   - curl --silent -L "https://github.com/docker/buildx/releases/download/v0.4.1/buildx-v0.4.1.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
-  - echo "{\"experimental\": true}" > /etc/docker/daemon.json
-  - service docker restart
+  - sudo echo "{\"experimental\": true}" > /etc/docker/daemon.json
+  - sudo service docker restart
 
 install:
   - docker --version
