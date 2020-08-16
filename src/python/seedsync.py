@@ -10,6 +10,7 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from typing import Optional, Type, TypeVar
 import shutil
+import platform
 
 # my libs
 from common import ServiceExit, Context, Constants, Config, Args, AppError
@@ -104,7 +105,8 @@ class Seedsync:
         self.auto_queue_persist = self._load_persist(AutoQueuePersist, self.auto_queue_persist_path)
 
     def run(self):
-        self.context.logger.info("Starting seedsync")
+        self.context.logger.info("Starting SeedSync")
+        self.context.logger.info("Platform: {}".format(platform.machine()))
 
         # Create controller
         controller = Controller(self.context, self.controller_persist)
