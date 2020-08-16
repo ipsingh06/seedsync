@@ -33,7 +33,7 @@ before_install:
 
 install:
   - docker version
-  - BUILDKIT_PROGRESS=plain make
+  - BUILDKIT_PROGRESS=plain travis_wait make
 
 script:
   - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=amd64

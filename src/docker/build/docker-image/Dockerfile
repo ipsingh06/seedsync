@@ -37,7 +37,7 @@ RUN pipenv --version
 RUN mkdir -p /app
 COPY src/python/Pipfile /app/python/
 COPY src/python/Pipfile.lock /app/python/
-RUN cd /app/python && pipenv install --system --deploy --verbose
+RUN cd /app/python && pipenv install --system --deploy
 
 
 # Installs Seedsync python code
