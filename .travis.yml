@@ -11,17 +11,12 @@ before_install:
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - sudo apt-get update
   - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-  - docker pull ubuntu:16.04
-  - docker pull ubuntu:18.04
-  - docker pull ubuntu:20.04
-  - docker pull node:12.16
-  - docker pull yukinying/chrome-headless-browser-selenium:latest
-  - docker pull alpine:3.11.6
-  - docker pull solita/ubuntu-systemd:latest
+  - mkdir -vp ~/.docker/cli-plugins/
+  - curl --silent -L "https://github.com/docker/buildx/releases/download/v0.4.1/buildx-v0.4.1.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+  - echo "{\"experimental\": true}" > /etc/docker/daemon.json
+  - service docker restart
 
 install:
   - docker --version
-  - BUILDKIT_PROGRESS=plain make docker-image
-
-script:
-  - BUILDKIT_PROGRESS=plain make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=amd64
+  - docker buildx
