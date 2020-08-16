@@ -3,7 +3,7 @@ FROM seedsync/run/python/env as seedsync_test_python
 RUN ls -l /app/python
 
 # Install dependencies
-RUN apt-get update && apt-get install -y openssh-server
+RUN apt-get update && apt-get install -y openssh-server rar
 
 ADD src/docker/test/python/entrypoint.sh /app/
 
