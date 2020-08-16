@@ -210,7 +210,8 @@ make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=<arch code>
 make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=<os code>
 ```
 
-To test image from a registry other than the local, use `SEEDSYNC_REGISTRY=`. For example:
+To test image from a registry other than the local, use `SEEDSYNC_REGISTRY=`.
+For example:
 
 ```bash
 make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=arm64 SEEDSYNC_REGISTRY=ipsingh06
