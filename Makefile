@@ -14,6 +14,7 @@ reset=`tput sgr0`
 ROOTDIR:=$(shell realpath .)
 SOURCEDIR:=$(shell realpath ./src)
 BUILDDIR:=$(shell realpath ./build)
+DEFAULT_REGISTRY:=localhost:5000
 
 #DOCKER_BUILDKIT_FLAGS=BUILDKIT_PROGRESS=plain
 DOCKER=${DOCKER_BUILDKIT_FLAGS} DOCKER_BUILDKIT=1 docker
@@ -40,26 +41,54 @@ deb: builddir
 		--output ${BUILDDIR} \
 		${ROOTDIR}
 
-docker-image:
+docker-buildx:
+	$(DOCKER) run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+docker-image: docker-buildx
 	# scanfs image
-	$(DOCKER) build \
+	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_scanfs_export \
-		--tag seedsync/build/scanfs/export \
+		--tag ${DEFAULT_REGISTRY}/seedsync/build/scanfs/export \
+		--push \
 		${ROOTDIR}
 
 	# angular html export
-	$(DOCKER) build \
+	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_angular_export \
-		--tag seedsync/build/angular/export \
+		--tag ${DEFAULT_REGISTRY}/seedsync/build/angular/export \
+		--push \
 		${ROOTDIR}
 
 	# final image
-	$(DOCKER) build \
+	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
-		--tag seedsync:latest \
+		--build-arg REGISTRY=${DEFAULT_REGISTRY} \
+		--tag ${DEFAULT_REGISTRY}/seedsync:latest \
+		--platform linux/amd64,linux/arm64,linux/arm/v7 \
+		--push \
+		${ROOTDIR}
+
+docker-image-release:
+	@if [[ -z "${VERSION}" ]] ; then \
+		echo "${red}ERROR: VERSION is required${reset}"; exit 1; \
+	fi
+	@if [[ -z "${REPO}" ]] ; then \
+		echo "${red}ERROR: REPO is required${reset}"; exit 1; \
+	fi
+	echo "${green}VERSION=${VERSION}${reset}"
+	echo "${green}REPO=${REPO}${reset}"
+
+	# final image
+	$(DOCKER) buildx build \
+		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
+		--target seedsync_run \
+		--build-arg REGISTRY=${DEFAULT_REGISTRY} \
+		--tag ${REPO}/seedsync:${VERSION} \
+		--platform linux/amd64,linux/arm64,linux/arm/v7 \
+		--push \
 		${ROOTDIR}
 
 tests-python:
@@ -120,11 +149,27 @@ run-tests-e2e: tests-e2e-deps
 	  	echo "${red}ERROR: Only one of SEEDSYNC_VERSION or SEEDSYNC_DEB must be set${reset}"; exit 1; \
   	fi
 
+	# Set up environment for deb
 	@if [[ ! -z "${SEEDSYNC_DEB}" ]] ; then \
 		if [[ -z "${SEEDSYNC_OS}" ]] ; then \
 			echo "${red}ERROR: SEEDSYNC_OS is required for DEB e2e test${reset}"; \
 			echo "${red}Options include: ubu1604, ubu1804, ubu2004${reset}"; exit 1; \
 		fi
+	fi
+
+	# Set up environment for image
+	@if [[ ! -z "${SEEDSYNC_VERSION}" ]] ; then \
+		if [[ -z "${SEEDSYNC_ARCH}" ]] ; then \
+			echo "${red}ERROR: SEEDSYNC_ARCH is required for docker image e2e test${reset}"; \
+			echo "${red}Options include: amd64, arm64, arm/v7${reset}"; exit 1; \
+		fi
+		if [[ -z "${SEEDSYNC_REGISTRY}" ]] ; then \
+			export SEEDSYNC_REGISTRY="${DEFAULT_REGISTRY}"; \
+		fi;
+		echo "${green}REGISTRY=$${SEEDSYNC_REGISTRY}${reset}";
+		# Removing and pulling is the only way to select the arch from a multi-arch image :(
+		$(DOCKER) rmi -f $${SEEDSYNC_REGISTRY}/seedsync:$${SEEDSYNC_VERSION}
+		$(DOCKER) pull $${SEEDSYNC_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} --platform linux/$${SEEDSYNC_ARCH}
 	fi
 
 	# Set the flags
@@ -153,11 +198,18 @@ run-tests-e2e: tests-e2e-deps
 	trap tearDown EXIT
 
 	# Build the test
+	echo "${green}Building the tests${reset}"
 	$(DOCKER_COMPOSE) \
 		$${COMPOSE_FLAGS} \
 		build
 
+	# This suppresses the docker-compose error that image has changed
+	$(DOCKER_COMPOSE) \
+		$${COMPOSE_FLAGS} \
+		rm -f myapp
+
 	# Run the test
+	echo "${green}Running the tests${reset}"
 	$(DOCKER_COMPOSE) \
 		$${COMPOSE_FLAGS} \
 		up --force-recreate \

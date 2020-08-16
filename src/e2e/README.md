@@ -12,7 +12,7 @@
     - deb install
 
         ```bash
-        make run-tests-e2e SEEDSYNC_VERSION=latest DEV=1
+        make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=<arch code> DEV=1
         ```
 
     - docker image

@@ -13,13 +13,16 @@
 https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce
 https://docs.docker.com/compose/install/
 
-4. Build dependencies
+4. Install docker buildx
+    https://dev.to/arturklauser/building-multi-architecture-docker-images-with-buildx-1mii
+
+5. Build dependencies
 
    ```bash
    sudo apt-get install -y jq
    ```
 
-5. Install the rest:
+6. Install the rest:
    ```bash
    sudo apt-get install -y lftp python3-dev rar
    ```
@@ -50,14 +53,35 @@ npm install
 
 # Build
 
-1. Run these commands inside the root directory
-```bash
-make clean
-make
-```
+1. Set up docker buildx for multi-arch builds
 
-2. The .deb package will be generated inside `build` directory.
-   The docker image will be listed under `docker image ls` as `seedsync:latest`
+   ```bash
+   docker buildx create --name mybuilder --driver docker-container --driver-opt image=moby/buildkit:master,network=host
+   docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+   docker buildx inspect --bootstrap
+   # Make sure the following architectures are listed: linux/amd64, linux/arm64, linux/arm/v7 
+   ```
+
+2. Create local docker registry to store multi-arch images
+
+   ```bash
+   docker run -d -p 5000:5000 --restart=always --name registry registry:2
+   ```
+
+3. Run these commands inside the root directory
+   ```bash
+   make clean
+   make
+   ```
+
+4. The .deb package will be generated inside `build` directory.
+   The docker image will be pushed to the local registry as `seedsync:latest`. See if using:
+
+   ```bash
+   curl -X GET http://localhost:5000/v2/_catalog
+   ```
+
+
 
 ## Python Dev Build and Run
 
@@ -180,11 +204,19 @@ make run-tests-python
 make run-tests-angular
 
 # E2E Tests
-# Docker image
-make run-tests-e2e SEEDSYNC_VERSION=latest
+# Docker image (arch=amd64,arm64,arm/v7)
+make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=<arch code>
 # Debian package (os=ubu1604,ubu1804,ubu2004)
 make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=<os code>
 ```
+
+To test image from a registry other than the local, use `SEEDSYNC_REGISTRY=`. For example:
+
+```bash
+make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=arm64 SEEDSYNC_REGISTRY=ipsingh06
+```
+
+
 
 # Release
 
@@ -205,13 +237,8 @@ make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=<os code>
 ## Docker image upload to Dockerhub
 
 ```bash
-USERNAME="ipsingh06"
-IMAGE="seedsync"
-VERSION="<version number here>"
-docker tag ${IMAGE}:latest ${USERNAME}/${IMAGE}:latest
-docker tag ${IMAGE}:latest ${USERNAME}/${IMAGE}:${VERSION}
-docker push ${USERNAME}/${IMAGE}:latest
-docker push ${USERNAME}/${IMAGE}:${VERSION}
+make docker-image-release VERSION=<version> REPO=ipsingh06
+make docker-image-release VERSION=latest REPO=ipsingh06
 ```
 
 
@@ -229,11 +256,11 @@ make run-remote-server
 
 The connection parameters for the remote server are:
 
-| Option         | Value                  |
-| -------------- | ---------------------- |
-| Remote Address | localhost              |
-| Remote Port    | 1234                   |
-| Username       | remoteuser             |
-| Pass           | remotepass             |
-| Remote Path    | /home/remoteuser/files |
+| Option         | Value                             |
+| -------------- | --------------------------------- |
+| Remote Address | localhost or host.docker.internal |
+| Remote Port    | 1234                              |
+| Username       | remoteuser                        |
+| Pass           | remotepass                        |
+| Remote Path    | /home/remoteuser/files            |
 

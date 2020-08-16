@@ -1,3 +1,5 @@
+ARG REGISTRY=localhost:5000
+
 # Creates environment to run Seedsync python code
 # Installs all python dependencies
 FROM ubuntu:18.04 as seedsync_run_python_env
@@ -7,14 +9,15 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     lftp \
     openssh-client \
-    rar \
+#    rar \
     unrar \
     p7zip \
     python3.7 \
     python3.7-dev \
     python3.7-distutils \
     curl \
-    libnss-wrapper
+    libnss-wrapper \
+    libxml2-dev libxslt-dev
 
 # Switch to Python 3.7
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
@@ -44,9 +47,11 @@ COPY src/python /app/python
 
 
 # Full Seedsync docker image
+FROM ${REGISTRY}/seedsync/build/angular/export as seedsync_build_angular_export
+FROM ${REGISTRY}/seedsync/build/scanfs/export as seedsync_build_scanfs_export
 FROM seedsync_run_python as seedsync_run
-COPY --from=seedsync/build/angular/export /html /app/html
-COPY --from=seedsync/build/scanfs/export /scanfs /app/scanfs
+COPY --from=seedsync_build_angular_export /html /app/html
+COPY --from=seedsync_build_scanfs_export /scanfs /app/scanfs
 COPY src/docker/build/docker-image/setup_default_config.sh /scripts/
 
 # Disable the known hosts prompt
