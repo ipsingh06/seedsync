@@ -47,14 +47,10 @@ All you need are the SSH credentials for the remote server.
 
 ## Supported Platforms
 
-SeedSync releases come in the following flavours:
-* Debian package (.deb file)
-* Docker image
-
-The following OSes are supported:
-* Linux (debian package and docker image)
-* Windows (docker image)
-* MacOS (docker image)
+* Linux
+* Raspberry Pi (v2, v3 and v4)
+* Windows (via Docker)
+* MacOS (via Docker)
 
 
 ## Installation and Usage

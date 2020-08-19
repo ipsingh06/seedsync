@@ -1,33 +1,22 @@
 # Installation
 
-Installation options are:
+The following table describes the installation method supported for each platform.
 
-* [Ubuntu Deb Package](#install-ubuntu) (easiest method)
-* [Docker Image on Linux](#install-docker)
-* [Docker Image on Windows](#install-windows)
+|  | Docker Image | Deb Package |
+| ------------ | :-------------: | :------------: |
+| Linux/Ubuntu 64-bit | &#9989;️  | &#9989; |
+| Raspberry Pi (v2, v3, v4) | &#9989;  | |
+| Windows | &#9989;  | |
+| MacOS | &#9989;  | |
 
-## <a name="install-ubuntu"></a> Ubuntu Deb Package
+Select the section for your platform:
 
-1. Download the deb package from the [latest](https://github.com/ipsingh06/seedsync/releases/latest) release
-
-2. Install the deb package:
-
-        :::bash
-        sudo dpkg -i <deb file>
-
-3. During the first install, you will be prompted for a user name:
-   ![Install prompt for username](https://raw.githubusercontent.com/ipsingh06/seedsync/master/doc/images/install_1.png)
-   This is the user under which the SeedSync service will run. The transferred files will be owned by this user.
-   It is recommended that you set this to your user (and NOT root).
-
-4. After the installation is complete, verify that the application is running by going to [http://localhost:8800](http://localhost:8800) in your browser.
-
-5. Go to the Settings page and fill out the required information.
-   **While password-based login is supported, key-based authentication is highly recommended!**
-   See the [Key-Based Authentication Setup](#key-auth) section for details.
+* [Docker Image (Linux/Ubuntu, Raspberry Pi) ](#install-docker)
+* [Docker Image (Windows)](#install-windows)
+* [Deb Package (Linux/Ubuntu)](#install-ubuntu)
 
 
-## <a name="install-docker"></a> Docker Image on Linux
+## <a name="install-docker"></a> Docker Image (Linux/Ubuntu, Raspberry Pi)
 
 1. Run the docker image with the following command:
 
@@ -64,7 +53,7 @@ Installation options are:
    See the [Key-Based Authentication Setup](#key-auth) section for details.
 
 
-## <a name="install-windows"></a> Docker Image on Windows
+## <a name="install-windows"></a> Docker Image (Windows)
 
 SeedSync supports Windows via the Docker container.
 
@@ -125,14 +114,14 @@ You may also access it from another device by replacing 'localhost' with the IP 
 ### <a name="key-auth"></a> Password-less/Key-based Authentication Setup
 
 Password-based access to your remote server is highly unsecure.
-It is strongly recommended that you setup key-based authentication.
+It is strongly recommended that you set up key-based authentication.
 
 1. You will need to generate a public-private key pair.
    Here is a [simple tutorial](https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/)
    that walks you through this process.
 
     !!! note
-        Make sure the access is setup for the user under which SeedSync is running.
+        Make sure the access is set up for the user under which SeedSync is running.
 
     !!! note
         If you're using docker, also see the [Using SSH Keys with Docker](#keys-inside-docker) section.
@@ -174,3 +163,24 @@ It is strongly recommended that you setup key-based authentication.
 !!! note
     If you are running the docker guest with a non-standard user using the `--user` option,
     then you must make sure that your `.ssh` directory is also readable by that user.
+
+
+## <a name="install-ubuntu"></a> Deb Package (Linux/Ubuntu)
+
+1. Download the deb package from the [latest](https://github.com/ipsingh06/seedsync/releases/latest) release
+
+2. Install the deb package:
+
+        :::bash
+        sudo dpkg -i <deb file>
+
+3. During the first install, you will be prompted for a user name:
+   ![Install prompt for username](https://raw.githubusercontent.com/ipsingh06/seedsync/master/doc/images/install_1.png)
+   This is the user under which the SeedSync service will run. The transferred files will be owned by this user.
+   It is recommended that you set this to your user (and NOT root).
+
+4. After the installation is complete, verify that the application is running by going to [http://localhost:8800](http://localhost:8800) in your browser.
+
+5. Go to the Settings page and fill out the required information.
+   **While password-based login is supported, key-based authentication is highly recommended!**
+   See the [Key-Based Authentication Setup](#key-auth) section for details.
