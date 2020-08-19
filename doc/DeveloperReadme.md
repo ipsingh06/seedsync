@@ -59,6 +59,7 @@ npm install
 
    ```bash
    docker buildx create --name mybuilder --driver docker-container --driver-opt image=moby/buildkit:master,network=host
+   docker buildx use mybuilder
    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
    docker buildx inspect --bootstrap
    # Make sure the following architectures are listed: linux/amd64, linux/arm64, linux/arm/v7 
