@@ -237,10 +237,11 @@ make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=arm64 SEEDSYNC_REGISTRY
     3. Update `src/e2e/tests/about.page.spec.ts`
     4. Update Copyright date in `about-page.component.html`
 2. Tag the commit as vX.X.X
-3. make clean && make
-4. Run all tests
-5. Upload deb file to github
-6. Tag and upload image to Dockerhub (see below)
+3. Deploy documentation to github
+4. make clean && make
+5. Run all tests
+6. Upload deb file to github
+7. Tag and upload image to Dockerhub (see below)
 
 ## Docker image upload to Dockerhub
 
