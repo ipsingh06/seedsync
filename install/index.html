@@ -233,22 +233,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ubuntu-deb-package" class="md-nav__link">
-     Ubuntu Deb Package
+  <a href="#docker-image-linuxubuntu-raspberry-pi" class="md-nav__link">
+     Docker Image (Linux/Ubuntu, Raspberry Pi)
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#docker-image-on-linux" class="md-nav__link">
-     Docker Image on Linux
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#docker-image-on-windows" class="md-nav__link">
-     Docker Image on Windows
+  <a href="#docker-image-windows" class="md-nav__link">
+     Docker Image (Windows)
   </a>
   
 </li>
@@ -277,6 +270,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deb-package-linuxubuntu" class="md-nav__link">
+     Deb Package (Linux/Ubuntu)
+  </a>
   
 </li>
       
@@ -337,22 +337,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ubuntu-deb-package" class="md-nav__link">
-     Ubuntu Deb Package
+  <a href="#docker-image-linuxubuntu-raspberry-pi" class="md-nav__link">
+     Docker Image (Linux/Ubuntu, Raspberry Pi)
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#docker-image-on-linux" class="md-nav__link">
-     Docker Image on Linux
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#docker-image-on-windows" class="md-nav__link">
-     Docker Image on Windows
+  <a href="#docker-image-windows" class="md-nav__link">
+     Docker Image (Windows)
   </a>
   
 </li>
@@ -384,6 +377,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#deb-package-linuxubuntu" class="md-nav__link">
+     Deb Package (Linux/Ubuntu)
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -405,40 +405,45 @@
                 
                 
                 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
-<p>Installation options are:</p>
+<p>The following table describes the installation method supported for each platform.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th align="center">Docker Image</th>
+<th align="center">Deb Package</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux/Ubuntu 64-bit</td>
+<td align="center">&#9989;️</td>
+<td align="center">&#9989;</td>
+</tr>
+<tr>
+<td>Raspberry Pi (v2, v3, v4)</td>
+<td align="center">&#9989;</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td align="center">&#9989;</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td>MacOS</td>
+<td align="center">&#9989;</td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<p>Select the section for your platform:</p>
 <ul>
-<li><a href="#install-ubuntu">Ubuntu Deb Package</a> (easiest method)</li>
-<li><a href="#install-docker">Docker Image on Linux</a></li>
-<li><a href="#install-windows">Docker Image on Windows</a></li>
+<li><a href="#install-docker">Docker Image (Linux/Ubuntu, Raspberry Pi) </a></li>
+<li><a href="#install-windows">Docker Image (Windows)</a></li>
+<li><a href="#install-ubuntu">Deb Package (Linux/Ubuntu)</a></li>
 </ul>
-<h2 id="ubuntu-deb-package"><a name="install-ubuntu"></a> Ubuntu Deb Package<a class="headerlink" href="#ubuntu-deb-package" title="Permanent link">&para;</a></h2>
-<ol>
-<li>
-<p>Download the deb package from the <a href="https://github.com/ipsingh06/seedsync/releases/latest">latest</a> release</p>
-</li>
-<li>
-<p>Install the deb package:</p>
-<div class="codehilite"><pre><span></span><code>sudo dpkg -i &lt;deb file&gt;
-</code></pre></div>
-
-
-</li>
-<li>
-<p>During the first install, you will be prompted for a user name:
-   <img alt="Install prompt for username" src="https://raw.githubusercontent.com/ipsingh06/seedsync/master/doc/images/install_1.png" />
-   This is the user under which the SeedSync service will run. The transferred files will be owned by this user.
-   It is recommended that you set this to your user (and NOT root).</p>
-</li>
-<li>
-<p>After the installation is complete, verify that the application is running by going to <a href="http://localhost:8800">http://localhost:8800</a> in your browser.</p>
-</li>
-<li>
-<p>Go to the Settings page and fill out the required information.
-   <strong>While password-based login is supported, key-based authentication is highly recommended!</strong>
-   See the <a href="#key-auth">Key-Based Authentication Setup</a> section for details.</p>
-</li>
-</ol>
-<h2 id="docker-image-on-linux"><a name="install-docker"></a> Docker Image on Linux<a class="headerlink" href="#docker-image-on-linux" title="Permanent link">&para;</a></h2>
+<h2 id="docker-image-linuxubuntu-raspberry-pi"><a name="install-docker"></a> Docker Image (Linux/Ubuntu, Raspberry Pi)<a class="headerlink" href="#docker-image-linuxubuntu-raspberry-pi" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
 <p>Run the docker image with the following command:</p>
@@ -475,7 +480,7 @@ the following options.</p>
    See the <a href="#key-auth">Key-Based Authentication Setup</a> section for details.</p>
 </li>
 </ol>
-<h2 id="docker-image-on-windows"><a name="install-windows"></a> Docker Image on Windows<a class="headerlink" href="#docker-image-on-windows" title="Permanent link">&para;</a></h2>
+<h2 id="docker-image-windows"><a name="install-windows"></a> Docker Image (Windows)<a class="headerlink" href="#docker-image-windows" title="Permanent link">&para;</a></h2>
 <p>SeedSync supports Windows via the Docker container.</p>
 <ol>
 <li>
@@ -545,7 +550,7 @@ Or in case of docker, whatever host port you specified in the <code>-p &lt;port&
 <p>You may also access it from another device by replacing 'localhost' with the IP address or hostname of the machine where it is installed.</p>
 <h3 id="password-lesskey-based-authentication-setup"><a name="key-auth"></a> Password-less/Key-based Authentication Setup<a class="headerlink" href="#password-lesskey-based-authentication-setup" title="Permanent link">&para;</a></h3>
 <p>Password-based access to your remote server is highly unsecure.
-It is strongly recommended that you setup key-based authentication.</p>
+It is strongly recommended that you set up key-based authentication.</p>
 <ol>
 <li>
 <p>You will need to generate a public-private key pair.
@@ -553,7 +558,7 @@ It is strongly recommended that you setup key-based authentication.</p>
    that walks you through this process.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Make sure the access is setup for the user under which SeedSync is running.</p>
+<p>Make sure the access is set up for the user under which SeedSync is running.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -603,6 +608,33 @@ It is strongly recommended that you setup key-based authentication.</p>
 <p>If you are running the docker guest with a non-standard user using the <code>--user</code> option,
 then you must make sure that your <code>.ssh</code> directory is also readable by that user.</p>
 </div>
+<h2 id="deb-package-linuxubuntu"><a name="install-ubuntu"></a> Deb Package (Linux/Ubuntu)<a class="headerlink" href="#deb-package-linuxubuntu" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p>Download the deb package from the <a href="https://github.com/ipsingh06/seedsync/releases/latest">latest</a> release</p>
+</li>
+<li>
+<p>Install the deb package:</p>
+<div class="codehilite"><pre><span></span><code>sudo dpkg -i &lt;deb file&gt;
+</code></pre></div>
+
+
+</li>
+<li>
+<p>During the first install, you will be prompted for a user name:
+   <img alt="Install prompt for username" src="https://raw.githubusercontent.com/ipsingh06/seedsync/master/doc/images/install_1.png" />
+   This is the user under which the SeedSync service will run. The transferred files will be owned by this user.
+   It is recommended that you set this to your user (and NOT root).</p>
+</li>
+<li>
+<p>After the installation is complete, verify that the application is running by going to <a href="http://localhost:8800">http://localhost:8800</a> in your browser.</p>
+</li>
+<li>
+<p>Go to the Settings page and fill out the required information.
+   <strong>While password-based login is supported, key-based authentication is highly recommended!</strong>
+   See the <a href="#key-auth">Key-Based Authentication Setup</a> section for details.</p>
+</li>
+</ol>
                 
               
               
