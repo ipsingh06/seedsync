@@ -4,9 +4,9 @@
 
 
 <p align="center">
-  <a href="https://travis-ci.com/ipsingh06/seedsync">
+  <!--<a href="https://travis-ci.com/ipsingh06/seedsync">
     <img src="https://img.shields.io/travis/com/ipsingh06/seedsync" alt="Build">
-  </a>
+  </a>-->
   <a href="https://github.com/ipsingh06/seedsync">
     <img src="https://img.shields.io/github/stars/ipsingh06/seedsync" alt="Stars">
   </a>
