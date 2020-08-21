@@ -1,5 +1,19 @@
 # Installation
 
+SeedSync requires installation on a local machine.
+Nothing needs to be installed on the remote server.
+
+## Requirements
+
+### Remote Server
+
+Requirements for the remote server are:
+
+* Linux-based system (64-bit)
+* SSH access
+
+### Local Machine
+
 The following table describes the installation method supported for each platform.
 
 |  | Docker Image | Deb Package |
