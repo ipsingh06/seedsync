@@ -1,0 +1,26 @@
+[tool]
+[tool.poetry]
+name = "seedsync"
+version = "0.0.0"
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = "~3.8"
+bottle = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+parameterized = "*"
+paste = "*"
+patool = "*"
+pexpect = "*"
+pytz = "*"
+requests = "*"
+tblib = "*"
+timeout-decorator = "*"
+
+[tool.poetry.dev-dependencies]
+pyinstaller = "*"
+testfixtures = "*"
+webtest = "*"
+green = "*"
