@@ -38,7 +38,7 @@ class Seedsync:
 
     def __init__(self):
         # Parse the args
-        args = self._parse_args()
+        args = self._parse_args(sys.argv[1:])
 
         # Create/load config
         config = None
@@ -218,7 +218,7 @@ class Seedsync:
         raise ServiceExit()
 
     @staticmethod
-    def _parse_args():
+    def _parse_args(args):
         parser = argparse.ArgumentParser(description="Seedsync daemon")
         parser.add_argument("-c", "--config_dir", required=True, help="Path to config directory")
         parser.add_argument("--logdir", help="Directory for log files")
@@ -248,7 +248,7 @@ class Seedsync:
                             default=default_scanfs_path,
                             help="Path to scanfs executable")
 
-        return parser.parse_args()
+        return parser.parse_args(args)
 
     @staticmethod
     def _create_logger(name: str, debug: bool, logdir: Optional[str]) -> logging.Logger:
