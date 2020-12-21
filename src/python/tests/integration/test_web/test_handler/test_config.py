@@ -74,7 +74,7 @@ class TestConfigHandler(BaseTestWebApp):
     def test_set_empty_value(self):
         self.assertEqual(None, self.context.config.lftp.remote_path)
         resp = self.test_app.get("/server/config/set/lftp/remote_path/", expect_errors=True)
-        self.assertEqual(500, resp.status_int)
+        self.assertEqual(404, resp.status_int)
         self.assertEqual(None, self.context.config.lftp.remote_path)
 
         self.assertEqual(None, self.context.config.lftp.remote_path)
