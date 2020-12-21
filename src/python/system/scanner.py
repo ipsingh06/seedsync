@@ -111,8 +111,22 @@ class SystemScanner:
         )
 
     def __create_system_file(self, entry) -> SystemFile:
+        """
+        Creates a system file from a DirEntry.
+
+        Note:
+             Strips out any characters not-supported in utf-8. This prevents problems
+             in other systems.
+
+        Args:
+            entry: DirEntry object
+
+        Returns:
+            The SystemFile object
+        """
         if entry.is_dir():
             sub_children = self.__create_children(entry.path)
+            name = entry.name.encode('utf-8', 'surrogateescape').decode('utf-8', 'replace')
             size = sum(sub_child.size for sub_child in sub_children)
             time_created = None
             try:
@@ -120,7 +134,7 @@ class SystemScanner:
             except AttributeError:
                 pass
             time_modified = datetime.fromtimestamp(entry.stat().st_mtime)
-            sys_file = SystemFile(entry.name,
+            sys_file = SystemFile(name,
                                   size,
                                   True,
                                   time_created=time_created,
@@ -136,7 +150,7 @@ class SystemScanner:
                 with open(lftp_status_file_path, "r") as f:
                     file_size = SystemScanner._lftp_status_file_size(f.read())
             # Check to see if this is a lftp temp file, and if so, use the real name
-            file_name = entry.name
+            file_name = entry.name.encode('utf-8', 'surrogateescape').decode('utf-8', 'replace')
             if self.__lftp_temp_file_suffix is not None and \
                     file_name != self.__lftp_temp_file_suffix and \
                     file_name.endswith(self.__lftp_temp_file_suffix):

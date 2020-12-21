@@ -122,7 +122,7 @@ class Lftp:
     @with_check_process
     def __run_command(self, command: str):
         if self.__log_command_output:
-            self.logger.debug("command: {}".format(command))
+            self.logger.debug("command: {}".format(command.encode('utf8', 'surrogateescape')))
         self.__process.sendline(command)
         try:
             self.__process.expect(self.__expect_pattern, timeout=self.__timeout)
@@ -130,12 +130,12 @@ class Lftp:
             self.logger.exception("Lftp timeout exception")
             pass
         finally:
-            out = self.__process.before.decode()
+            out = self.__process.before.decode('utf8', 'replace')
             out = out.strip()  # remove any CRs
 
             if self.__log_command_output:
                 self.logger.debug("out ({} bytes):\n {}".format(len(out), out))
-                after = self.__process.after.decode().strip() \
+                after = self.__process.after.decode('utf8', 'replace').strip() \
                     if self.__process.after != pexpect.TIMEOUT else ""
                 self.logger.debug("after: {}".format(after))
 
@@ -150,11 +150,11 @@ class Lftp:
                 self.logger.exception("Lftp timeout exception")
                 pass
             finally:
-                out = self.__process.before.decode()
+                out = self.__process.before.decode('utf8', 'replace')
                 out = out.strip()  # remove any CRs
                 if self.__log_command_output:
                     self.logger.debug("retry out ({} bytes):\n {}".format(len(out), out))
-                    after = self.__process.after.decode().strip() \
+                    after = self.__process.after.decode('utf8', 'replace').strip() \
                         if self.__process.after != pexpect.TIMEOUT else ""
                     self.logger.debug("retry after: {}".format(after))
                 self.logger.error("Lftp detected error: {}".format(error_out))

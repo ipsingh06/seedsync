@@ -53,6 +53,14 @@ class TestLftp(unittest.TestCase):
             with open(path, 'wb') as f:
                 f.write(bytearray([0xff]*size))
 
+        def my_mkdir_latin(*args):
+            os.mkdir(os.path.join(TestLftp.temp_dir.encode('latin-1'), *args))
+
+        def my_touch_latin(size, *args):
+            path = os.path.join(TestLftp.temp_dir.encode('latin-1'), *args)
+            with open(path, 'wb') as f:
+                f.write(bytearray([0xff]*size))
+
         my_mkdir("remote")
         my_mkdir("remote", "a")
         my_touch(24*1024, "remote", "a", "aa")
@@ -69,6 +77,11 @@ class TestLftp(unittest.TestCase):
         my_mkdir("remote", "áßç")
         my_touch(128*1024, "remote", "áßç", "dőÀ")
         my_touch(256*1024, "remote", "üæÒ")
+        my_mkdir_latin(b"remote", b"f\xe9g")
+        my_touch_latin(128*1024, b"remote", b"f\xe9g", b"d\xe9f")
+        my_touch_latin(256*1024, b"remote", b"g\xe9h")
+        my_mkdir_latin(b"remote", b"latin")
+        my_touch_latin(128*1024, b"remote", b"latin", b"d\xe9f")
         my_mkdir("local")
 
     @classmethod
@@ -253,6 +266,27 @@ class TestLftp(unittest.TestCase):
         self.assertEqual("üæÒ", statuses[0].name)
         self.assertEqual(LftpJobStatus.Type.PGET, statuses[0].type)
         self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+
+    @timeout_decorator.timeout(5)
+    def test_queue_dir_with_latin(self):
+        self.lftp.rate_limit = 100  # so jobs don't finish right away
+        self.lftp.queue("latin", True)
+        while True:
+            statuses = self.lftp.status()
+            self.lftp.raise_pending_error()
+            if len(statuses) > 0:
+                break
+        self.assertEqual(1, len(statuses))
+        self.assertEqual("latin", statuses[0].name)
+        self.assertEqual(LftpJobStatus.Type.MIRROR, statuses[0].type)
+        self.assertEqual(LftpJobStatus.State.RUNNING, statuses[0].state)
+        # Download over 100 bytes without errors
+        while True:
+            statuses = self.lftp.status()
+            self.lftp.raise_pending_error()
+            size_local = statuses[0].total_transfer_state.size_local
+            if size_local and size_local > 100:
+                break
 
     @timeout_decorator.timeout(5)
     def test_queue_dir_with_unicode(self):

@@ -20,6 +20,16 @@ def my_touch(size, *args):
         f.write(bytearray([0xff] * size))
 
 
+def my_mkdir_latin(*args):
+    os.mkdir(os.path.join(TestSystemScanner.temp_dir.encode('latin-1'), *args))
+
+
+def my_touch_latin(size, *args):
+    path = os.path.join(TestSystemScanner.temp_dir.encode('latin-1'), *args)
+    with open(path, 'wb') as f:
+        f.write(bytearray([0xff] * size))
+
+
 # noinspection SpellCheckingInspection
 class TestSystemScanner(unittest.TestCase):
     temp_dir = None
@@ -633,4 +643,20 @@ class TestSystemScanner(unittest.TestCase):
         self.assertEqual(0, len(folder.children))
         self.assertEqual("déģķ", folder.name)
         self.assertEqual("dőÀ", file.name)
+        self.assertEqual(128, file.size)
+
+    def test_scan_file_with_latin_chars(self):
+        tempdir = TestSystemScanner.temp_dir
+        # a\xe9b [dir]
+        # c\xe9d [file, 128 bytes]
+        my_mkdir_latin(b"dir\xe9dir")
+        my_touch_latin(128, b"file\xd9file")
+
+        scanner = SystemScanner(tempdir)
+        files = scanner.scan()
+        self.assertEqual(2, len(files))
+        folder, file = tuple(files)
+        self.assertEqual(0, len(folder.children))
+        self.assertEqual("dir�dir", folder.name)
+        self.assertEqual("file�file", file.name)
         self.assertEqual(128, file.size)
