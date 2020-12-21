@@ -7,11 +7,7 @@
 ## Install dependencies
 1. Install [nodejs](https://joshtronic.com/2019/04/29/how-to-install-node-v12-on-debian-and-ubuntu/) (comes with npm)
 
-2. Install pipenv:
-
-   ```bash
-   sudo apt install -y python3-pip pipenv
-   ```
+2. Install [Poetry](https://python-poetry.org/docs/#installation):
 
 3. Install docker and docker-compose:
 https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-docker-ce
@@ -39,10 +35,10 @@ git clone git@gitlab.com:ipsingh06/seedsync.git
 cd seedsync
 ```
 
-## Setup python virtual environment
+## Setup Poetry project
 ```bash
 cd src/python
-PIPENV_VENV_IN_PROJECT=True pipenv install
+poetry install
 ```
 
 ## Setup angular node modules
@@ -103,7 +99,7 @@ make scanfs
 ```bash
 cd src/python
 mkdir -p build/config
-pipenv run python seedsync.py -c build/config --html ../angular/dist --scanfs build/scanfs
+poetry run python seedsync.py -c build/config --html ../angular/dist --scanfs build/scanfs
 ```
 
 
@@ -122,11 +118,11 @@ Dev build will be served at [http://localhost:4200](http://localhost:4200)
 
 ## Documentation
 
-### Preview documentation in brower
+### Preview documentation in browser
 
 ```bash
 cd src/python
-pipenv run mkdocs serve
+poetry run mkdocs serve
 ```
 
 Preview will be served at  [http://localhost:8000](http://localhost:8000)
@@ -134,7 +130,7 @@ Preview will be served at  [http://localhost:8000](http://localhost:8000)
 ### Deploy documentation
 
 ```bash
-pipenv run mkdocs gh-deploy
+poetry run mkdocs gh-deploy
 git push github gh-pages
 ```
 
@@ -183,11 +179,11 @@ Run from PyCharm
 
 OR
 
-Run from ```green```
+Run from terminal
 
 ```bash
 cd src/python
-pipenv run green -vv
+poetry run pytest
 ```
 
 ### Angular Unit Tests
