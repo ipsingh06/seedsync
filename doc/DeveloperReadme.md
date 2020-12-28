@@ -83,6 +83,12 @@ npm install
    ```bash
    curl -X GET http://localhost:5000/v2/_catalog
    ```
+   
+   To inspect the architectures of image:
+   
+   ```bash
+   docker buildx imagetools inspect localhost:5000/seedsync:latest
+   ```
 
 
 
@@ -268,4 +274,14 @@ The connection parameters for the remote server are:
 | Username       | remoteuser                        |
 | Pass           | remotepass                        |
 | Remote Path    | /home/remoteuser/files            |
+
+
+
+## Run Docker Image
+
+Use the following command to run the docker image locally:
+
+```bash
+docker run --rm -p 8800:8800 localhost:5000/seedsync:latest
+```
 

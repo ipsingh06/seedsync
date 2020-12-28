@@ -12,36 +12,47 @@ RUN apt-get update && apt-get install -y \
 #    rar \
     unrar \
     p7zip \
-    python3.7 \
-    python3.7-dev \
-    python3.7-distutils \
+    python3.8 \
+    python3.8-dev \
+    python3.8-distutils \
     curl \
     libnss-wrapper \
-    libxml2-dev libxslt-dev
+    libxml2-dev libxslt-dev libffi-dev
 
-# Switch to Python 3.7
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
-RUN update-alternatives --set python /usr/bin/python3.7
+# Switch to Python 3.8
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+RUN update-alternatives --set python /usr/bin/python3.8
+
+# Install Poetry
 RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py --force-reinstall && \
     rm get-pip.py
+RUN pip3 install poetry
+RUN poetry config virtualenvs.create false
 
-RUN apt-get install -y python3-pip
-RUN pip3 --version
-
-RUN pip3 install pipenv
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
-RUN pipenv --version
 
+# Install Python dependencies
 RUN mkdir -p /app
-COPY src/python/Pipfile /app/python/
-COPY src/python/Pipfile.lock /app/python/
-RUN cd /app/python && pipenv install --system --deploy
+COPY src/python/pyproject.toml /app/python/
+COPY src/python/poetry.lock /app/python/
+RUN cd /app/python && poetry install --no-dev
+
+
+# Creates environment for Python dev
+FROM seedsync_run_python_env as seedsync_run_python_devenv
+RUN cd /app/python && poetry install
 
 
 # Installs Seedsync python code
 FROM seedsync_run_python_env as seedsync_run_python
+RUN mkdir -p /app
+COPY src/python /app/python
+
+
+# Installs Seedsync python code for dev
+FROM seedsync_run_python_devenv as seedsync_run_pythondev
 RUN mkdir -p /app
 COPY src/python /app/python
 

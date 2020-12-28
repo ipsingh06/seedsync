@@ -1,4 +1,4 @@
-FROM seedsync/run/python/env as seedsync_test_python
+FROM seedsync/run/python/devenv as seedsync_test_python
 
 RUN ls -l /app/python
 
@@ -29,6 +29,7 @@ EXPOSE 22
 
 # src needs to be mounted on /src/
 WORKDIR /src/
+ENV PYTHONPATH=/src
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["green", "-vv", "-q"]
+CMD ["pytest", "-v"]

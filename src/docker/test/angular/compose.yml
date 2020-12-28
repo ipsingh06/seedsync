@@ -13,7 +13,3 @@ services:
         source: ../../../angular/src
         target: /app/src
         read_only: true
-
-      - type: bind
-        source: /tmp
-        target: /tmp

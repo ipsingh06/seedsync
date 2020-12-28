@@ -95,8 +95,8 @@ tests-python:
 	# python run
 	$(DOCKER) build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
-		--target seedsync_run_python_env \
-		--tag seedsync/run/python/env \
+		--target seedsync_run_python_devenv \
+		--tag seedsync/run/python/devenv \
 		${ROOTDIR}
 	# python tests
 	$(DOCKER_COMPOSE) \
