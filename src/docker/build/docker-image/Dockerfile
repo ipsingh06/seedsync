@@ -1,4 +1,4 @@
-ARG REGISTRY=localhost:5000
+ARG STAGING_REGISTRY=localhost:5000
 
 # Creates environment to run Seedsync python code
 # Installs all python dependencies
@@ -58,8 +58,8 @@ COPY src/python /app/python
 
 
 # Full Seedsync docker image
-FROM ${REGISTRY}/seedsync/build/angular/export as seedsync_build_angular_export
-FROM ${REGISTRY}/seedsync/build/scanfs/export as seedsync_build_scanfs_export
+FROM ${STAGING_REGISTRY}/seedsync/build/angular/export as seedsync_build_angular_export
+FROM ${STAGING_REGISTRY}/seedsync/build/scanfs/export as seedsync_build_scanfs_export
 FROM seedsync_run_python as seedsync_run
 COPY --from=seedsync_build_angular_export /html /app/html
 COPY --from=seedsync_build_scanfs_export /scanfs /app/scanfs

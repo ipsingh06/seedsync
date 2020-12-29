@@ -14,7 +14,7 @@ reset=`tput sgr0`
 ROOTDIR:=$(shell realpath .)
 SOURCEDIR:=$(shell realpath ./src)
 BUILDDIR:=$(shell realpath ./build)
-DEFAULT_REGISTRY:=localhost:5000
+DEFAULT_STAGING_REGISTRY:=localhost:5000
 
 #DOCKER_BUILDKIT_FLAGS=BUILDKIT_PROGRESS=plain
 DOCKER=${DOCKER_BUILDKIT_FLAGS} DOCKER_BUILDKIT=1 docker
@@ -49,7 +49,7 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_scanfs_export \
-		--tag ${DEFAULT_REGISTRY}/seedsync/build/scanfs/export \
+		--tag ${DEFAULT_STAGING_REGISTRY}/seedsync/build/scanfs/export \
 		--push \
 		${ROOTDIR}
 
@@ -57,7 +57,7 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_angular_export \
-		--tag ${DEFAULT_REGISTRY}/seedsync/build/angular/export \
+		--tag ${DEFAULT_STAGING_REGISTRY}/seedsync/build/angular/export \
 		--push \
 		${ROOTDIR}
 
@@ -65,8 +65,8 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
-		--build-arg REGISTRY=${DEFAULT_REGISTRY} \
-		--tag ${DEFAULT_REGISTRY}/seedsync:latest \
+		--build-arg STAGING_REGISTRY=${DEFAULT_STAGING_REGISTRY} \
+		--tag ${DEFAULT_STAGING_REGISTRY}/seedsync:latest \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}
@@ -85,7 +85,7 @@ docker-image-release:
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
-		--build-arg REGISTRY=${DEFAULT_REGISTRY} \
+		--build-arg STAGING_REGISTRY=${DEFAULT_STAGING_REGISTRY} \
 		--tag ${SEEDSYNC_REPO}/seedsync:${SEEDSYNC_VERSION} \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
@@ -163,13 +163,13 @@ run-tests-e2e: tests-e2e-deps
 			echo "${red}ERROR: SEEDSYNC_ARCH is required for docker image e2e test${reset}"; \
 			echo "${red}Options include: amd64, arm64, arm/v7${reset}"; exit 1; \
 		fi
-		if [[ -z "${SEEDSYNC_REGISTRY}" ]] ; then \
-			export SEEDSYNC_REGISTRY="${DEFAULT_REGISTRY}"; \
+		if [[ -z "${STAGING_REGISTRY}" ]] ; then \
+			export STAGING_REGISTRY="${DEFAULT_STAGING_REGISTRY}"; \
 		fi;
-		echo "${green}REGISTRY=$${SEEDSYNC_REGISTRY}${reset}";
+		echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
 		# Removing and pulling is the only way to select the arch from a multi-arch image :(
-		$(DOCKER) rmi -f $${SEEDSYNC_REGISTRY}/seedsync:$${SEEDSYNC_VERSION}
-		$(DOCKER) pull $${SEEDSYNC_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} --platform linux/$${SEEDSYNC_ARCH}
+		$(DOCKER) rmi -f $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION}
+		$(DOCKER) pull $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} --platform linux/$${SEEDSYNC_ARCH}
 	fi
 
 	# Set the flags
