@@ -248,8 +248,8 @@ make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=arm64 SEEDSYNC_REGISTRY
 ## Docker image upload to Dockerhub
 
 ```bash
-make docker-image-release VERSION=<version> REPO=ipsingh06
-make docker-image-release VERSION=latest REPO=ipsingh06
+make docker-image-release SEEDSYNC_VERSION=<version> SEEDSYNC_REPO=ipsingh06
+make docker-image-release SEEDSYNC_VERSION=latest SEEDSYNC_REPO=ipsingh06
 ```
 
 

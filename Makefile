@@ -72,21 +72,21 @@ docker-image: docker-buildx
 		${ROOTDIR}
 
 docker-image-release:
-	@if [[ -z "${VERSION}" ]] ; then \
-		echo "${red}ERROR: VERSION is required${reset}"; exit 1; \
+	@if [[ -z "${SEEDSYNC_VERSION}" ]] ; then \
+		echo "${red}ERROR: SEEDSYNC_VERSION is required${reset}"; exit 1; \
 	fi
-	@if [[ -z "${REPO}" ]] ; then \
-		echo "${red}ERROR: REPO is required${reset}"; exit 1; \
+	@if [[ -z "${SEEDSYNC_REPO}" ]] ; then \
+		echo "${red}ERROR: SEEDSYNC_REPO is required${reset}"; exit 1; \
 	fi
-	echo "${green}VERSION=${VERSION}${reset}"
-	echo "${green}REPO=${REPO}${reset}"
+	echo "${green}SEEDSYNC_VERSION=${SEEDSYNC_VERSION}${reset}"
+	echo "${green}SEEDSYNC_REPO=${SEEDSYNC_REPO}${reset}"
 
 	# final image
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
 		--build-arg REGISTRY=${DEFAULT_REGISTRY} \
-		--tag ${REPO}/seedsync:${VERSION} \
+		--tag ${SEEDSYNC_REPO}/seedsync:${SEEDSYNC_VERSION} \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}
