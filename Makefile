@@ -45,11 +45,16 @@ docker-buildx:
 	$(DOCKER) run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
 docker-image: docker-buildx
+	@if [[ -z "${STAGING_REGISTRY}" ]] ; then \
+		export STAGING_REGISTRY="${DEFAULT_STAGING_REGISTRY}"; \
+	fi;
+	echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
+
 	# scanfs image
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_scanfs_export \
-		--tag ${DEFAULT_STAGING_REGISTRY}/seedsync/build/scanfs/export \
+		--tag $${STAGING_REGISTRY}/seedsync/build/scanfs/export \
 		--push \
 		${ROOTDIR}
 
@@ -57,7 +62,7 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_angular_export \
-		--tag ${DEFAULT_STAGING_REGISTRY}/seedsync/build/angular/export \
+		--tag $${STAGING_REGISTRY}/seedsync/build/angular/export \
 		--push \
 		${ROOTDIR}
 
@@ -65,13 +70,18 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
-		--build-arg STAGING_REGISTRY=${DEFAULT_STAGING_REGISTRY} \
-		--tag ${DEFAULT_STAGING_REGISTRY}/seedsync:latest \
+		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
+		--tag $${STAGING_REGISTRY}/seedsync:latest \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}
 
 docker-image-release:
+	@if [[ -z "${STAGING_REGISTRY}" ]] ; then \
+		export STAGING_REGISTRY="${DEFAULT_STAGING_REGISTRY}"; \
+	fi;
+	echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
+
 	@if [[ -z "${SEEDSYNC_VERSION}" ]] ; then \
 		echo "${red}ERROR: SEEDSYNC_VERSION is required${reset}"; exit 1; \
 	fi
@@ -85,7 +95,7 @@ docker-image-release:
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
-		--build-arg STAGING_REGISTRY=${DEFAULT_STAGING_REGISTRY} \
+		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
 		--tag ${SEEDSYNC_REPO}/seedsync:${SEEDSYNC_VERSION} \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \

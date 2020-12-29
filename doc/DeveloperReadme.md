@@ -65,13 +65,14 @@ npm install
    # Make sure the following architectures are listed: linux/amd64, linux/arm64, linux/arm/v7 
    ```
 
-2. Create local docker registry to store multi-arch images
+2. Multi-arch docker images can only be stored in a registry.
+   Create local docker registry to store multi-arch images
 
    ```bash
    docker run -d -p 5000:5000 --restart=always --name registry registry:2
    ```
 
-3. Run these commands inside the root directory
+3. Run these commands inside the root directory.
    ```bash
    make clean
    make
@@ -88,6 +89,13 @@ npm install
    
    ```bash
    docker buildx imagetools inspect localhost:5000/seedsync:latest
+   ```
+   
+   To use a different registry during the build process, use `STAGING_REGISTRY=`.
+   For example:
+   
+   ```bash
+   make STAGING_REGISTRY=another-registry
    ```
 
 
