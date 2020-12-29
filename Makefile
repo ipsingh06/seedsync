@@ -49,12 +49,16 @@ docker-image: docker-buildx
 		export STAGING_REGISTRY="${DEFAULT_STAGING_REGISTRY}"; \
 	fi;
 	echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
+	@if [[ -z "${SEEDSYNC_VERSION}" ]] ; then \
+		export SEEDSYNC_VERSION="latest"; \
+	fi;
+	echo "${green}SEEDSYNC_VERSION=$${SEEDSYNC_VERSION}${reset}";
 
 	# scanfs image
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_scanfs_export \
-		--tag $${STAGING_REGISTRY}/seedsync/build/scanfs/export \
+		--tag $${STAGING_REGISTRY}/seedsync/build/scanfs/export:$${SEEDSYNC_VERSION} \
 		--push \
 		${ROOTDIR}
 
@@ -62,7 +66,7 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_angular_export \
-		--tag $${STAGING_REGISTRY}/seedsync/build/angular/export \
+		--tag $${STAGING_REGISTRY}/seedsync/build/angular/export:$${SEEDSYNC_VERSION} \
 		--push \
 		${ROOTDIR}
 
@@ -70,8 +74,9 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
+		--build-arg SEEDSYNC_VERSION=$${SEEDSYNC_VERSION} \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
-		--tag $${STAGING_REGISTRY}/seedsync:latest \
+		--tag $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}

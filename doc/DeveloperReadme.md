@@ -95,8 +95,17 @@ npm install
    For example:
    
    ```bash
-   make STAGING_REGISTRY=another-registry
+   make STAGING_REGISTRY=another-registry:5000
    ```
+   
+   To build a tag other than `latest`, use `SEEDSYNC_VERSION=`.
+   For example:
+   
+   ```bash
+   make SEEDSYNC_VERSION=0.0.1
+   ```
+   
+   
 
 
 
