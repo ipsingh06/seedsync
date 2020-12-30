@@ -3,26 +3,23 @@ ARG STAGING_VERSION=latest
 
 # Creates environment to run Seedsync python code
 # Installs all python dependencies
-FROM ubuntu:18.04 as seedsync_run_python_env
+FROM python:3.8-slim as seedsync_run_python_env
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+    gcc \
     libssl-dev \
     lftp \
     openssh-client \
-#    rar \
-    unrar \
+#    unrar \
     p7zip \
-    python3.8 \
-    python3.8-dev \
-    python3.8-distutils \
+    p7zip-full \
+    bzip2 \
     curl \
     libnss-wrapper \
-    libxml2-dev libxslt-dev libffi-dev
-
-# Switch to Python 3.8
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
-RUN update-alternatives --set python /usr/bin/python3.8
+    libxml2-dev libxslt-dev libffi-dev \
+    && apt-get clean
+RUN wget -qO- git.io/rar.sh | bash
 
 # Install Poetry
 RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
