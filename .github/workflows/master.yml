@@ -219,13 +219,15 @@ jobs:
       - name: Push to Dockerhub (tag vX.X.X)
         run: make docker-image-release \
           STAGING_REGISTRY=${{ env.staging_registry }} \
-          STAGING_VERSION=${{ env.RELEASE_VERSION }} \
-          SEEDSYNC_REPO=docker.io/ipsingh06
+          STAGING_VERSION=${{ github.run_number }} \
+          RELEASE_REGISTRY=docker.io/ipsingh06 \
+          RELEASE_VERSION=${{ env.RELEASE_VERSION }}
       - name: Push to Dockerhub (tag latest)
         run: make docker-image-release \
           STAGING_REGISTRY=${{ env.staging_registry }} \
-          STAGING_VERSION=latest \
-          SEEDSYNC_REPO=docker.io/ipsingh06
+          STAGING_VERSION=${{ github.run_number }} \
+          RELEASE_REGISTRY=docker.io/ipsingh06 \
+          RELEASE_VERSION=latest
 
   publish-deb:
     name: Publish Deb package

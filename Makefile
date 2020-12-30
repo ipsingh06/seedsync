@@ -92,15 +92,18 @@ docker-image-release:
 		export STAGING_REGISTRY="${DEFAULT_STAGING_REGISTRY}"; \
 	fi;
 	echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
-
 	@if [[ -z "${STAGING_VERSION}" ]] ; then \
-		echo "${red}ERROR: STAGING_VERSION is required${reset}"; exit 1; \
+		export STAGING_VERSION="latest"; \
+	fi;
+	echo "${green}STAGING_VERSION=$${STAGING_VERSION}${reset}";
+	@if [[ -z "${RELEASE_REGISTRY}" ]] ; then \
+		echo "${red}ERROR: RELEASE_REGISTRY is required${reset}"; exit 1; \
 	fi
-	@if [[ -z "${SEEDSYNC_REPO}" ]] ; then \
-		echo "${red}ERROR: SEEDSYNC_REPO is required${reset}"; exit 1; \
+	@if [[ -z "${RELEASE_VERSION}" ]] ; then \
+		echo "${red}ERROR: RELEASE_VERSION is required${reset}"; exit 1; \
 	fi
-	echo "${green}STAGING_VERSION=${STAGING_VERSION}${reset}"
-	echo "${green}SEEDSYNC_REPO=${SEEDSYNC_REPO}${reset}"
+	echo "${green}RELEASE_REGISTRY=${RELEASE_REGISTRY}${reset}"
+	echo "${green}RELEASE_VERSION=${RELEASE_VERSION}${reset}"
 
 	# final image
 	$(DOCKER) buildx build \
@@ -108,7 +111,7 @@ docker-image-release:
 		--target seedsync_run \
 		--build-arg STAGING_VERSION=$${STAGING_VERSION} \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
-		--tag ${SEEDSYNC_REPO}/seedsync:${STAGING_VERSION} \
+		--tag ${RELEASE_REGISTRY}/seedsync:${RELEASE_VERSION} \
 		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync:cache \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
