@@ -4,6 +4,8 @@ name: CI
 on:
   push:
     branches: [ master ]
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
     branches: [ master ]
 
@@ -12,8 +14,8 @@ on:
 
 jobs:
 
-  # Runs Python unit tests
   unittests-python:
+    name: Python unit tests
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -25,8 +27,8 @@ jobs:
         run: make run-tests-python
 
 
-  # Runs Angular unit tests
   unittests-angular:
+    name: Angular unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,8 +39,8 @@ jobs:
         run: make run-tests-angular
 
 
-  # Builds debian package
   build-deb:
+    name: Build Deb
     runs-on: ubuntu-latest
     needs: [ unittests-python, unittests-angular ]
     steps:
@@ -76,8 +78,8 @@ jobs:
         if: ${{ success() }}
         run: ls -l $GITHUB_WORKSPACE/build/
 
-  # Builds docker image
   build-docker-image:
+    name: Build Docker Image
     runs-on: ubuntu-latest
     needs: [ unittests-python, unittests-angular ]
     steps:
@@ -103,15 +105,15 @@ jobs:
       - name: Log into GitHub Container Registry
         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
       # Set staging registry
-      - name: Set registry
+      - name: Set staging registry env variable
         run: echo "staging_registry=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
 
       # Build docker image
       - name: Build docker image
         run: make docker-image STAGING_REGISTRY=${{ env.staging_registry }} SEEDSYNC_VERSION=${{ github.run_number }}
 
-  # Runs E2E tests on deb package
   e2etests-deb:
+    name: End-to-end tests on Deb
     runs-on: ubuntu-latest
     needs: [ build-deb ]
     strategy:
@@ -131,8 +133,8 @@ jobs:
       - name: Run e2e test
         run: make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=${{ matrix.oscode }}
 
-  # Runs E2E tests on deb package
   e2etests-docker-image:
+    name: End-to-end tests on Docker Image
     runs-on: ubuntu-latest
     needs: [ build-docker-image ]
     strategy:
@@ -166,7 +168,7 @@ jobs:
       - name: Log into GitHub Container Registry
         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
       # Set staging registry
-      - name: Set registry
+      - name: Set staging registry env variable
         run: echo "staging_registry=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
 
       # Run e2e test
@@ -175,3 +177,91 @@ jobs:
           STAGING_REGISTRY=${{ env.staging_registry }} \
           SEEDSYNC_VERSION=${{ github.run_number }} \
           SEEDSYNC_ARCH=${{ matrix.arch }}
+
+  publish-docker-image:
+    name: Publish Docker Image
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [ e2etests-deb, e2etests-docker-image ]
+    steps:
+      - name: Set release env variable
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Sets up build environment
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: |
+            image=moby/buildkit:master
+            network=host
+      - name: Show buildx builder instance name
+        run: echo ${{ steps.buildx.outputs.name }}
+      - name: Show buildx available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      # Login to GHCR using a PAT with write:packages scope
+      - name: Log into GitHub Container Registry
+        run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+      # Login to Dockerhub
+      - name: Log into Dockerhub registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      # Set staging registry
+      - name: Set staging registry env variable
+        run: echo "staging_registry=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
+
+      # Push image to dockerhub
+      - name: Push to Dockerhub (tag vX.X.X)
+        run: make docker-image-release \
+          STAGING_REGISTRY=${{ env.staging_registry }} \
+          SEEDSYNC_VERSION=${{ env.RELEASE_VERSION }} \
+          SEEDSYNC_REPO=docker.io/ipsingh06
+      - name: Push to Dockerhub (tag latest)
+        run: make docker-image-release \
+          STAGING_REGISTRY=${{ env.staging_registry }} \
+          SEEDSYNC_VERSION=latest \
+          SEEDSYNC_REPO=docker.io/ipsingh06
+
+  publish-deb:
+    name: Publish Deb package
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [ e2etests-deb, e2etests-docker-image ]
+    steps:
+      - name: Set release env variable
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: Download deb package artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: deb-${{ github.run_number }}
+          path: build/
+      - name: Set deb file path and name env variable
+        run: |
+          echo "DEB_PATH=$(readlink -f ./build/*.deb)" >> $GITHUB_ENV
+          echo "DEB_NAME=$(basename $(readlink -f ./build/*.deb))" >> $GITHUB_ENV
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.DEB_PATH }}
+          asset_name: ${{ env.DEB_NAME }}
+          asset_content_type: application/x-deb
