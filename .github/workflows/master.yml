@@ -1,10 +1,7 @@
-# This is a basic workflow to help you get started with Actions
 
 name: CI
 
-# Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ master ]
   pull_request:
@@ -13,24 +10,168 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  # Runs Python unit tests
+  unittests-python:
+    runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      # Build package
+      - name: Run Python unit tests
+        run: make run-tests-python
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+
+  # Runs Angular unit tests
+  unittests-angular:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Build package
+      - name: Run Angular unit tests
+        run: make run-tests-angular
+
+
+  # Builds debian package
+  build-deb:
+    runs-on: ubuntu-latest
+    needs: [ unittests-python, unittests-angular ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Sets up build environment
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: |
+            image=moby/buildkit:master
+            network=host
+      - name: Show buildx builder instance name
+        run: echo ${{ steps.buildx.outputs.name }}
+      - name: Show buildx available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      # Build package
+      - name: Build deb package
+        run: make deb
+
+      # Upload package
+      - name: Publish artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ github.workspace }}/build/*.deb
+          name: deb-${{ github.run_number }}
+
+      # Post build steps
+      - name: List built packages
+        if: ${{ success() }}
+        run: ls -l $GITHUB_WORKSPACE/build/
+
+  # Builds docker image
+  build-docker-image:
+    runs-on: ubuntu-latest
+    needs: [ unittests-python, unittests-angular ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Sets up build environment
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: |
+            image=moby/buildkit:master
+            network=host
+      - name: Show buildx builder instance name
+        run: echo ${{ steps.buildx.outputs.name }}
+      - name: Show buildx available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      # Login using a PAT with write:packages scope
+      - name: Log into GitHub Container Registry
+        run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+      # Set staging registry
+      - name: Set registry
+        run: echo "staging_registry=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
+
+      # Build docker image
+      - name: Build docker image
+        run: make docker-image STAGING_REGISTRY=${{ env.staging_registry }} SEEDSYNC_VERSION=${{ github.run_number }}
+
+  # Runs E2E tests on deb package
+  e2etests-deb:
+    runs-on: ubuntu-latest
+    needs: [ build-deb ]
+    strategy:
+      matrix:
+        oscode: [ ubu1604, ubu1804, ubu2004 ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download deb package artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: deb-${{ github.run_number }}
+          path: build/
+
+      # Run e2e test
+      - name: Run e2e test
+        run: make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=${{ matrix.oscode }}
+
+  # Runs E2E tests on deb package
+  e2etests-docker-image:
+    runs-on: ubuntu-latest
+    needs: [ build-docker-image ]
+    strategy:
+      matrix:
+        arch: [ amd64, arm64, arm/v7 ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Sets up build environment
+      - name: Enable Docker experimental features
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo $'{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+          sudo service docker restart
+          docker version
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: |
+            image=moby/buildkit:master
+            network=host
+      - name: Show buildx builder instance name
+        run: echo ${{ steps.buildx.outputs.name }}
+      - name: Show buildx available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      # Login using a PAT with write:packages scope
+      - name: Log into GitHub Container Registry
+        run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+      # Set staging registry
+      - name: Set registry
+        run: echo "staging_registry=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
+
+      # Run e2e test
+      - name: Run e2e test
+        run: make run-tests-e2e \
+          STAGING_REGISTRY=${{ env.staging_registry }} \
+          SEEDSYNC_VERSION=${{ github.run_number }} \
+          SEEDSYNC_ARCH=${{ matrix.arch }}
