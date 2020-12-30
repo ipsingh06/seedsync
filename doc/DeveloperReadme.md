@@ -98,11 +98,11 @@ npm install
    make STAGING_REGISTRY=another-registry:5000
    ```
    
-   To build a tag other than `latest`, use `SEEDSYNC_VERSION=`.
+   To build a tag other than `latest`, use `STAGING_VERSION=`.
    For example:
    
    ```bash
-   make SEEDSYNC_VERSION=0.0.1
+   make STAGING_VERSION=0.0.1
    ```
    
    
@@ -231,7 +231,7 @@ make run-tests-angular
 
 # E2E Tests
 # Docker image (arch=amd64,arm64,arm/v7)
-make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=<arch code>
+make run-tests-e2e STAGING_VERSION=latest SEEDSYNC_ARCH=<arch code>
 # Debian package (os=ubu1604,ubu1804,ubu2004)
 make run-tests-e2e SEEDSYNC_DEB=`readlink -f build/*.deb` SEEDSYNC_OS=<os code>
 ```
@@ -240,7 +240,7 @@ By default images are pulled from `localhost:5000`. To test image from a registr
 For example:
 
 ```bash
-make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=arm64 STAGING_REGISTRY=ipsingh06
+make run-tests-e2e STAGING_VERSION=latest SEEDSYNC_ARCH=arm64 STAGING_REGISTRY=ipsingh06
 ```
 
 
@@ -265,8 +265,8 @@ make run-tests-e2e SEEDSYNC_VERSION=latest SEEDSYNC_ARCH=arm64 STAGING_REGISTRY=
 ## Docker image upload to Dockerhub
 
 ```bash
-make docker-image-release SEEDSYNC_VERSION=<version> SEEDSYNC_REPO=ipsingh06
-make docker-image-release SEEDSYNC_VERSION=latest SEEDSYNC_REPO=ipsingh06
+make docker-image-release STAGING_VERSION=<version> SEEDSYNC_REPO=ipsingh06
+make docker-image-release STAGING_VERSION=latest SEEDSYNC_REPO=ipsingh06
 ```
 
 

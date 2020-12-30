@@ -49,16 +49,16 @@ docker-image: docker-buildx
 		export STAGING_REGISTRY="${DEFAULT_STAGING_REGISTRY}"; \
 	fi;
 	echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
-	@if [[ -z "${SEEDSYNC_VERSION}" ]] ; then \
-		export SEEDSYNC_VERSION="latest"; \
+	@if [[ -z "${STAGING_VERSION}" ]] ; then \
+		export STAGING_VERSION="latest"; \
 	fi;
-	echo "${green}SEEDSYNC_VERSION=$${SEEDSYNC_VERSION}${reset}";
+	echo "${green}STAGING_VERSION=$${STAGING_VERSION}${reset}";
 
 	# scanfs image
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_scanfs_export \
-		--tag $${STAGING_REGISTRY}/seedsync/build/scanfs/export:$${SEEDSYNC_VERSION} \
+		--tag $${STAGING_REGISTRY}/seedsync/build/scanfs/export:$${STAGING_VERSION} \
 		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/scanfs/export:cache,mode=max \
 		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/scanfs/export:cache \
 		--push \
@@ -68,7 +68,7 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_angular_export \
-		--tag $${STAGING_REGISTRY}/seedsync/build/angular/export:$${SEEDSYNC_VERSION} \
+		--tag $${STAGING_REGISTRY}/seedsync/build/angular/export:$${STAGING_VERSION} \
 		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/angular/export:cache,mode=max \
 		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/angular/export:cache \
 		--push \
@@ -78,9 +78,9 @@ docker-image: docker-buildx
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
-		--build-arg SEEDSYNC_VERSION=$${SEEDSYNC_VERSION} \
+		--build-arg STAGING_VERSION=$${STAGING_VERSION} \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
-		--tag $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} \
+		--tag $${STAGING_REGISTRY}/seedsync:$${STAGING_VERSION} \
 		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync:cache,mode=max \
 		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync:cache \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
@@ -93,22 +93,22 @@ docker-image-release:
 	fi;
 	echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
 
-	@if [[ -z "${SEEDSYNC_VERSION}" ]] ; then \
-		echo "${red}ERROR: SEEDSYNC_VERSION is required${reset}"; exit 1; \
+	@if [[ -z "${STAGING_VERSION}" ]] ; then \
+		echo "${red}ERROR: STAGING_VERSION is required${reset}"; exit 1; \
 	fi
 	@if [[ -z "${SEEDSYNC_REPO}" ]] ; then \
 		echo "${red}ERROR: SEEDSYNC_REPO is required${reset}"; exit 1; \
 	fi
-	echo "${green}SEEDSYNC_VERSION=${SEEDSYNC_VERSION}${reset}"
+	echo "${green}STAGING_VERSION=${STAGING_VERSION}${reset}"
 	echo "${green}SEEDSYNC_REPO=${SEEDSYNC_REPO}${reset}"
 
 	# final image
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
-		--build-arg SEEDSYNC_VERSION=$${SEEDSYNC_VERSION} \
+		--build-arg STAGING_VERSION=$${STAGING_VERSION} \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
-		--tag ${SEEDSYNC_REPO}/seedsync:${SEEDSYNC_VERSION} \
+		--tag ${SEEDSYNC_REPO}/seedsync:${STAGING_VERSION} \
 		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync:cache \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
@@ -166,10 +166,10 @@ tests-e2e-deps:
 
 run-tests-e2e: tests-e2e-deps
 	# Check our settings
-	@if [[ -z "${SEEDSYNC_VERSION}" ]] && [[ -z "${SEEDSYNC_DEB}" ]]; then \
-		echo "${red}ERROR: One of SEEDSYNC_VERSION or SEEDSYNC_DEB must be set${reset}"; exit 1; \
-	elif [[ ! -z "${SEEDSYNC_VERSION}" ]] && [[ ! -z "${SEEDSYNC_DEB}" ]]; then \
-	  	echo "${red}ERROR: Only one of SEEDSYNC_VERSION or SEEDSYNC_DEB must be set${reset}"; exit 1; \
+	@if [[ -z "${STAGING_VERSION}" ]] && [[ -z "${SEEDSYNC_DEB}" ]]; then \
+		echo "${red}ERROR: One of STAGING_VERSION or SEEDSYNC_DEB must be set${reset}"; exit 1; \
+	elif [[ ! -z "${STAGING_VERSION}" ]] && [[ ! -z "${SEEDSYNC_DEB}" ]]; then \
+	  	echo "${red}ERROR: Only one of STAGING_VERSION or SEEDSYNC_DEB must be set${reset}"; exit 1; \
   	fi
 
 	# Set up environment for deb
@@ -181,7 +181,7 @@ run-tests-e2e: tests-e2e-deps
 	fi
 
 	# Set up environment for image
-	@if [[ ! -z "${SEEDSYNC_VERSION}" ]] ; then \
+	@if [[ ! -z "${STAGING_VERSION}" ]] ; then \
 		if [[ -z "${SEEDSYNC_ARCH}" ]] ; then \
 			echo "${red}ERROR: SEEDSYNC_ARCH is required for docker image e2e test${reset}"; \
 			echo "${red}Options include: amd64, arm64, arm/v7${reset}"; exit 1; \
@@ -191,8 +191,8 @@ run-tests-e2e: tests-e2e-deps
 		fi;
 		echo "${green}STAGING_REGISTRY=$${STAGING_REGISTRY}${reset}";
 		# Removing and pulling is the only way to select the arch from a multi-arch image :(
-		$(DOCKER) rmi -f $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION}
-		$(DOCKER) pull $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} --platform linux/$${SEEDSYNC_ARCH}
+		$(DOCKER) rmi -f $${STAGING_REGISTRY}/seedsync:$${STAGING_VERSION}
+		$(DOCKER) pull $${STAGING_REGISTRY}/seedsync:$${STAGING_VERSION} --platform linux/$${SEEDSYNC_ARCH}
 	fi
 
 	# Set the flags
@@ -202,7 +202,7 @@ run-tests-e2e: tests-e2e-deps
 		COMPOSE_FLAGS+="-f ${SOURCEDIR}/docker/stage/deb/compose.yml "
 		COMPOSE_FLAGS+="-f ${SOURCEDIR}/docker/stage/deb/compose-${SEEDSYNC_OS}.yml "
 	fi
-	if [[ ! -z "${SEEDSYNC_VERSION}" ]] ; then \
+	if [[ ! -z "${STAGING_VERSION}" ]] ; then \
 		COMPOSE_FLAGS+="-f ${SOURCEDIR}/docker/stage/docker-image/compose.yml "
 	fi
 	if [[ "${DEV}" = "1" ]] ; then

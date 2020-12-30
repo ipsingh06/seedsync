@@ -110,7 +110,7 @@ jobs:
 
       # Build docker image
       - name: Build docker image
-        run: make docker-image STAGING_REGISTRY=${{ env.staging_registry }} SEEDSYNC_VERSION=${{ github.run_number }}
+        run: make docker-image STAGING_REGISTRY=${{ env.staging_registry }} STAGING_VERSION=${{ github.run_number }}
 
   e2etests-deb:
     name: End-to-end tests on Deb
@@ -175,7 +175,7 @@ jobs:
       - name: Run e2e test
         run: make run-tests-e2e \
           STAGING_REGISTRY=${{ env.staging_registry }} \
-          SEEDSYNC_VERSION=${{ github.run_number }} \
+          STAGING_VERSION=${{ github.run_number }} \
           SEEDSYNC_ARCH=${{ matrix.arch }}
 
   publish-docker-image:
@@ -219,12 +219,12 @@ jobs:
       - name: Push to Dockerhub (tag vX.X.X)
         run: make docker-image-release \
           STAGING_REGISTRY=${{ env.staging_registry }} \
-          SEEDSYNC_VERSION=${{ env.RELEASE_VERSION }} \
+          STAGING_VERSION=${{ env.RELEASE_VERSION }} \
           SEEDSYNC_REPO=docker.io/ipsingh06
       - name: Push to Dockerhub (tag latest)
         run: make docker-image-release \
           STAGING_REGISTRY=${{ env.staging_registry }} \
-          SEEDSYNC_VERSION=latest \
+          STAGING_VERSION=latest \
           SEEDSYNC_REPO=docker.io/ipsingh06
 
   publish-deb:
