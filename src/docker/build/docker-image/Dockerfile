@@ -52,12 +52,6 @@ RUN mkdir -p /app
 COPY src/python /app/python
 
 
-# Installs Seedsync python code for dev
-FROM seedsync_run_python_devenv as seedsync_run_pythondev
-RUN mkdir -p /app
-COPY src/python /app/python
-
-
 # Full Seedsync docker image
 FROM ${STAGING_REGISTRY}/seedsync/build/angular/export:${SEEDSYNC_VERSION} as seedsync_build_angular_export
 FROM ${STAGING_REGISTRY}/seedsync/build/scanfs/export:${SEEDSYNC_VERSION} as seedsync_build_scanfs_export
