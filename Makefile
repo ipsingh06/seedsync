@@ -77,6 +77,8 @@ docker-image: docker-buildx
 		--build-arg SEEDSYNC_VERSION=$${SEEDSYNC_VERSION} \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
 		--tag $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} \
+		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build-cache,mode=max \
+		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build-cache \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}
@@ -102,6 +104,7 @@ docker-image-release:
 		--target seedsync_run \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
 		--tag ${SEEDSYNC_REPO}/seedsync:${SEEDSYNC_VERSION} \
+		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build-cache \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}
