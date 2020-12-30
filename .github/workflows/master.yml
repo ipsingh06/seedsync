@@ -222,12 +222,12 @@ jobs:
           STAGING_VERSION=${{ github.run_number }} \
           RELEASE_REGISTRY=docker.io/ipsingh06 \
           RELEASE_VERSION=${{ env.RELEASE_VERSION }}
-      - name: Push to Dockerhub (tag latest)
-        run: make docker-image-release \
-          STAGING_REGISTRY=${{ env.staging_registry }} \
-          STAGING_VERSION=${{ github.run_number }} \
-          RELEASE_REGISTRY=docker.io/ipsingh06 \
-          RELEASE_VERSION=latest
+#      - name: Push to Dockerhub (tag latest)
+#        run: make docker-image-release \
+#          STAGING_REGISTRY=${{ env.staging_registry }} \
+#          STAGING_VERSION=${{ github.run_number }} \
+#          RELEASE_REGISTRY=docker.io/ipsingh06 \
+#          RELEASE_VERSION=latest
 
   publish-deb:
     name: Publish Deb package
