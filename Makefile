@@ -59,6 +59,8 @@ docker-image: docker-buildx
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_scanfs_export \
 		--tag $${STAGING_REGISTRY}/seedsync/build/scanfs/export:$${SEEDSYNC_VERSION} \
+		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/scanfs/export:cache,mode=max \
+		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/scanfs/export:cache \
 		--push \
 		${ROOTDIR}
 
@@ -67,6 +69,8 @@ docker-image: docker-buildx
 		-f ${SOURCEDIR}/docker/build/deb/Dockerfile \
 		--target seedsync_build_angular_export \
 		--tag $${STAGING_REGISTRY}/seedsync/build/angular/export:$${SEEDSYNC_VERSION} \
+		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/angular/export:cache,mode=max \
+		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build/angular/export:cache \
 		--push \
 		${ROOTDIR}
 
@@ -77,8 +81,8 @@ docker-image: docker-buildx
 		--build-arg SEEDSYNC_VERSION=$${SEEDSYNC_VERSION} \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
 		--tag $${STAGING_REGISTRY}/seedsync:$${SEEDSYNC_VERSION} \
-		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build-cache,mode=max \
-		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build-cache \
+		--cache-to=type=registry,ref=$${STAGING_REGISTRY}/seedsync:cache,mode=max \
+		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync:cache \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}
@@ -102,9 +106,10 @@ docker-image-release:
 	$(DOCKER) buildx build \
 		-f ${SOURCEDIR}/docker/build/docker-image/Dockerfile \
 		--target seedsync_run \
+		--build-arg SEEDSYNC_VERSION=$${SEEDSYNC_VERSION} \
 		--build-arg STAGING_REGISTRY=$${STAGING_REGISTRY} \
 		--tag ${SEEDSYNC_REPO}/seedsync:${SEEDSYNC_VERSION} \
-		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync/build-cache \
+		--cache-from=type=registry,ref=$${STAGING_REGISTRY}/seedsync:cache \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
 		--push \
 		${ROOTDIR}
