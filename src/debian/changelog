@@ -1,3 +1,10 @@
+seedsync (0.8.5) stable; urgency=low
+
+  * Fixed errors caused by non-utf8 characters in file names
+  * Reduced docker image size by switching to a slim base
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Wed, 30 Dec 2020 17:20:54 -0800
+
 seedsync (0.8.4) stable; urgency=low
 
   * Support for Raspberry Pi (armv7 and armv8 architectures)
