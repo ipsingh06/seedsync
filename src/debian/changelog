@@ -1,3 +1,9 @@
+seedsync (0.8.6) stable; urgency=low
+
+  * Fixed broken rar extraction in previous release
+
+ -- Inderpreet Singh <inder@singhsnet.ca>  Wed, 30 Dec 2020 18:10:14 -0800
+
 seedsync (0.8.5) stable; urgency=low
 
   * Fixed errors caused by non-utf8 characters in file names
