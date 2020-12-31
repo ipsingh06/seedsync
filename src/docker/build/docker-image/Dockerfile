@@ -6,18 +6,24 @@ ARG STAGING_VERSION=latest
 FROM python:3.8-slim as seedsync_run_python_env
 
 # Install dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libssl-dev \
-    lftp \
-    openssh-client \
-    p7zip \
-    p7zip-full \
-    bzip2 \
-    curl \
-    libnss-wrapper \
-    libxml2-dev libxslt-dev libffi-dev \
+RUN sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y \
+        gcc \
+        libssl-dev \
+        lftp \
+        openssh-client \
+        p7zip \
+        p7zip-full \
+        p7zip-rar \
+        bzip2 \
+        curl \
+        libnss-wrapper \
+        libxml2-dev libxslt-dev libffi-dev \
     && apt-get clean
+# Fix for patoolib
+# See: https://github.com/wummel/patool/issues/90
+RUN ln -s /usr/lib/p7zip/Codecs/Rar.so /usr/lib/p7zip/Codecs/Rar29.so
 
 # Install Poetry
 RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \

@@ -712,7 +712,7 @@ class TestLftp(unittest.TestCase):
                 break
         self.lftp.raise_pending_error()
 
-    @timeout_decorator.timeout(5)
+    @timeout_decorator.timeout(15)
     def test_error_bad_password(self):
         # exit the default instance
         self.lftp.exit()
