@@ -247,7 +247,26 @@ make run-tests-e2e STAGING_VERSION=latest SEEDSYNC_ARCH=arm64 STAGING_REGISTRY=i
 
 # Release
 
-## Checklist
+## Continuous Integration
+
+This method uses Github Action to post releases.
+
+1. Do all of these in one change
+   1. Version update in `src/angular/package.json`
+   2. Version update and changelog in `src/debian/changelog`.
+      Use command `LANG=C date -R` to get the date.
+   3. Update `src/e2e/tests/about.page.spec.ts`
+   4. Update Copyright date in `about-page.component.html`
+2. Tag the commit as vX.X.X
+3. Push tag to Github
+
+
+
+## Manual Method
+
+This manual method is deprecated in favour of the Github Actions based CI.
+
+### Checklist
 
 1. Do all of these in one change
     1. Version update in `src/angular/package.json`
@@ -262,7 +281,7 @@ make run-tests-e2e STAGING_VERSION=latest SEEDSYNC_ARCH=arm64 STAGING_REGISTRY=i
 6. Upload deb file to github
 7. Tag and upload image to Dockerhub (see below)
 
-## Docker image upload to Dockerhub
+### Docker image upload to Dockerhub
 
 ```bash
 make docker-image-release RELEASE_VERSION=<version> RELEASE_REGISTRY=ipsingh06
