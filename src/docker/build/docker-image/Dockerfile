@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     lftp \
     openssh-client \
-#    unrar \
     p7zip \
     p7zip-full \
     bzip2 \
@@ -19,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     libnss-wrapper \
     libxml2-dev libxslt-dev libffi-dev \
     && apt-get clean
-RUN wget -qO- git.io/rar.sh | bash
 
 # Install Poetry
 RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
