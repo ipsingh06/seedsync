@@ -6,7 +6,7 @@ ARG STAGING_VERSION=latest
 FROM python:3.8-slim as seedsync_run_python_env
 
 # Install dependencies
-RUN sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list && \
+RUN (test -f /etc/apt/sources.list && sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list || true) && \
     apt-get update && \
     apt-get install -y \
         gcc \
@@ -26,7 +26,7 @@ RUN sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list && \
 RUN ln -s /usr/lib/p7zip/Codecs/Rar.so /usr/lib/p7zip/Codecs/Rar29.so
 
 # Install Poetry
-RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+RUN curl -s https://bootstrap.pypa.io/pip/3.8/get-pip.py -o get-pip.py && \
     python get-pip.py --force-reinstall && \
     rm get-pip.py
 RUN pip3 install poetry
