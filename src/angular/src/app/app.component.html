@@ -1,0 +1,48 @@
+<div id="top-sidebar"
+     [class.top-sidebar-open]="showSidebar"
+     [class.top-sidebar-closed]="!showSidebar">
+
+    <div id="logo">
+        <span class="image">
+            <img src="assets/logo.png" alt="SeedSync Logo" />
+        </span>
+        <span class="text"><b>Seed</b>Sync</span>
+
+        <button id="sidebar-btn-close" class="sidebar-btn" (click)="showSidebar=false">
+            <span>&#10006;</span>
+        </button>
+    </div>
+
+    <app-sidebar></app-sidebar>
+</div>
+
+<!-- Used for sidebar closing -->
+<div id="outside-sidebar"
+     [class.outside-sidebar-show]="showSidebar"
+     [class.outside-sidebar-hide]="!showSidebar"
+     (click)="showSidebar=false">
+</div>
+
+<div id="top-content">
+    <div id="top-header">
+        <!--
+            We attach the ResizeObserver to the header so that we can advertise its height
+            to other components, who can correctly position any sticky elements
+         -->
+        <div #topHeader>
+
+            <app-header></app-header>
+
+            <div id="title-bar">
+                <button id="sidebar-btn-open" class="sidebar-btn" (click)="showSidebar=!showSidebar">
+                    &#9776;
+                </button>
+                <span id="title">{{activeRoute?.name}}</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <router-outlet></router-outlet>
+</div>

@@ -1,0 +1,54 @@
+$primary-color: #337BB7;
+$primary-dark-color: #2e6da4;
+$primary-light-color: #D7E7F4;
+$primary-lighter-color: #F6F6F6;
+
+$secondary-color: #79DFB6;
+$secondary-light-color: #C5F0DE;
+$secondary-dark-color: #32AD7B;
+$secondary-darker-color: #077F4F;
+
+$header-color: #DDDDDD;
+$header-dark-color: #D3D3D3;
+
+$logo-color: #118247;
+$logo-font: 'Arial Black', Gadget, sans-serif;
+
+$small-max-width: 600px;
+$medium-min-width: 601px;
+$medium-max-width: 992px;
+$large-min-width: 993px;
+
+$sidebar-width: 170px;
+
+$zindex-sidebar: 300;
+$zindex-top-header: 200;
+$zindex-file-options: 201;
+$zindex-file-search: 100;
+
+%button {
+    background-color: $primary-color;
+    color: white;
+    border: 1px solid $primary-dark-color;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    user-select: none;
+
+    &:active {
+        background-color: #286090;
+    }
+
+    &[disabled] {
+        opacity: .65;
+        background-color: $primary-color;
+    }
+
+    &.selected {
+        background-color: $secondary-color;
+        border-color: $secondary-darker-color;
+    }
+}

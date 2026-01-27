@@ -1,81 +1,85 @@
 <div class="file" [class.selected]="file.isSelected" #fileElement>
     <div class="content">
         <div class="status">
-            <img src="assets/icons/default-remote.svg" id="default-remote"
-                 *ngIf="file.status === ViewFile.Status.DEFAULT && file.remoteSize > 0" />
-            <img src="assets/icons/queued.svg" id="queued"
-                 *ngIf="file.status === ViewFile.Status.QUEUED" />
-            <img src="assets/icons/downloading.svg" id="downloading"
-                 *ngIf="file.status === ViewFile.Status.DOWNLOADING" />
-            <img src="assets/icons/downloaded.svg" id="downloaded"
-                 *ngIf="file.status === ViewFile.Status.DOWNLOADED" />
-            <img src="assets/icons/stopped.svg" id="stopped"
-                 *ngIf="file.status === ViewFile.Status.STOPPED" />
-            <img src="assets/icons/deleted.svg" id="deleted"
-                 *ngIf="file.status === ViewFile.Status.DELETED" />
-            <img src="assets/icons/extracting.svg" id="extracting"
-                 *ngIf="file.status === ViewFile.Status.EXTRACTING" />
-            <img src="assets/icons/extracted.svg" id="extracted"
-                 *ngIf="file.status === ViewFile.Status.EXTRACTED" />
-            <!-- don't show text for default status -->
-            <span *ngIf="file.status != ViewFile.Status.DEFAULT"
-                  class="text">{{file.status | capitalize}}</span>
+            @if (file.status === ViewFileStatus.DEFAULT && file.remoteSize && file.remoteSize > 0) {
+                <img src="assets/icons/default-remote.svg" id="default-remote" alt="Default" />
+            }
+            @if (file.status === ViewFileStatus.QUEUED) {
+                <img src="assets/icons/queued.svg" id="queued" alt="Queued" />
+            }
+            @if (file.status === ViewFileStatus.DOWNLOADING) {
+                <img src="assets/icons/downloading.svg" id="downloading" alt="Downloading" />
+            }
+            @if (file.status === ViewFileStatus.DOWNLOADED) {
+                <img src="assets/icons/downloaded.svg" id="downloaded" alt="Downloaded" />
+            }
+            @if (file.status === ViewFileStatus.STOPPED) {
+                <img src="assets/icons/stopped.svg" id="stopped" alt="Stopped" />
+            }
+            @if (file.status === ViewFileStatus.DELETED) {
+                <img src="assets/icons/deleted.svg" id="deleted" alt="Deleted" />
+            }
+            @if (file.status === ViewFileStatus.EXTRACTING) {
+                <img src="assets/icons/extracting.svg" id="extracting" alt="Extracting" />
+            }
+            @if (file.status === ViewFileStatus.EXTRACTED) {
+                <img src="assets/icons/extracted.svg" id="extracted" alt="Extracted" />
+            }
+            @if (file.status !== ViewFileStatus.DEFAULT) {
+                <span class="text">{{file.status | capitalize}}</span>
+            }
         </div>
         <div class="name">
-            <img src="assets/icons/file-light.svg" *ngIf="!file.isDir && !file.isArchive" />
-            <img src="assets/icons/file-archive-light.svg" *ngIf="!file.isDir && file.isArchive" />
-            <img src="assets/icons/directory-light.svg" *ngIf="file.isDir && !file.isArchive" />
-            <img src="assets/icons/directory-archive-light.svg" *ngIf="file.isDir && file.isArchive" />
+            @if (!file.isDir && !file.isArchive) {
+                <img src="assets/icons/file-light.svg" alt="File" />
+            }
+            @if (!file.isDir && file.isArchive) {
+                <img src="assets/icons/file-archive-light.svg" alt="Archive" />
+            }
+            @if (file.isDir && !file.isArchive) {
+                <img src="assets/icons/directory-light.svg" alt="Directory" />
+            }
+            @if (file.isDir && file.isArchive) {
+                <img src="assets/icons/directory-archive-light.svg" alt="Archive Directory" />
+            }
             <div class="text">
-                <div class="title">
-                    {{file.name}}
-                </div>
-                <div class="details" *ngIf="(options | async)?.showDetails">
-                    <div class="details-text">
-                        Remote File<br />
-                        <span class="tab"></span>Created:
-                            {{(file.remoteCreatedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
-                               "Not Available"}}<br />
-                        <span class="tab"></span>Modified:
-                            {{(file.remoteModifiedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
-                               "Not Available"}}<br />
-                        Local File <br />
-                        <span class="tab"></span>Created:
-                            {{(file.localCreatedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
-                               "Not Available"}}<br />
-                        <span class="tab"></span>Modified:
-                            {{(file.localModifiedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') ||
-                               "Not Available"}}
+                <div class="title">{{file.name}}</div>
+                @if ((options | async)?.showDetails) {
+                    <div class="details">
+                        <div class="details-text">
+                            Remote File<br />
+                            <span class="tab"></span>Created: {{(file.remoteCreatedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') || "Not Available"}}<br />
+                            <span class="tab"></span>Modified: {{(file.remoteModifiedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') || "Not Available"}}<br />
+                            Local File <br />
+                            <span class="tab"></span>Created: {{(file.localCreatedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') || "Not Available"}}<br />
+                            <span class="tab"></span>Modified: {{(file.localModifiedTimestamp | date: 'EEE, MMM d yyyy, h:mm:ss a') || "Not Available"}}
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         </div>
         <div class="speed">
-            <span *ngIf="file.downloadingSpeed">{{file.downloadingSpeed | fileSize:3}}/s</span>
-            <!-- for mobile layout -->
+            @if (file.downloadingSpeed) {
+                <span>{{file.downloadingSpeed | fileSize:3}}/s</span>
+            }
             <div class="speed-eta">
-                <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">eta: {{file.eta | eta}}</span>
+                @if (file.status === ViewFileStatus.DOWNLOADING) {
+                    <span>eta: {{file.eta | eta}}</span>
+                }
             </div>
         </div>
-        <!-- for desktop layout -->
         <div class="eta">
-            <span *ngIf="file.status === ViewFile.Status.DOWNLOADING">{{file.eta | eta}}</span>
+            @if (file.status === ViewFileStatus.DOWNLOADING) {
+                <span>{{file.eta | eta}}</span>
+            }
         </div>
         <div class="size">
             <div class="progress">
                 <div class="progress-bar" role="progressbar"
-                     [class.progress-bar-animated]="
-                        file.status === ViewFile.Status.DOWNLOADING ||
-                        file.status === ViewFile.Status.EXTRACTING
-                     "
-                     [class.progress-bar-striped]="
-                        file.status === ViewFile.Status.DOWNLOADING ||
-                        file.status === ViewFile.Status.EXTRACTING
-                     "
+                     [class.progress-bar-animated]="file.status === ViewFileStatus.DOWNLOADING || file.status === ViewFileStatus.EXTRACTING"
+                     [class.progress-bar-striped]="file.status === ViewFileStatus.DOWNLOADING || file.status === ViewFileStatus.EXTRACTING"
                      [attr.aria-valuenow]="file.percentDownloaded" aria-valuemin="0" aria-valuemax="100"
-                     [style.width]="
-                        min(file.percentDownloaded,100) + '%'
-                     ">
+                     [style.width.%]="min(file.percentDownloaded ?? 0, 100)">
                     {{file.percentDownloaded}}%
                 </div>
             </div>
@@ -85,46 +89,45 @@
         </div>
     </div>
 
-    <!-- actions div, visible on selection -->
     <div class="actions">
         <div class="button" appClickStopPropagation
              [attr.disabled]="isQueueable() ? null : true"
              (click)="!isQueueable() || onQueue(file)"
-             [class.loading]="activeAction == FileAction.QUEUE">
+             [class.loading]="activeAction === FileAction.QUEUE">
             <div class="loader"></div>
-            <img src="assets/icons/queue.svg" />
+            <img src="assets/icons/queue.svg" alt="Queue" />
             <div class="text"><span>Queue</span></div>
         </div>
         <div class="button" appClickStopPropagation
              [attr.disabled]="isStoppable() ? null : true"
              (click)="!isStoppable() || onStop(file)"
-             [class.loading]="activeAction == FileAction.STOP">
+             [class.loading]="activeAction === FileAction.STOP">
             <div class="loader"></div>
-            <img src="assets/icons/stop.svg" />
+            <img src="assets/icons/stop.svg" alt="Stop" />
             <div class="text"><span>Stop</span></div>
         </div>
         <div class="button" appClickStopPropagation
              [attr.disabled]="isExtractable() ? null : true"
              (click)="!isExtractable() || onExtract(file)"
-             [class.loading]="activeAction == FileAction.EXTRACT">
+             [class.loading]="activeAction === FileAction.EXTRACT">
             <div class="loader"></div>
-            <img src="assets/icons/extract.svg" />
+            <img src="assets/icons/extract.svg" alt="Extract" />
             <div class="text"><span>Extract</span></div>
         </div>
         <div class="button" appClickStopPropagation
              [attr.disabled]="isLocallyDeletable() ? null : true"
              (click)="!isLocallyDeletable() || onDeleteLocal(file)"
-             [class.loading]="activeAction == FileAction.DELETE_LOCAL">
+             [class.loading]="activeAction === FileAction.DELETE_LOCAL">
             <div class="loader"></div>
-            <img src="assets/icons/delete-local.svg" />
+            <img src="assets/icons/delete-local.svg" alt="Delete Local" />
             <div class="text"><span>Delete Local</span></div>
         </div>
         <div class="button" appClickStopPropagation
              [attr.disabled]="isRemotelyDeletable() ? null : true"
              (click)="!isRemotelyDeletable() || onDeleteRemote(file)"
-             [class.loading]="activeAction == FileAction.DELETE_REMOTE">
+             [class.loading]="activeAction === FileAction.DELETE_REMOTE">
             <div class="loader"></div>
-            <img src="assets/icons/delete-remote.svg" />
+            <img src="assets/icons/delete-remote.svg" alt="Delete Remote" />
             <div class="text"><span>Delete Remote</span></div>
         </div>
     </div>

@@ -1,8 +1,6 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from '@angular/core';
 
-import {StreamServiceRegistry} from "./stream-service.registry";
-import {ConnectedService} from "../utils/connected.service";
-
+import { ConnectedService } from '../utils/connected.service';
 
 /**
  * BaseWebService provides utility to be notified when connection to
@@ -11,16 +9,15 @@ import {ConnectedService} from "../utils/connected.service";
  */
 @Injectable()
 export abstract class BaseWebService {
-
-    private _connectedService: ConnectedService;
+    private connectedService = inject(ConnectedService);
 
     /**
      * Call this method to finish initialization
      */
-    public onInit() {
-        this._connectedService.connected.subscribe({
+    public onInit(): void {
+        this.connectedService.connected.subscribe({
             next: connected => {
-                if(connected) {
+                if (connected) {
                     this.onConnected();
                 } else {
                     this.onDisconnected();
@@ -28,11 +25,6 @@ export abstract class BaseWebService {
             }
         });
     }
-
-    constructor(_streamServiceProvider: StreamServiceRegistry) {
-        this._connectedService = _streamServiceProvider.connectedService;
-    }
-
 
     /**
      * Callback for connected

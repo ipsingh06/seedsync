@@ -1,0 +1,45 @@
+<div class="form-group"
+     [class.error]="value == '<replace me>'">
+
+    <!-- Unfortunately, binding to type attribute breaks functionality, so we
+         have to go with a if statement -->
+
+    <!-- Textbox -->
+    <label *ngIf="type == OptionType.Text">
+        <span class="name">{{label}}</span>
+        <input
+               type="text"
+               class="form-control"
+               [disabled]="value == null"
+               [ngModel]="value"
+               (ngModelChange)="onChange($event)" />
+        <span *ngIf="description"
+              class="description">{{description}}</span>
+    </label>
+
+    <!-- Checkbox -->
+    <label *ngIf="type == OptionType.Checkbox">
+        <input
+               type="checkbox"
+               class="form-control"
+               [disabled]="value == null"
+               [ngModel]="value"
+           (ngModelChange)="onChange($event)" />
+        <span class="name">{{label}}</span>
+        <span *ngIf="description"
+              class="description">{{description}}</span>
+    </label>
+
+    <!-- Password -->
+    <label *ngIf="type == OptionType.Password">
+        <span class="name">{{label}}</span>
+        <input
+               type="password"
+               class="form-control"
+               [disabled]="value == null"
+               [ngModel]="value"
+               (ngModelChange)="onChange($event)" />
+        <span *ngIf="description"
+              class="description">{{description}}</span>
+    </label>
+</div>

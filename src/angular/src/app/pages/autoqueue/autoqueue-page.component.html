@@ -1,45 +1,42 @@
 <div id="autoqueue">
-    <span id="description" *ngIf="connected">
+    <div id="status" class="alert" [class.alert-success]="enabled" [class.alert-warning]="!enabled">
+        @if (enabled) {
+            <span>AutoQueue is <b>enabled</b></span>
+            @if (patternsOnly) {
+                <span> and restricted to patterns</span>
+            }
+        } @else {
+            <span>AutoQueue is <b>disabled</b></span>
+        }
+    </div>
 
-        <ng-container *ngIf="enabled && patternsOnly">
-            Files matching these patterns will be automatically queued.
-            Wildcards (*) are supported. <br />
-            Add/Remove these patterns below.
-        </ng-container>
-
-        <ng-container *ngIf="enabled && !patternsOnly">
-            Patterns are disabled. <b>All files will be auto-queued.</b><br />
-            To restrict which files are auto-queued, enable patterns in Settings.
-        </ng-container>
-
-        <ng-container *ngIf="!enabled">
-            Auto-Queue is disabled. <br />
-            Enable AutoQueue in Settings to queue files automatically.
-        </ng-container>
-    </span>
-    <div id="controls" [attr.disabled]="enabled && patternsOnly ? null : true">
-        <div *ngFor="let pattern of patterns | async"
-             class="pattern">
-            <div class="button" appClickStopPropagation
-                 [attr.disabled]="enabled && patternsOnly ? null : true"
-                 (click)="!(enabled && patternsOnly) || onRemovePattern(pattern)">
-                <span>&#8722;</span>
-            </div>
-            <span class="text">{{pattern.pattern}}</span>
+    <div id="add-pattern">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Enter pattern..."
+                   [(ngModel)]="newPattern"
+                   [disabled]="!connected"
+                   (keyup.enter)="onAddPattern()">
+            <button class="btn btn-primary" type="button"
+                    [disabled]="!connected"
+                    (click)="onAddPattern()">
+                Add
+            </button>
         </div>
-        <div id="add-pattern">
-            <div class="button" appClickStopPropagation
-                 (click)="!(newPattern && enabled && patternsOnly) || onAddPattern()"
-                 [attr.disabled]="newPattern && enabled && patternsOnly ? null : true">
-                <span>&#43;</span>
-            </div>
-            <label>
-                <input type="search"
-                       class="form-control"
-                       (keyup.enter)="!(newPattern && enabled && patternsOnly) || onAddPattern()"
-                       [(ngModel)]="newPattern"
-                       [disabled]="!connected || !enabled || !patternsOnly"/>
-            </label>
-        </div>
+    </div>
+
+    <div id="patterns">
+        <h5>Patterns</h5>
+        <ul class="list-group">
+            @for (pattern of patterns | async; track pattern.pattern) {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{pattern.pattern}}</span>
+                    <button class="btn btn-danger btn-sm" (click)="onRemovePattern(pattern)">
+                        Remove
+                    </button>
+                </li>
+            } @empty {
+                <li class="list-group-item text-muted">No patterns defined</li>
+            }
+        </ul>
     </div>
 </div>

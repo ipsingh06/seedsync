@@ -6,7 +6,7 @@
         <div class="eta">ETA</div>
         <div class="size">Size</div>
     </div>
-    <div *ngFor="let file of files | async; trackBy: identify">
+    @for (file of files | async; track trackByName($index, file)) {
         <app-file
             [file]="file"
             [options]="options"
@@ -17,5 +17,5 @@
             (deleteLocalEvent)="onDeleteLocal($event)"
             (deleteRemoteEvent)="onDeleteRemote($event)">
         </app-file>
-    </div>
+    }
 </div>

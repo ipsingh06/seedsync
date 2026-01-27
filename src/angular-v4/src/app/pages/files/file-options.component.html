@@ -1,0 +1,189 @@
+<div id="file-options"
+     [style.top.px]="headerHeight | async"
+     [class.sticky]="(options | async)?.pinFilter">
+    <div id="filter-search">
+        <img src="assets/icons/search.svg" />
+        <div class="input-group">
+            <input class="form-control" placeholder="Filter by name..." type="search"
+                   [ngModel]="(options | async)?.nameFilter"
+                   (ngModelChange)="onFilterByName($event)">
+        </div>
+    </div>
+
+    <div id="filter-status" class="dropdown" >
+        <button class="btn btn-secondary dropdown-toggle"
+                type="button"
+                data-toggle="dropdown">
+            <div class="title">
+                Status:
+            </div>
+            <div class="selection">
+                <!-- these divs only show the selected option -->
+                <div class="sel-item" id="sel-item-all"
+                     *ngIf="(options | async)?.selectedStatusFilter == null">
+                    <div class="icon"></div>
+                    <span class="text">All</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTED">
+                    <div class="icon"><img src="assets/icons/extracted.svg" class="extracted" /></div>
+                    <span class="text">Extracted</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTING">
+                    <div class="icon"><img src="assets/icons/extracting.svg" class="extracting" /></div>
+                    <span class="text">Extracting</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADED">
+                    <div class="icon"><img src="assets/icons/downloaded.svg" class="downloaded" /></div>
+                    <span class="text">Downloaded</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADING">
+                    <div class="icon"><img src="assets/icons/downloading.svg" class="downloading" /></div>
+                    <span class="text">Downloading</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.QUEUED">
+                    <div class="icon"><img src="assets/icons/queued.svg" class="queued" /></div>
+                    <span class="text">Queued</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.selectedStatusFilter == ViewFile.Status.STOPPED">
+                    <div class="icon"><img src="assets/icons/stopped.svg" class="stopped" /></div>
+                    <span class="text">Stopped</span>
+                </div>
+            </div>
+        </button>
+        <div class="dropdown-menu">
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.selectedStatusFilter == null"
+                 (click)="onFilterByStatus(null)">
+                <div class="icon"></div>
+                <span class="text">All</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTED"
+                 [class.disabled]="isExtractedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.EXTRACTED)">
+                <div class="icon"><img src="assets/icons/extracted.svg" class="extracted" /></div>
+                <span class="text">Extracted</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.EXTRACTING"
+                 [class.disabled]="isExtractingStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.EXTRACTING)">
+                <div class="icon"><img src="assets/icons/extracting.svg" class="extracting" /></div>
+                <span class="text">Extracting</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADED"
+                 [class.disabled]="isDownloadedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.DOWNLOADED)">
+                <div class="icon"><img src="assets/icons/downloaded.svg" class="downloaded" /></div>
+                <span class="text">Downloaded</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.DOWNLOADING"
+                 [class.disabled]="isDownloadingStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.DOWNLOADING)">
+                <div class="icon"><img src="assets/icons/downloading.svg" class="downloading" /></div>
+                <span class="text">Downloading</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.QUEUED"
+                 [class.disabled]="isQueuedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.QUEUED)">
+                <div class="icon"><img src="assets/icons/queued.svg" class="queued" /></div>
+                <span class="text">Queued</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.selectedStatusFilter == ViewFile.Status.STOPPED"
+                 [class.disabled]="isStoppedStatusEnabled ? null : true"
+                 (click)="onFilterByStatus(ViewFile.Status.STOPPED)">
+                <div class="icon"><img src="assets/icons/stopped.svg" class="stopped" /></div>
+                <span class="text">Stopped</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="sort-status" class="dropdown" >
+        <button class="btn btn-secondary dropdown-toggle"
+                type="button"
+                data-toggle="dropdown">
+            <div class="title">
+                Sort:
+            </div>
+            <div class="selection">
+                <!-- these divs only show the selected option -->
+                <div class="sel-item"
+                     *ngIf="(options | async)?.sortMethod === ViewFileOptions.SortMethod.STATUS">
+                    <div class="icon"><img src="assets/icons/states.svg" class="states" /></div>
+                    <span class="text">Status</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_ASC">
+                    <div class="icon"><img src="assets/icons/sort-asc.svg" class="sort-asc" /></div>
+                    <span class="text">Name A&#8594;Z</span>
+                </div>
+                <div class="sel-item"
+                     *ngIf="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_DESC">
+                    <div class="icon"><img src="assets/icons/sort-desc.svg" class="sort-desc" /></div>
+                    <span class="text">Name Z&#8594;A</span>
+                </div>
+            </div>
+        </button>
+        <div class="dropdown-menu">
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.STATUS"
+                 (click)="onSort(ViewFileOptions.SortMethod.STATUS)">
+                <div class="icon"><img src="assets/icons/states.svg" class="states" /></div>
+                <span class="text">Status</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_ASC"
+                 (click)="onSort(ViewFileOptions.SortMethod.NAME_ASC)">
+                <div class="icon"><img src="assets/icons/sort-asc.svg" class="sort-asc" /></div>
+                <span class="text">Name A&#8594;Z</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.active]="(options | async)?.sortMethod === ViewFileOptions.SortMethod.NAME_DESC"
+                 (click)="onSort(ViewFileOptions.SortMethod.NAME_DESC)">
+                <div class="icon"><img src="assets/icons/sort-desc.svg" class="sort-desc" /></div>
+                <span class="text">Name Z&#8594;A</span>
+            </div>
+        </div>
+    </div>
+
+    <button id="toggle-details"
+            type="button"
+            class="btn btn-primary"
+            [class.active]="(options | async)?.showDetails"
+            (click)="onToggleShowDetails()">
+        <div class="title">
+            Details:
+        </div>
+        <div class="selection">
+            <!-- these divs only show the selected option -->
+            <div class="sel-item" *ngIf="(options | async)?.showDetails">
+                <div class="icon"></div>
+                <span class="text">Show</span>
+            </div>
+            <div class="sel-item" *ngIf="!(options | async)?.showDetails">
+                <div class="icon"></div>
+                <span class="text">Hide</span>
+            </div>
+        </div>
+    </button>
+
+    <div id="small-buttons">
+        <button id="pin-filter"
+                type="button"
+                class="btn btn-primary"
+                [class.active]="(options | async)?.pinFilter"
+                (click)="onTogglePinFilter()">
+            <i class="fa fa-thumb-tack"></i>
+        </button>
+    </div>
+</div>

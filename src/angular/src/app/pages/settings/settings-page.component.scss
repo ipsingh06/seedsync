@@ -1,103 +1,25 @@
 @import '../../common/common';
 
 #settings {
-    width: 100%;
-
-    #accordion {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        padding: 15px;
-
-        #left, #right {
-            width: 100%;
-
-            .card {
-                margin-top: 20px;
-
-                &:first-child {
-                    margin-top: 0;
-                }
-
-                .card-header {
-                    margin-bottom: 0;
-
-                    .btn {
-                        font-size: 80%;
-                        cursor: default;
-
-                        &:focus {
-                            box-shadow: none;
-                        }
-                    }
-                }
-
-                .card-body {
-                    padding: 10px 0;
-                }
-            }
-        }
-
-        #right {
-            margin-top: 20px;
-        }
-    }
+    padding: 15px;
 
     #commands {
-        margin-top: 10px;
-        width: 100%;
+        margin-top: 20px;
         display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
-        flex-wrap: wrap;
+        justify-content: center;
 
         .button {
             @extend %button;
-
+            padding: 10px 20px;
+            display: flex;
             flex-direction: row;
-            padding: 10px;
-            margin-right: 8px;
-            height: 40px;
-            font-size: 120%;
+            align-items: center;
 
             img {
                 width: 20px;
                 height: 20px;
                 filter: invert(1.0);
-            }
-
-            .text {
-                margin-left: 5px;
-            }
-        }
-    }
-}
-
-
-/* Medium and large screens */
-@media only screen and (min-width: $medium-min-width) {
-    #settings {
-        #accordion {
-            #left, #right {
-                width: 50%;
-
-                .card-header {
-                    .btn {
-                        pointer-events: none;
-                    }
-                }
-
-                .collapse {
-                    display: inherit;
-                }
-            }
-            #left {
-                padding-right: 10px;
-            }
-            #right {
-                padding-left: 10px;
-                margin-top: 0;
+                margin-right: 8px;
             }
         }
     }

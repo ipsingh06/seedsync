@@ -1,5 +1,5 @@
 # Creates environment for e2e tests
-FROM node:12.16 as seedsync_test_e2e_env
+FROM node:20-bookworm-slim as seedsync_test_e2e_env
 
 COPY src/e2e/package*.json /app/
 WORKDIR /app

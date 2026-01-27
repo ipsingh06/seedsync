@@ -1,30 +1,29 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {Observable} from "rxjs/Observable";
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
 
-import * as Immutable from "immutable";
-
-import {ViewFileOptionsService} from "../../services/files/view-file-options.service";
-import {ViewFileOptions} from "../../services/files/view-file-options";
-import {ViewFile} from "../../services/files/view-file";
-import {ViewFileService} from "../../services/files/view-file.service";
-import {DomService} from "../../services/utils/dom.service";
+import { ViewFileOptionsService } from '../../services/files/view-file-options.service';
+import { ViewFileOptions, ViewFileOptionsSortMethod } from '../../services/files/view-file-options';
+import { ViewFile, ViewFileStatus } from '../../services/files/view-file';
+import { ViewFileService } from '../../services/files/view-file.service';
+import { DomService } from '../../services/utils/dom.service';
 
 @Component({
-    selector: "app-file-options",
-    providers: [],
-    templateUrl: "./file-options.component.html",
-    styleUrls: ["./file-options.component.scss"],
+    selector: 'app-file-options',
+    standalone: true,
+    imports: [CommonModule, FormsModule],
+    templateUrl: './file-options.component.html',
+    styleUrl: './file-options.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-
 export class FileOptionsComponent implements OnInit {
-    public ViewFile = ViewFile;
-    public ViewFileOptions = ViewFileOptions;
+    ViewFileStatus = ViewFileStatus;
+    ViewFileOptionsSortMethod = ViewFileOptionsSortMethod;
 
     public options: Observable<ViewFileOptions>;
     public headerHeight: Observable<number>;
 
-    // These track which status filters are enabled
     public isExtractedStatusEnabled = false;
     public isExtractingStatusEnabled = false;
     public isDownloadedStatusEnabled = false;
@@ -32,65 +31,57 @@ export class FileOptionsComponent implements OnInit {
     public isQueuedStatusEnabled = false;
     public isStoppedStatusEnabled = false;
 
-    private _latestOptions: ViewFileOptions;
+    private latestOptions: ViewFileOptions | null = null;
 
-    constructor(private _changeDetector: ChangeDetectorRef,
-                private viewFileOptionsService: ViewFileOptionsService,
-                private _viewFileService: ViewFileService,
-                private _domService: DomService) {
+    private changeDetector = inject(ChangeDetectorRef);
+    private viewFileOptionsService = inject(ViewFileOptionsService);
+    private viewFileService = inject(ViewFileService);
+    private domService = inject(DomService);
+
+    constructor() {
         this.options = this.viewFileOptionsService.options;
-        this.headerHeight = this._domService.headerHeight;
+        this.headerHeight = this.domService.headerHeight;
     }
 
-    ngOnInit() {
-        // Use the unfiltered files to enable/disable the filter status buttons
-        this._viewFileService.files.subscribe(files => {
-            this.isExtractedStatusEnabled = FileOptionsComponent.isStatusEnabled(
-                files, ViewFile.Status.EXTRACTED
-            );
-            this.isExtractingStatusEnabled = FileOptionsComponent.isStatusEnabled(
-                files, ViewFile.Status.EXTRACTING
-            );
-            this.isDownloadedStatusEnabled = FileOptionsComponent.isStatusEnabled(
-                files, ViewFile.Status.DOWNLOADED
-            );
-            this.isDownloadingStatusEnabled = FileOptionsComponent.isStatusEnabled(
-                files, ViewFile.Status.DOWNLOADING
-            );
-            this.isQueuedStatusEnabled = FileOptionsComponent.isStatusEnabled(
-                files, ViewFile.Status.QUEUED
-            );
-            this.isStoppedStatusEnabled = FileOptionsComponent.isStatusEnabled(
-                files, ViewFile.Status.STOPPED
-            );
-            this._changeDetector.detectChanges();
+    ngOnInit(): void {
+        this.viewFileService.files.subscribe(files => {
+            this.isExtractedStatusEnabled = this.isStatusEnabled(files, ViewFileStatus.EXTRACTED);
+            this.isExtractingStatusEnabled = this.isStatusEnabled(files, ViewFileStatus.EXTRACTING);
+            this.isDownloadedStatusEnabled = this.isStatusEnabled(files, ViewFileStatus.DOWNLOADED);
+            this.isDownloadingStatusEnabled = this.isStatusEnabled(files, ViewFileStatus.DOWNLOADING);
+            this.isQueuedStatusEnabled = this.isStatusEnabled(files, ViewFileStatus.QUEUED);
+            this.isStoppedStatusEnabled = this.isStatusEnabled(files, ViewFileStatus.STOPPED);
+            this.changeDetector.detectChanges();
         });
 
-        // Keep the latest options for toggle behaviour implementation
-        this.viewFileOptionsService.options.subscribe(options => this._latestOptions = options);
+        this.viewFileOptionsService.options.subscribe(options => this.latestOptions = options);
     }
 
-    onFilterByName(name: string) {
+    onFilterByName(name: string): void {
         this.viewFileOptionsService.setNameFilter(name);
     }
 
-    onFilterByStatus(status: ViewFile.Status) {
+    onFilterByStatus(status: ViewFileStatus | null): void {
         this.viewFileOptionsService.setSelectedStatusFilter(status);
     }
 
-    onSort(sortMethod: ViewFileOptions.SortMethod) {
+    onSort(sortMethod: ViewFileOptionsSortMethod): void {
         this.viewFileOptionsService.setSortMethod(sortMethod);
     }
 
-    onToggleShowDetails(){
-        this.viewFileOptionsService.setShowDetails(!this._latestOptions.showDetails);
+    onToggleShowDetails(): void {
+        if (this.latestOptions) {
+            this.viewFileOptionsService.setShowDetails(!this.latestOptions.showDetails);
+        }
     }
 
-    onTogglePinFilter() {
-        this.viewFileOptionsService.setPinFilter(!this._latestOptions.pinFilter);
+    onTogglePinFilter(): void {
+        if (this.latestOptions) {
+            this.viewFileOptionsService.setPinFilter(!this.latestOptions.pinFilter);
+        }
     }
 
-    private static isStatusEnabled(files: Immutable.List<ViewFile>, status: ViewFile.Status) {
+    private isStatusEnabled(files: readonly ViewFile[], status: ViewFileStatus): boolean {
         return files.findIndex(f => f.status === status) >= 0;
     }
 }

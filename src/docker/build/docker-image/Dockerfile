@@ -4,13 +4,13 @@
 # ==============================================================================
 # Stage 1: Build Angular Frontend
 # ==============================================================================
-FROM node:12.22-buster-slim AS angular-builder
+FROM node:20-bookworm-slim AS angular-builder
 
 WORKDIR /app
 COPY src/angular/package*.json ./
-RUN npm install --production=false --silent
+RUN npm install --include=dev
 COPY src/angular/ ./
-RUN ./node_modules/.bin/ng build --prod --output-path /build/html
+RUN ./node_modules/.bin/ng build --configuration production --output-path /build/html
 
 # ==============================================================================
 # Stage 2: Build scanfs binary with PyInstaller
@@ -77,7 +77,8 @@ RUN pip install --no-cache-dir -r /app/python/requirements.txt \
 COPY src/python/ /app/python/
 
 # Copy built artifacts from previous stages
-COPY --from=angular-builder /build/html /app/html
+# Angular 17+ outputs to browser/ subfolder
+COPY --from=angular-builder /build/html/browser /app/html
 COPY --from=scanfs-builder /build/dist/scanfs /app/scanfs
 
 # Copy and set up entrypoint

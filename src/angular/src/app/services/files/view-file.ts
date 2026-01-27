@@ -1,99 +1,116 @@
-import {Record} from "immutable";
-
 /**
- * View file
- * Represents the View Model
+ * View file - Represents the View Model
  */
-interface IViewFile {
-    name: string;
-    isDir: boolean;
-    localSize: number;
-    remoteSize: number;
-    percentDownloaded: number;
-    status: ViewFile.Status;
-    downloadingSpeed: number;
-    eta: number;
-    fullPath: string;
-    isArchive: boolean;  // corresponds to is_extractable in ModelFile
-    isSelected: boolean;
-    isQueueable: boolean;
-    isStoppable: boolean;
+export interface ViewFileData {
+    readonly name: string;
+    readonly isDir: boolean;
+    readonly localSize: number | null;
+    readonly remoteSize: number | null;
+    readonly percentDownloaded: number | null;
+    readonly status: ViewFileStatus;
+    readonly downloadingSpeed: number | null;
+    readonly eta: number | null;
+    readonly fullPath: string;
+    readonly isArchive: boolean;  // corresponds to is_extractable in ModelFile
+    readonly isSelected: boolean;
+    readonly isQueueable: boolean;
+    readonly isStoppable: boolean;
     // whether file can be queued for extraction (independent of isArchive)
-    isExtractable: boolean;
-    isLocallyDeletable: boolean;
-    isRemotelyDeletable: boolean;
+    readonly isExtractable: boolean;
+    readonly isLocallyDeletable: boolean;
+    readonly isRemotelyDeletable: boolean;
     // timestamps
-    localCreatedTimestamp: Date;
-    localModifiedTimestamp: Date;
-    remoteCreatedTimestamp: Date;
-    remoteModifiedTimestamp: Date;
+    readonly localCreatedTimestamp: Date | null;
+    readonly localModifiedTimestamp: Date | null;
+    readonly remoteCreatedTimestamp: Date | null;
+    readonly remoteModifiedTimestamp: Date | null;
 }
 
-// Boiler plate code to set up an immutable class
-const DefaultViewFile: IViewFile = {
-    name: null,
-    isDir: null,
-    localSize: null,
-    remoteSize: null,
-    percentDownloaded: null,
-    status: null,
-    downloadingSpeed: null,
-    eta: null,
-    fullPath: null,
-    isArchive: null,
-    isSelected: null,
-    isQueueable: null,
-    isStoppable: null,
-    isExtractable: null,
-    isLocallyDeletable: null,
-    isRemotelyDeletable: null,
-    localCreatedTimestamp: null,
-    localModifiedTimestamp: null,
-    remoteCreatedTimestamp: null,
-    remoteModifiedTimestamp: null
-};
-const ViewFileRecord = Record(DefaultViewFile);
+export enum ViewFileStatus {
+    DEFAULT = 'default',
+    QUEUED = 'queued',
+    DOWNLOADING = 'downloading',
+    DOWNLOADED = 'downloaded',
+    STOPPED = 'stopped',
+    DELETED = 'deleted',
+    EXTRACTING = 'extracting',
+    EXTRACTED = 'extracted'
+}
 
 /**
- * Immutable class that implements the interface
+ * Immutable ViewFile class
  */
-export class ViewFile extends ViewFileRecord implements IViewFile {
-    name: string;
-    isDir: boolean;
-    localSize: number;
-    remoteSize: number;
-    percentDownloaded: number;
-    status: ViewFile.Status;
-    downloadingSpeed: number;
-    eta: number;
-    // noinspection JSUnusedGlobalSymbols
-    fullPath: string;
-    isArchive: boolean;
-    isSelected: boolean;
-    isQueueable: boolean;
-    isStoppable: boolean;
-    isExtractable: boolean;
-    isLocallyDeletable: boolean;
-    isRemotelyDeletable: boolean;
-    localCreatedTimestamp: Date;
-    localModifiedTimestamp: Date;
-    remoteCreatedTimestamp: Date;
-    remoteModifiedTimestamp: Date;
+export class ViewFile implements ViewFileData {
+    readonly name: string;
+    readonly isDir: boolean;
+    readonly localSize: number | null;
+    readonly remoteSize: number | null;
+    readonly percentDownloaded: number | null;
+    readonly status: ViewFileStatus;
+    readonly downloadingSpeed: number | null;
+    readonly eta: number | null;
+    readonly fullPath: string;
+    readonly isArchive: boolean;
+    readonly isSelected: boolean;
+    readonly isQueueable: boolean;
+    readonly isStoppable: boolean;
+    readonly isExtractable: boolean;
+    readonly isLocallyDeletable: boolean;
+    readonly isRemotelyDeletable: boolean;
+    readonly localCreatedTimestamp: Date | null;
+    readonly localModifiedTimestamp: Date | null;
+    readonly remoteCreatedTimestamp: Date | null;
+    readonly remoteModifiedTimestamp: Date | null;
 
-    constructor(props) {
-        super(props);
+    constructor(data: ViewFileData) {
+        this.name = data.name;
+        this.isDir = data.isDir;
+        this.localSize = data.localSize;
+        this.remoteSize = data.remoteSize;
+        this.percentDownloaded = data.percentDownloaded;
+        this.status = data.status;
+        this.downloadingSpeed = data.downloadingSpeed;
+        this.eta = data.eta;
+        this.fullPath = data.fullPath;
+        this.isArchive = data.isArchive;
+        this.isSelected = data.isSelected;
+        this.isQueueable = data.isQueueable;
+        this.isStoppable = data.isStoppable;
+        this.isExtractable = data.isExtractable;
+        this.isLocallyDeletable = data.isLocallyDeletable;
+        this.isRemotelyDeletable = data.isRemotelyDeletable;
+        this.localCreatedTimestamp = data.localCreatedTimestamp;
+        this.localModifiedTimestamp = data.localModifiedTimestamp;
+        this.remoteCreatedTimestamp = data.remoteCreatedTimestamp;
+        this.remoteModifiedTimestamp = data.remoteModifiedTimestamp;
+        Object.freeze(this);
     }
-}
 
-export module ViewFile {
-    export enum Status {
-        DEFAULT         = <any> "default",
-        QUEUED          = <any> "queued",
-        DOWNLOADING     = <any> "downloading",
-        DOWNLOADED      = <any> "downloaded",
-        STOPPED         = <any> "stopped",
-        DELETED         = <any> "deleted",
-        EXTRACTING      = <any> "extracting",
-        EXTRACTED       = <any> "extracted"
+    /**
+     * Create a new ViewFile with updated properties
+     */
+    update(updates: Partial<ViewFileData>): ViewFile {
+        return new ViewFile({
+            name: updates.name ?? this.name,
+            isDir: updates.isDir ?? this.isDir,
+            localSize: updates.localSize !== undefined ? updates.localSize : this.localSize,
+            remoteSize: updates.remoteSize !== undefined ? updates.remoteSize : this.remoteSize,
+            percentDownloaded: updates.percentDownloaded !== undefined ? updates.percentDownloaded : this.percentDownloaded,
+            status: updates.status ?? this.status,
+            downloadingSpeed: updates.downloadingSpeed !== undefined ? updates.downloadingSpeed : this.downloadingSpeed,
+            eta: updates.eta !== undefined ? updates.eta : this.eta,
+            fullPath: updates.fullPath ?? this.fullPath,
+            isArchive: updates.isArchive ?? this.isArchive,
+            isSelected: updates.isSelected ?? this.isSelected,
+            isQueueable: updates.isQueueable ?? this.isQueueable,
+            isStoppable: updates.isStoppable ?? this.isStoppable,
+            isExtractable: updates.isExtractable ?? this.isExtractable,
+            isLocallyDeletable: updates.isLocallyDeletable ?? this.isLocallyDeletable,
+            isRemotelyDeletable: updates.isRemotelyDeletable ?? this.isRemotelyDeletable,
+            localCreatedTimestamp: updates.localCreatedTimestamp !== undefined ? updates.localCreatedTimestamp : this.localCreatedTimestamp,
+            localModifiedTimestamp: updates.localModifiedTimestamp !== undefined ? updates.localModifiedTimestamp : this.localModifiedTimestamp,
+            remoteCreatedTimestamp: updates.remoteCreatedTimestamp !== undefined ? updates.remoteCreatedTimestamp : this.remoteCreatedTimestamp,
+            remoteModifiedTimestamp: updates.remoteModifiedTimestamp !== undefined ? updates.remoteModifiedTimestamp : this.remoteModifiedTimestamp
+        });
     }
 }

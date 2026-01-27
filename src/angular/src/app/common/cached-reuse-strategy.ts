@@ -1,35 +1,34 @@
-import {ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy} from "@angular/router";
+import { ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy } from '@angular/router';
 
 /**
  * CachedReuseStrategy caches Components so that they are not
  * recreated after navigating away.
- * Source: https://www.softwarearchitekt.at/post/2016/12/02/
- *         sticky-routes-in-angular-2-3-with-routereusestrategy.aspx
  */
 export class CachedReuseStrategy implements RouteReuseStrategy {
+    private handlers: Record<string, DetachedRouteHandle> = {};
 
-    handlers: {[key: string]: DetachedRouteHandle} = {};
-
-    // noinspection JSUnusedLocalSymbols
-    shouldDetach(route: ActivatedRouteSnapshot): boolean {
+    shouldDetach(_route: ActivatedRouteSnapshot): boolean {
         return true;
     }
 
     store(route: ActivatedRouteSnapshot, handle: DetachedRouteHandle): void {
-        this.handlers[route.routeConfig.path] = handle;
+        if (route.routeConfig?.path) {
+            this.handlers[route.routeConfig.path] = handle;
+        }
     }
 
     shouldAttach(route: ActivatedRouteSnapshot): boolean {
-        return !!route.routeConfig && !!this.handlers[route.routeConfig.path];
+        return !!route.routeConfig?.path && !!this.handlers[route.routeConfig.path];
     }
 
-    retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle {
-        if (!route.routeConfig) { return null; }
-        return this.handlers[route.routeConfig.path];
+    retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle | null {
+        if (!route.routeConfig?.path) {
+            return null;
+        }
+        return this.handlers[route.routeConfig.path] ?? null;
     }
 
     shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
         return future.routeConfig === curr.routeConfig;
     }
-
 }

@@ -1,105 +1,87 @@
-import {Injectable, NgZone} from "@angular/core";
-import {Observable} from "rxjs/Observable";
-import EventSource = require("eventsource");
+import { Injectable, NgZone, inject } from '@angular/core';
+import { Observable } from 'rxjs';
 
-import {ModelFileService} from "../files/model-file.service";
-import {ServerStatusService} from "../server/server-status.service";
-import {LoggerService} from "../utils/logger.service";
-import {ConnectedService} from "../utils/connected.service";
-import {LogService} from "../logs/log.service";
-
-
-export class EventSourceFactory {
-    static createEventSource(url: string) {
-        return new EventSource(url);
-    }
-}
-
+import { ModelFileService } from '../files/model-file.service';
+import { ServerStatusService } from '../server/server-status.service';
+import { LoggerService } from '../utils/logger.service';
+import { ConnectedService } from '../utils/connected.service';
+import { LogService } from '../logs/log.service';
 
 export interface IStreamService {
     /**
      * Returns the event names supported by this stream service
-     * @returns {string[]}
      */
     getEventNames(): string[];
 
     /**
      * Notifies the stream service that it is now connected
      */
-    notifyConnected();
+    notifyConnected(): void;
 
     /**
      * Notifies the stream service that it is now disconnected
      */
-    notifyDisconnected();
+    notifyDisconnected(): void;
 
     /**
      * Notifies the stream service of an event
-     * @param {string} eventName
-     * @param {string} data
      */
-    notifyEvent(eventName: string, data: string);
+    notifyEvent(eventName: string, data: string): void;
 }
-
 
 /**
  * StreamDispatchService is the top-level service that connects to
  * the multiplexed SSE stream. It listens for SSE events and dispatches
  * them to whichever IStreamService that requested them.
  */
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class StreamDispatchService {
-    private readonly STREAM_URL = "/server/stream";
-
+    private readonly STREAM_URL = '/server/stream';
     private readonly STREAM_RETRY_INTERVAL_MS = 3000;
 
-    private _eventNameToServiceMap: Map<string, IStreamService> = new Map();
-    private _services: IStreamService[] = [];
+    private eventNameToServiceMap = new Map<string, IStreamService>();
+    private services: IStreamService[] = [];
 
-    constructor(private _logger: LoggerService,
-                private _zone: NgZone) {
-    }
+    private logger = inject(LoggerService);
+    private zone = inject(NgZone);
 
     /**
      * Call this method to finish initialization
      */
-    public onInit() {
+    public onInit(): void {
         this.createSseObserver();
     }
 
     /**
      * Register an IStreamService with the dispatch
-     * @param {IStreamService} service
-     * @returns {IStreamService}
      */
-    public registerService(service: IStreamService) {
-        for(let eventName of service.getEventNames()) {
-            this._eventNameToServiceMap.set(eventName, service);
+    public registerService(service: IStreamService): IStreamService {
+        for (const eventName of service.getEventNames()) {
+            this.eventNameToServiceMap.set(eventName, service);
         }
-        this._services.push(service);
+        this.services.push(service);
         return service;
     }
 
-    private createSseObserver() {
-        const observable = Observable.create(observer => {
-            const eventSource = EventSourceFactory.createEventSource(this.STREAM_URL);
-            for (let eventName of Array.from(this._eventNameToServiceMap.keys())) {
-                eventSource.addEventListener(eventName, event => observer.next(
-                    {
-                        "event": eventName,
-                        "data": (<MessageEvent>event).data
-                    }
-                ));
+    private createSseObserver(): void {
+        const observable = new Observable<{ event: string; data: string }>(observer => {
+            const eventSource = new EventSource(this.STREAM_URL);
+
+            for (const eventName of Array.from(this.eventNameToServiceMap.keys())) {
+                eventSource.addEventListener(eventName, event => observer.next({
+                    event: eventName,
+                    data: (event as MessageEvent).data
+                }));
             }
 
-            // noinspection SpellCheckingInspection
-            // noinspection JSUnusedLocalSymbols
-            eventSource.onopen = event => {
-                this._logger.info("Connected to server stream");
+            eventSource.onopen = () => {
+                this.logger.info('Connected to server stream');
 
                 // Notify all services of connection
-                for (let service of this._services) {
-                    this._zone.run(() => {
+                for (const service of this.services) {
+                    this.zone.run(() => {
                         service.notifyConnected();
                     });
                 }
@@ -111,21 +93,24 @@ export class StreamDispatchService {
                 eventSource.close();
             };
         });
+
         observable.subscribe({
             next: (x) => {
-                let eventName = x["event"];
-                let eventData = x["data"];
-                // this._logger.debug("Received event:", eventName);
-                this._zone.run(() => {
-                    this._eventNameToServiceMap.get(eventName).notifyEvent(eventName, eventData);
+                const eventName = x.event;
+                const eventData = x.data;
+                this.zone.run(() => {
+                    const service = this.eventNameToServiceMap.get(eventName);
+                    if (service) {
+                        service.notifyEvent(eventName, eventData);
+                    }
                 });
             },
             error: err => {
-                this._logger.error("Error in stream: %O", err);
+                this.logger.error('Error in stream: %O', err);
 
                 // Notify all services of disconnection
-                for (let service of this._services) {
-                    this._zone.run(() => {
+                for (const service of this.services) {
+                    this.zone.run(() => {
                         service.notifyDisconnected();
                     });
                 }
@@ -136,32 +121,39 @@ export class StreamDispatchService {
     }
 }
 
-
 /**
  * StreamServiceRegistry is responsible for initializing all
  * Stream Services. All services created by the registry
  * will be connected to a single stream via the DispatchService
  */
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class StreamServiceRegistry {
+    private dispatch = inject(StreamDispatchService);
+    private _modelFileService = inject(ModelFileService);
+    private _serverStatusService = inject(ServerStatusService);
+    private _connectedService = inject(ConnectedService);
+    private _logService = inject(LogService);
 
-    constructor(private _dispatch: StreamDispatchService,
-                private _modelFileService: ModelFileService,
-                private _serverStatusService: ServerStatusService,
-                private _connectedService: ConnectedService,
-                private _logService: LogService) {
-        // Register all services
-        _dispatch.registerService(_connectedService);
-        _dispatch.registerService(_serverStatusService);
-        _dispatch.registerService(_modelFileService);
-        _dispatch.registerService(_logService);
-    }
+    private initialized = false;
 
     /**
      * Call this method to finish initialization
      */
-    public onInit() {
-        this._dispatch.onInit();
+    public onInit(): void {
+        if (this.initialized) {
+            return;
+        }
+        this.initialized = true;
+
+        // Register all services
+        this.dispatch.registerService(this._connectedService);
+        this.dispatch.registerService(this._serverStatusService);
+        this.dispatch.registerService(this._modelFileService);
+        this.dispatch.registerService(this._logService);
+
+        this.dispatch.onInit();
     }
 
     get modelFileService(): ModelFileService { return this._modelFileService; }
@@ -169,37 +161,3 @@ export class StreamServiceRegistry {
     get connectedService(): ConnectedService { return this._connectedService; }
     get logService(): LogService { return this._logService; }
 }
-
-/**
- * StreamServiceRegistry factory and provider
- */
-export let streamServiceRegistryFactory = (
-        _dispatch: StreamDispatchService,
-        _modelFileService: ModelFileService,
-        _serverStatusService: ServerStatusService,
-        _connectedService: ConnectedService,
-        _logService: LogService
-) => {
-    let streamServiceRegistry = new StreamServiceRegistry(
-        _dispatch,
-        _modelFileService,
-        _serverStatusService,
-        _connectedService,
-        _logService
-    );
-    streamServiceRegistry.onInit();
-    return streamServiceRegistry;
-};
-
-// noinspection JSUnusedGlobalSymbols
-export let StreamServiceRegistryProvider = {
-    provide: StreamServiceRegistry,
-    useFactory: streamServiceRegistryFactory,
-    deps: [
-        StreamDispatchService,
-        ModelFileService,
-        ServerStatusService,
-        ConnectedService,
-        LogService
-    ]
-};

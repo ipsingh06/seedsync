@@ -1,14 +1,10 @@
-import {Inject, Injectable} from "@angular/core";
-import {Observable} from "rxjs/Observable";
-import {BehaviorSubject} from "rxjs/Rx";
+import { Injectable, inject } from '@angular/core';
+import { Observable, BehaviorSubject } from 'rxjs';
 
-import {LoggerService} from "../utils/logger.service";
-import {ViewFileOptions} from "./view-file-options";
-import {ViewFile} from "./view-file";
-import {LOCAL_STORAGE, StorageService} from "angular-webstorage-service";
-import {StorageKeys} from "../../common/storage-keys";
-
-
+import { LoggerService } from '../utils/logger.service';
+import { ViewFileOptions, ViewFileOptionsSortMethod } from './view-file-options';
+import { ViewFileStatus } from './view-file';
+import { StorageKeys } from '../../common/storage-keys';
 
 /**
  * ViewFileOptionsService class provides display option services
@@ -16,82 +12,92 @@ import {StorageKeys} from "../../common/storage-keys";
  *
  * This class is used to broadcast changes to the display options
  */
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class ViewFileOptionsService {
+    private optionsSubject: BehaviorSubject<ViewFileOptions>;
+    private logger = inject(LoggerService);
 
-    private _options: BehaviorSubject<ViewFileOptions>;
-
-    constructor(private _logger: LoggerService,
-                @Inject(LOCAL_STORAGE) private _storage: StorageService) {
+    constructor() {
         // Load some options from storage
-        const showDetails: boolean =
-            this._storage.get(StorageKeys.VIEW_OPTION_SHOW_DETAILS) || false;
-        const sortMethod: ViewFileOptions.SortMethod =
-            this._storage.get(StorageKeys.VIEW_OPTION_SORT_METHOD) ||
-                ViewFileOptions.SortMethod.STATUS;
-        const pinFilter: boolean =
-            this._storage.get(StorageKeys.VIEW_OPTION_PIN) || false;
+        const showDetails = this.getStorageValue<boolean>(StorageKeys.VIEW_OPTION_SHOW_DETAILS) ?? false;
+        const sortMethod = this.getStorageValue<ViewFileOptionsSortMethod>(StorageKeys.VIEW_OPTION_SORT_METHOD) ?? ViewFileOptionsSortMethod.STATUS;
+        const pinFilter = this.getStorageValue<boolean>(StorageKeys.VIEW_OPTION_PIN) ?? false;
 
-        this._options = new BehaviorSubject(
+        this.optionsSubject = new BehaviorSubject(
             new ViewFileOptions({
-                showDetails: showDetails,
-                sortMethod: sortMethod,
+                showDetails,
+                sortMethod,
                 selectedStatusFilter: null,
-                nameFilter: null,
-                pinFilter: pinFilter,
+                nameFilter: '',
+                pinFilter
             })
         );
     }
 
+    private getStorageValue<T>(key: string): T | null {
+        try {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    private setStorageValue<T>(key: string, value: T): void {
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+
     get options(): Observable<ViewFileOptions> {
-        return this._options.asObservable();
+        return this.optionsSubject.asObservable();
     }
 
-    public setShowDetails(show: boolean) {
-        const options = this._options.getValue();
+    public setShowDetails(show: boolean): void {
+        const options = this.optionsSubject.getValue();
         if (options.showDetails !== show) {
-            const newOptions = new ViewFileOptions(options.set("showDetails", show));
-            this._options.next(newOptions);
-            this._storage.set(StorageKeys.VIEW_OPTION_SHOW_DETAILS, show);
-            this._logger.debug("ViewOption showDetails set to: " + newOptions.showDetails);
+            const newOptions = options.update({ showDetails: show });
+            this.optionsSubject.next(newOptions);
+            this.setStorageValue(StorageKeys.VIEW_OPTION_SHOW_DETAILS, show);
+            this.logger.debug('ViewOption showDetails set to: ' + newOptions.showDetails);
         }
     }
 
-    public setSortMethod(sortMethod: ViewFileOptions.SortMethod) {
-        const options = this._options.getValue();
+    public setSortMethod(sortMethod: ViewFileOptionsSortMethod): void {
+        const options = this.optionsSubject.getValue();
         if (options.sortMethod !== sortMethod) {
-            const newOptions = new ViewFileOptions(options.set("sortMethod", sortMethod));
-            this._options.next(newOptions);
-            this._storage.set(StorageKeys.VIEW_OPTION_SORT_METHOD, sortMethod);
-            this._logger.debug("ViewOption sortMethod set to: " + newOptions.sortMethod);
+            const newOptions = options.update({ sortMethod });
+            this.optionsSubject.next(newOptions);
+            this.setStorageValue(StorageKeys.VIEW_OPTION_SORT_METHOD, sortMethod);
+            this.logger.debug('ViewOption sortMethod set to: ' + newOptions.sortMethod);
         }
     }
 
-    public setSelectedStatusFilter(status: ViewFile.Status) {
-        const options = this._options.getValue();
+    public setSelectedStatusFilter(status: ViewFileStatus | null): void {
+        const options = this.optionsSubject.getValue();
         if (options.selectedStatusFilter !== status) {
-            const newOptions = new ViewFileOptions(options.set("selectedStatusFilter", status));
-            this._options.next(newOptions);
-            this._logger.debug("ViewOption selectedStatusFilter set to: " + newOptions.selectedStatusFilter);
+            const newOptions = options.update({ selectedStatusFilter: status });
+            this.optionsSubject.next(newOptions);
+            this.logger.debug('ViewOption selectedStatusFilter set to: ' + newOptions.selectedStatusFilter);
         }
     }
 
-    public setNameFilter(name: string) {
-        const options = this._options.getValue();
+    public setNameFilter(name: string): void {
+        const options = this.optionsSubject.getValue();
         if (options.nameFilter !== name) {
-            const newOptions = new ViewFileOptions(options.set("nameFilter", name));
-            this._options.next(newOptions);
-            this._logger.debug("ViewOption nameFilter set to: " + newOptions.nameFilter);
+            const newOptions = options.update({ nameFilter: name });
+            this.optionsSubject.next(newOptions);
+            this.logger.debug('ViewOption nameFilter set to: ' + newOptions.nameFilter);
         }
     }
 
-    public setPinFilter(pinned: boolean) {
-        const options = this._options.getValue();
+    public setPinFilter(pinned: boolean): void {
+        const options = this.optionsSubject.getValue();
         if (options.pinFilter !== pinned) {
-            const newOptions = new ViewFileOptions(options.set("pinFilter", pinned));
-            this._options.next(newOptions);
-            this._storage.set(StorageKeys.VIEW_OPTION_PIN, pinned);
-            this._logger.debug("ViewOption pinFilter set to: " + newOptions.pinFilter);
+            const newOptions = options.update({ pinFilter: pinned });
+            this.optionsSubject.next(newOptions);
+            this.setStorageValue(StorageKeys.VIEW_OPTION_PIN, pinned);
+            this.logger.debug('ViewOption pinFilter set to: ' + newOptions.pinFilter);
         }
     }
 }

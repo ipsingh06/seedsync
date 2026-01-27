@@ -1,8 +1,7 @@
-import {LoggerService} from "../app/services/utils/logger.service"
-
+// Production environment configuration
 export const environment = {
     production: true,
     logger: {
-        level: LoggerService.Level.WARN
+        level: 2 // WARN
     }
 };

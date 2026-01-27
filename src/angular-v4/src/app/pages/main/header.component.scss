@@ -1,0 +1,29 @@
+@import '../../common/common';
+
+#header {
+    .alert {
+        padding: 5px;
+        margin-bottom: 0;
+        border-radius: 0;
+
+        button.close {
+            top: 5px;
+            right: 5px;
+            cursor: default;
+            user-select: none;
+            outline: none;
+            opacity: .2;
+            font-size: 160%;
+            padding: 0;
+
+            &:active {
+                color: red;
+            }
+
+            &:hover {
+                color: inherit;
+                opacity: .2;
+            }
+        }
+    }
+}

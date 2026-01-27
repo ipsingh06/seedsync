@@ -1,0 +1,327 @@
+@import '../../common/common';
+
+// Common dropdown template
+%dropdown {
+    button {
+        background-color: $primary-color;
+        color: white;
+        height: 34px;
+        width: 100%;
+        cursor: default;
+        user-select: none;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: nowrap;
+
+        .selection {
+            margin-left: 5px;
+
+            .sel-item {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: nowrap;
+
+                .icon {
+                    width: 20px;
+                    height: 20px;
+                }
+                .text {
+                    margin-left: 5px;
+                    display: none;
+                }
+            }
+        }
+    }
+
+    .dropdown-menu {
+        background-color: $primary-color;
+        border: 1px solid $primary-dark-color;
+        color: white;
+        padding: 0;
+        cursor: default;
+        user-select: none;
+
+        .dropdown-item {
+            color: white;
+            height: 32px;
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: nowrap;
+
+            &.active,
+            &.active:hover {
+                background-color: $secondary-dark-color;
+            }
+
+            &:hover,
+            &:active {
+                background-color: $primary-color;
+            }
+
+            &.disabled {
+                opacity: .65;
+                background-color: $primary-color;
+            }
+
+            .icon {
+                width: 20px;
+                height: 20px;
+            }
+            .text {
+                margin-left: 5px;
+            }
+        }
+    }
+
+    // Applies to both button and menu images
+    .icon {
+        // Set flex on outer div to center the image
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 15px;
+            height: 15px;
+            filter: invert(1.0);
+            margin-top: -2px;
+
+            &.downloaded,
+            &.downloading {
+                width: 20px;
+            }
+            &.stopped {
+                width: 13px;
+            }
+        }
+    }
+}
+
+
+%toggle {
+    background-color: $primary-color;
+    border: 1px solid $primary-dark-color;
+    color: white;
+    height: 34px;
+    cursor: default;
+    user-select: none;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+
+    &.active,
+    &.active:hover{
+        background-color: $secondary-dark-color;
+        border-color: $secondary-darker-color;
+    }
+
+    &:hover,
+    &:active {
+        background-color: $primary-color;
+    }
+
+    &.disabled {
+        opacity: .65;
+        background-color: $primary-color;
+    }
+
+    .selection {
+        margin-left: 5px;
+
+        .sel-item {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: nowrap;
+
+            .icon {
+                width: 20px;
+                height: 20px;
+            }
+            .text {
+                margin-left: 5px;
+            }
+        }
+    }
+}
+
+
+#file-options {
+    position: static;
+    z-index: $zindex-file-options;
+    background-color: $header-color;
+    padding: 0 8px 8px 8px;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    // Controls whether the div is sticky
+    // This class is enabled programmatically
+    &.sticky {
+        position: sticky;
+        // note: top is set programmatically
+    }
+
+    #filter-search {
+        flex-grow: 1;
+        flex-basis: 100%;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        position: relative;
+
+        img {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            left: 7px;
+            top: 7px;
+            z-index: $zindex-file-search;
+            filter: invert(0.8666);
+        }
+
+        input {
+            border-radius: 5px;
+            padding: 3px 15px 3px 30px;
+            width: 100%;
+        }
+
+        .input-group{
+            flex-grow: 1;
+            display: inline;
+        }
+    }
+
+    #filter-status {
+        @extend %dropdown;
+
+        .selection {
+            .sel-item {
+                // Selection item for 'All' option
+                &#sel-item-all {
+                    .icon {
+                        display: none;
+                    }
+                    .text {
+                        display: inherit;
+                        margin-left: 0;
+                    }
+                }
+            }
+        }
+
+        // Applies to both button and menu images
+        .icon {
+            img {
+                &.downloaded,
+                &.downloading {
+                    width: 20px;
+                }
+                &.stopped {
+                    width: 13px;
+                }
+            }
+        }
+    }
+
+    #sort-status {
+        @extend %dropdown;
+
+        // Applies to both button and menu images
+        .icon {
+        }
+    }
+
+    #toggle-details {
+        @extend %toggle;
+
+        // Hide the selection icons for this button
+        .selection {
+            .sel-item {
+                .icon {
+                    display: none;
+                }
+                .text {
+                    margin-left: 0;
+                }
+            }
+        }
+    }
+
+    #small-buttons {
+        flex-grow: 1;
+        padding-top: 5px;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+
+        #pin-filter {
+            @extend %toggle;
+
+            width: 20px;
+            height: 20px;
+            padding: 0;
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    // Margins for all the buttons
+    #filter-status,
+    #sort-status,
+    #toggle-details {
+        margin-top: 10px;
+    }
+
+    // Margins for the non-first buttons
+    #sort-status,
+    #toggle-details {
+        margin-left: 5px;
+    }
+}
+
+
+/* Medium and large screens */
+@media only screen and (min-width: $medium-min-width) {
+    %dropdown {
+        button {
+            .selection {
+                .sel-item {
+                    .text {
+                        // Show the text labels in selection
+                        display: inherit;
+                    }
+                }
+            }
+        }
+    }
+
+    // Margins for the non-first buttons
+    #sort-status,
+    #toggle-details {
+        margin-left: 10px;
+    }
+}
+
+// Large screens
+@media only screen and (min-width: $large-min-width) {
+    // Bit of extra padding at top when title disappears
+    #file-options {
+        padding-top: 8px;
+    }
+}

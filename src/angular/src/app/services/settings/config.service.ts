@@ -1,122 +1,102 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs/Observable";
-import {BehaviorSubject} from "rxjs/Rx";
+import { Injectable, inject } from '@angular/core';
+import { Observable, BehaviorSubject, of } from 'rxjs';
 
-import {Config, IConfig} from "./config";
-import {LoggerService} from "../utils/logger.service";
-import {BaseWebService} from "../base/base-web.service";
-import {Localization} from "../../common/localization";
-import {StreamServiceRegistry} from "../base/stream-service.registry";
-import {RestService, WebReaction} from "../utils/rest.service";
-
+import { Config, ConfigData } from './config';
+import { LoggerService } from '../utils/logger.service';
+import { BaseWebService } from '../base/base-web.service';
+import { Localization } from '../../common/localization';
+import { RestService, WebReaction } from '../utils/rest.service';
 
 /**
  * ConfigService provides the store for the config
  */
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class ConfigService extends BaseWebService {
-    private readonly CONFIG_GET_URL = "/server/config/get";
-
-    // noinspection UnterminatedStatementJS
+    private readonly CONFIG_GET_URL = '/server/config/get';
     private readonly CONFIG_SET_URL =
-        (section, option, value) => `/server/config/set/${section}/${option}/${value}`
+        (section: string, option: string, value: string) => `/server/config/set/${section}/${option}/${value}`;
 
-    private _config: BehaviorSubject<Config> = new BehaviorSubject(null);
+    private configSubject = new BehaviorSubject<Config | null>(null);
 
-    constructor(_streamServiceProvider: StreamServiceRegistry,
-                private _restService: RestService,
-                private _logger: LoggerService) {
-        super(_streamServiceProvider);
-    }
+    private restService = inject(RestService);
+    private logger = inject(LoggerService);
 
     /**
      * Returns an observable that provides that latest Config
-     * @returns {Observable<Config>}
      */
-    get config(): Observable<Config> {
-        return this._config.asObservable();
+    get config(): Observable<Config | null> {
+        return this.configSubject.asObservable();
     }
 
     /**
      * Sets a value in the config
-     * @param {string} section
-     * @param {string} option
-     * @param value
-     * @returns {WebReaction}
      */
-    public set(section: string, option: string, value: any): Observable<WebReaction> {
-        const valueStr: string = value;
-        const currentConfig = this._config.getValue();
-        if (!currentConfig.has(section) || !currentConfig.get(section).has(option)) {
-            return Observable.create(observer => {
-                observer.next(new WebReaction(false, null, `Config has no option named ${section}.${option}`));
-            });
-        } else if (valueStr.length === 0) {
-            return Observable.create(observer => {
-                observer.next(new WebReaction(
-                    false, null, Localization.Notification.CONFIG_VALUE_BLANK(section, option))
-                );
-            });
-        } else {
-            // Double-encode the value
-            const valueEncoded = encodeURIComponent(encodeURIComponent(valueStr));
-            const url = this.CONFIG_SET_URL(section, option, valueEncoded);
-            const obs = this._restService.sendRequest(url);
-            obs.subscribe({
-                next: reaction => {
-                    if (reaction.success) {
-                        // Update our copy and notify clients
-                        const config = this._config.getValue();
-                        const newConfig = new Config(config.updateIn([section, option], (_) => value));
-                        this._config.next(newConfig);
-                    }
-                }
-            });
-            return obs;
+    public set(section: string, option: string, value: unknown): Observable<WebReaction> {
+        const valueStr = String(value);
+        const currentConfig = this.configSubject.getValue();
+
+        if (!currentConfig) {
+            return of(new WebReaction(false, null, 'Config not loaded'));
         }
+
+        // Check if section/option exists
+        const configData = currentConfig as unknown as Record<string, Record<string, unknown>>;
+        const sectionObj = configData[section];
+        if (!sectionObj || typeof sectionObj !== 'object' || !(option in sectionObj)) {
+            return of(new WebReaction(false, null, `Config has no option named ${section}.${option}`));
+        }
+
+        if (valueStr.length === 0) {
+            return of(new WebReaction(
+                false, null, Localization.Notification.CONFIG_VALUE_BLANK(section, option)
+            ));
+        }
+
+        // Double-encode the value
+        const valueEncoded = encodeURIComponent(encodeURIComponent(valueStr));
+        const url = this.CONFIG_SET_URL(section, option, valueEncoded);
+        const obs = this.restService.sendRequest(url);
+
+        obs.subscribe({
+            next: reaction => {
+                if (reaction.success && currentConfig) {
+                    // Update our copy and notify clients
+                    const newSectionObj = { ...sectionObj, [option]: value };
+                    const newConfig = new Config({
+                        ...currentConfig,
+                        [section]: newSectionObj
+                    } as ConfigData);
+                    this.configSubject.next(newConfig);
+                }
+            }
+        });
+
+        return obs;
     }
 
-    protected onConnected() {
+    protected onConnected(): void {
         // Retry the get
         this.getConfig();
     }
 
-    protected onDisconnected() {
+    protected onDisconnected(): void {
         // Send null config
-        this._config.next(null);
+        this.configSubject.next(null);
     }
 
-    private getConfig() {
-        this._logger.debug("Getting config...");
-        this._restService.sendRequest(this.CONFIG_GET_URL).subscribe({
+    private getConfig(): void {
+        this.logger.debug('Getting config...');
+        this.restService.sendRequest(this.CONFIG_GET_URL).subscribe({
             next: reaction => {
-                if (reaction.success) {
-                    const config_json: IConfig = JSON.parse(reaction.data);
-                    this._config.next(new Config(config_json));
+                if (reaction.success && reaction.data) {
+                    const configJson: ConfigData = JSON.parse(reaction.data);
+                    this.configSubject.next(new Config(configJson));
                 } else {
-                    this._config.next(null);
+                    this.configSubject.next(null);
                 }
             }
         });
     }
 }
-
-/**
- * ConfigService factory and provider
- */
-export let configServiceFactory = (
-    _streamServiceRegistry: StreamServiceRegistry,
-    _restService: RestService,
-    _logger: LoggerService
-) => {
-  const configService = new ConfigService(_streamServiceRegistry, _restService, _logger);
-  configService.onInit();
-  return configService;
-};
-
-// noinspection JSUnusedGlobalSymbols
-export let ConfigServiceProvider = {
-    provide: ConfigService,
-    useFactory: configServiceFactory,
-    deps: [StreamServiceRegistry, RestService, LoggerService]
-};

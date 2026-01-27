@@ -1,39 +1,62 @@
-import {Record} from "immutable";
-
-interface INotification {
-    level: Notification.Level;
-    text: string;
-    timestamp: number;
-    dismissible: boolean;
+/**
+ * Notification
+ */
+export interface NotificationData {
+    readonly level: NotificationLevel;
+    readonly text: string;
+    readonly timestamp: number;
+    readonly dismissible: boolean;
 }
-const DefaultNotification: INotification = {
-    level: null,
-    text: null,
-    timestamp: null,
-    dismissible: false,
-};
-const NotificationRecord = Record(DefaultNotification);
 
+export enum NotificationLevel {
+    SUCCESS = 'success',
+    INFO = 'info',
+    WARNING = 'warning',
+    DANGER = 'danger'
+}
 
-export class Notification extends NotificationRecord implements INotification {
-    level: Notification.Level;
-    text: string;
-    timestamp: number;
-    dismissible: boolean;
+/**
+ * Immutable Notification class
+ */
+export class Notification implements NotificationData {
+    readonly level: NotificationLevel;
+    readonly text: string;
+    readonly timestamp: number;
+    readonly dismissible: boolean;
 
-    constructor(props) {
-        props.timestamp = Date.now();
-
-        super(props);
+    constructor(data: Omit<NotificationData, 'timestamp'> & { timestamp?: number }) {
+        this.level = data.level;
+        this.text = data.text;
+        this.timestamp = data.timestamp ?? Date.now();
+        this.dismissible = data.dismissible;
+        Object.freeze(this);
     }
-}
 
+    /**
+     * Create a success notification
+     */
+    static success(text: string, dismissible: boolean = true): Notification {
+        return new Notification({ level: NotificationLevel.SUCCESS, text, dismissible });
+    }
 
-export module Notification {
-    export enum Level {
-        SUCCESS         = <any> "success",
-        INFO            = <any> "info",
-        WARNING         = <any> "warning",
-        DANGER          = <any> "danger",
+    /**
+     * Create an info notification
+     */
+    static info(text: string, dismissible: boolean = true): Notification {
+        return new Notification({ level: NotificationLevel.INFO, text, dismissible });
+    }
+
+    /**
+     * Create a warning notification
+     */
+    static warning(text: string, dismissible: boolean = true): Notification {
+        return new Notification({ level: NotificationLevel.WARNING, text, dismissible });
+    }
+
+    /**
+     * Create a danger notification
+     */
+    static danger(text: string, dismissible: boolean = true): Notification {
+        return new Notification({ level: NotificationLevel.DANGER, text, dismissible });
     }
 }

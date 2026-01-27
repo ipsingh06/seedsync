@@ -1,45 +1,23 @@
-<div class="form-group"
-     [class.error]="value == '<replace me>'">
-
-    <!-- Unfortunately, binding to type attribute breaks functionality, so we
-         have to go with a if statement -->
-
-    <!-- Textbox -->
-    <label *ngIf="type == OptionType.Text">
-        <span class="name">{{label}}</span>
-        <input
-               type="text"
-               class="form-control"
-               [disabled]="value == null"
-               [ngModel]="value"
-               (ngModelChange)="onChange($event)" />
-        <span *ngIf="description"
-              class="description">{{description}}</span>
-    </label>
-
-    <!-- Checkbox -->
-    <label *ngIf="type == OptionType.Checkbox">
-        <input
-               type="checkbox"
-               class="form-control"
-               [disabled]="value == null"
-               [ngModel]="value"
-           (ngModelChange)="onChange($event)" />
-        <span class="name">{{label}}</span>
-        <span *ngIf="description"
-              class="description">{{description}}</span>
-    </label>
-
-    <!-- Password -->
-    <label *ngIf="type == OptionType.Password">
-        <span class="name">{{label}}</span>
-        <input
-               type="password"
-               class="form-control"
-               [disabled]="value == null"
-               [ngModel]="value"
-               (ngModelChange)="onChange($event)" />
-        <span *ngIf="description"
-              class="description">{{description}}</span>
-    </label>
+<div class="option">
+    @if (type === OptionType.Checkbox) {
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox"
+                   [checked]="value"
+                   (change)="onChange($any($event.target).checked)">
+            <label class="form-check-label">{{label}}</label>
+        </div>
+    } @else if (type === OptionType.Password) {
+        <label class="form-label">{{label}}</label>
+        <input type="password" class="form-control"
+               [value]="value"
+               (input)="onChange($any($event.target).value)">
+    } @else {
+        <label class="form-label">{{label}}</label>
+        <input type="text" class="form-control"
+               [value]="value"
+               (input)="onChange($any($event.target).value)">
+    }
+    @if (description) {
+        <small class="form-text text-muted">{{description}}</small>
+    }
 </div>

@@ -1,141 +1,91 @@
-import {Record} from "immutable";
-
 /**
  * Backend config
  * Note: Naming convention matches that used in the JSON
  */
 
-/*
- * GENERAL
- */
-interface IGeneral {
-    debug: boolean;
+export interface GeneralConfig {
+    readonly debug: boolean;
 }
-const DefaultGeneral: IGeneral = {
-    debug: null
-};
-const GeneralRecord = Record(DefaultGeneral);
 
-/*
- * LFTP
- */
-interface ILftp {
-    remote_address: string;
-    remote_username: string;
-    remote_password: string;
-    remote_port: number;
-    remote_path: string;
-    local_path: string;
-    remote_path_to_scan_script: string;
-    use_ssh_key: boolean;
-    num_max_parallel_downloads: number;
-    num_max_parallel_files_per_download: number;
-    num_max_connections_per_root_file: number;
-    num_max_connections_per_dir_file: number;
-    num_max_total_connections: number;
-    use_temp_file: boolean;
+export interface LftpConfig {
+    readonly remote_address: string;
+    readonly remote_username: string;
+    readonly remote_password: string;
+    readonly remote_port: number;
+    readonly remote_path: string;
+    readonly local_path: string;
+    readonly remote_path_to_scan_script: string;
+    readonly use_ssh_key: boolean;
+    readonly num_max_parallel_downloads: number;
+    readonly num_max_parallel_files_per_download: number;
+    readonly num_max_connections_per_root_file: number;
+    readonly num_max_connections_per_dir_file: number;
+    readonly num_max_total_connections: number;
+    readonly use_temp_file: boolean;
 }
-const DefaultLftp: ILftp = {
-    remote_address: null,
-    remote_username: null,
-    remote_password: null,
-    remote_port: null,
-    remote_path: null,
-    local_path: null,
-    remote_path_to_scan_script: null,
-    use_ssh_key: null,
-    num_max_parallel_downloads: null,
-    num_max_parallel_files_per_download: null,
-    num_max_connections_per_root_file: null,
-    num_max_connections_per_dir_file: null,
-    num_max_total_connections: null,
-    use_temp_file: null,
-};
-const LftpRecord = Record(DefaultLftp);
 
-/*
- * CONTROLLER
- */
-interface IController {
-    interval_ms_remote_scan: number;
-    interval_ms_local_scan: number;
-    interval_ms_downloading_scan: number;
-    extract_path: string;
-    use_local_path_as_extract_path: boolean;
+export interface ControllerConfig {
+    readonly interval_ms_remote_scan: number;
+    readonly interval_ms_local_scan: number;
+    readonly interval_ms_downloading_scan: number;
+    readonly extract_path: string;
+    readonly use_local_path_as_extract_path: boolean;
 }
-const DefaultController: IController = {
-    interval_ms_remote_scan: null,
-    interval_ms_local_scan: null,
-    interval_ms_downloading_scan: null,
-    extract_path: null,
-    use_local_path_as_extract_path: null,
-};
-const ControllerRecord = Record(DefaultController);
 
-/*
- * WEB
- */
-interface IWeb {
-    port: number;
+export interface WebConfig {
+    readonly port: number;
 }
-const DefaultWeb: IWeb = {
-    port: null
-};
-const WebRecord = Record(DefaultWeb);
 
-/*
- * AUTOQUEUE
- */
-interface IAutoQueue {
-    enabled: boolean;
-    patterns_only: boolean;
-    auto_extract: boolean;
+export interface AutoQueueConfig {
+    readonly enabled: boolean;
+    readonly patterns_only: boolean;
+    readonly auto_extract: boolean;
 }
-const DefaultAutoQueue: IAutoQueue = {
-    enabled: null,
-    patterns_only: null,
-    auto_extract: null,
-};
-const AutoQueueRecord = Record(DefaultAutoQueue);
 
-
-
-/*
- * CONFIG
- */
-export interface IConfig {
-    general: IGeneral;
-    lftp: ILftp;
-    controller: IController;
-    web: IWeb;
-    autoqueue: IAutoQueue;
-
+export interface ConfigData {
+    readonly general: GeneralConfig;
+    readonly lftp: LftpConfig;
+    readonly controller: ControllerConfig;
+    readonly web: WebConfig;
+    readonly autoqueue: AutoQueueConfig;
 }
-const DefaultConfig: IConfig = {
-    general: null,
-    lftp: null,
-    controller: null,
-    web: null,
-    autoqueue: null,
-};
-const ConfigRecord = Record(DefaultConfig);
 
+/**
+ * Immutable Config class
+ */
+export class Config implements ConfigData {
+    readonly general: GeneralConfig;
+    readonly lftp: LftpConfig;
+    readonly controller: ControllerConfig;
+    readonly web: WebConfig;
+    readonly autoqueue: AutoQueueConfig;
 
-export class Config extends ConfigRecord implements IConfig {
-    general: IGeneral;
-    lftp: ILftp;
-    controller: IController;
-    web: IWeb;
-    autoqueue: IAutoQueue;
+    constructor(data: ConfigData) {
+        this.general = Object.freeze({ ...data.general });
+        this.lftp = Object.freeze({ ...data.lftp });
+        this.controller = Object.freeze({ ...data.controller });
+        this.web = Object.freeze({ ...data.web });
+        this.autoqueue = Object.freeze({ ...data.autoqueue });
+        Object.freeze(this);
+    }
 
-    constructor(props) {
-        // Create immutable members
-        super({
-            general: GeneralRecord(props.general),
-            lftp: LftpRecord(props.lftp),
-            controller: ControllerRecord(props.controller),
-            web: WebRecord(props.web),
-            autoqueue: AutoQueueRecord(props.autoqueue)
+    /**
+     * Create a new Config with updated properties
+     */
+    update(updates: Partial<ConfigData>): Config {
+        return new Config({
+            general: updates.general ?? this.general,
+            lftp: updates.lftp ?? this.lftp,
+            controller: updates.controller ?? this.controller,
+            web: updates.web ?? this.web,
+            autoqueue: updates.autoqueue ?? this.autoqueue
         });
+    }
+
+    /**
+     * Create a Config from JSON response
+     */
+    static fromJson(json: ConfigData): Config {
+        return new Config(json);
     }
 }

@@ -5,14 +5,17 @@
 }
 
 /* striped rows */
-#file-list > div:nth-child(even){
+#file-list > div:nth-child(even) {
     background-color: $primary-lighter-color;
 }
 
 /* list separator */
-#file-list > div {border-bottom: 1px solid #ddd;}
-#file-list > div:last-child{border-bottom: none;}
-
+#file-list > div {
+    border-bottom: 1px solid #ddd;
+}
+#file-list > div:last-child {
+    border-bottom: none;
+}
 
 /* Medium and large screens */
 @media only screen and (min-width: $medium-min-width) {
@@ -22,11 +25,11 @@
 
     /* width */
     /* NOTE: make sure this is in-sync with ".file .content" */
-    #header .status     {width: 100px; min-width: 100px;}
-    #header .name       {flex-grow: 1;}
-    #header .speed      {width: 100px; min-width: 100px;}
-    #header .eta        {width: 100px; min-width: 100px;}
-    #header .size       {width: 30%; min-width: 30%;}
+    #header .status { width: 100px; min-width: 100px; }
+    #header .name { flex-grow: 1; }
+    #header .speed { width: 100px; min-width: 100px; }
+    #header .eta { width: 100px; min-width: 100px; }
+    #header .size { width: 30%; min-width: 30%; }
 
     /* header and content elements */
     #header > div, .content > div {
@@ -34,7 +37,7 @@
         text-align: center;
         vertical-align: top;
     }
-    #header .name, .content .name {text-align: left;}
+    #header .name, .content .name { text-align: left; }
 
     /* header color */
     #header div {

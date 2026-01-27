@@ -5,16 +5,18 @@
         padding: 5px;
         margin-bottom: 0;
         border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
-        button.close {
-            top: 5px;
-            right: 5px;
+        button.btn-close {
             cursor: default;
             user-select: none;
             outline: none;
             opacity: .2;
-            font-size: 160%;
+            font-size: 100%;
             padding: 0;
+            margin-left: auto;
 
             &:active {
                 color: red;
@@ -22,7 +24,7 @@
 
             &:hover {
                 color: inherit;
-                opacity: .2;
+                opacity: .5;
             }
         }
     }
